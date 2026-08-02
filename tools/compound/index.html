@@ -37,13 +37,13 @@ body{
     "Hiragino Sans","Yu Gothic","Meiryo",
     "Apple SD Gothic Neo","Malgun Gothic","Noto Sans CJK TC",sans-serif;
   background:var(--bg);color:var(--label);font-size:15px;line-height:1.5;
-  font-feature-settings:"tnum" 1;padding-bottom:56px;overflow-wrap:break-word;
+  font-feature-settings:"tnum" 1;padding-bottom:calc(56px + env(safe-area-inset-bottom));padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);overflow-wrap:break-word;
 }
 button,input,select{font:inherit;color:inherit;font-feature-settings:"tnum" 1;max-width:100%}
 svg{display:block;max-width:100%}
 header{position:sticky;top:0;z-index:50;background:var(--barbg);
   backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep)}
-.hrow{max-width:1360px;margin:0 auto;padding:9px 14px 8px;display:flex;align-items:center;gap:6px}
+.hrow{max-width:1360px;margin:0 auto;padding:calc(9px + env(safe-area-inset-top)) 14px 8px;display:flex;align-items:center;gap:6px}
 .htxt{flex:1;min-width:0}
 .htxt b{display:block;font-size:17px;font-weight:700;letter-spacing:-.4px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}

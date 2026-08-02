@@ -1,0 +1,33 @@
+# 系統
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 編輯器
+.vscode/
+.idea/
+*.swp
+*~
+
+# 暫存
+*.log
+*.tmp
+.cache/
+node_modules/
+
+# 個人設定（避免誤傳）
+.env
+.env.*
+secrets.*
+
+# 本機備份資料夾（不進版本庫）
+OLD/
+**/OLD/
+
+# 驗證執行產物（跑 run.bat / run.sh 會重新產生）
+verify/cases.json
+verify/js_results.json
+verify/js_sweep.json
+verify/py_results.json
+verify/report.txt
+verify/sweep_report.txt
