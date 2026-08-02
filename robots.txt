@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://money.space653000.workers.dev/sitemap.xml

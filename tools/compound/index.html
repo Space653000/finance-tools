@@ -10,6 +10,15 @@
 <meta name="apple-mobile-web-app-title" content="複利模擬器">
 <link rel="apple-touch-icon" href="../../assets/icon-180.png">
 <link rel="manifest" href="./manifest.json">
+<meta name="description" content="台灣市場的槓桿複利與借款試算工具。單筆、定期定額、六種借款、蒙地卡羅模擬與防禦邊界，算出的不只是會賺多少，而是會不會撐不住。全部本地計算，不上傳任何財務資料。">
+<link rel="canonical" href="https://money.space653000.workers.dev/tools/compound/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="槓桿複利模擬器｜別人算會賺多少，我們算會不會撐不住">
+<meta property="og:description" content="單筆 × 定期定額 × 六種借款，含蒙地卡羅與擔保維持率防禦邊界。全部本地計算，不上傳財務資料。">
+<meta property="og:url" content="https://money.space653000.workers.dev/tools/compound/">
+<meta property="og:image" content="https://money.space653000.workers.dev/assets/og-image.png">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 :root{
   --tint:#0A7C74; --amber:#B87410; --danger:#B93A25; --ok:#1F7A46;
@@ -1210,6 +1219,9 @@ addEventListener("resize",()=>{document.documentElement.style.setProperty("--hh"
 if(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches){
   document.body.classList.add("dark");document.documentElement.classList.add("dark");}
 restore().then(()=>{renderInputs();render();});
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"槓桿複利模擬器","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"TWD"},"inLanguage":["zh-Hant","en","ja","ko"],"description":"台灣市場的槓桿複利與借款試算工具，含蒙地卡羅模擬與擔保維持率防禦邊界。"}
 </script>
 <script>
 if ("serviceWorker" in navigator) {
