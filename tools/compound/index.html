@@ -175,6 +175,14 @@ tbody tr + tr{border-top:.5px solid var(--sep)}
 tr.gap td{color:var(--label2);font-size:12px;text-align:center;padding:6px}
 td.v{font-weight:600}
 .tag{display:inline-block;padding:2px 8px;border-radius:980px;font-size:11.5px;font-weight:700;color:#fff;flex:none}
+.exwrap{padding:0 14px 6px}
+.exrow{display:flex;align-items:center;gap:6px;padding:6px 0;flex-wrap:wrap}
+.exlab{font-size:12.5px;color:var(--label2);flex:none;min-width:60px}
+.exn{width:56px;text-align:center;padding:6px 4px;font-size:14px}
+.exa{width:80px;text-align:center;padding:6px 6px;font-size:14px}
+.exu{font-size:12px;color:var(--label3);flex:none}
+.exsel{min-width:64px}
+.exnote{font-size:11.5px;color:var(--label2);line-height:1.55;padding:6px 0 2px}
 .note{padding:10px 14px;font-size:12.3px;line-height:1.62;color:var(--label2);border-top:.5px solid var(--sep)}
 .disc{font-size:11.8px;line-height:1.68;color:var(--label2);padding:6px 6px 0}
 details > summary{list-style:none;cursor:pointer;padding:12px 14px;font-size:13.5px;font-weight:600;display:flex;align-items:center}
@@ -419,6 +427,11 @@ mPay:["月付金","Monthly payment","毎月返済額","월 상환액"],
 mPayGrace:["寬限期內月付金","During grace period","据置期間中の返済額","거치 기간 중 상환액"],
 mPayAfter:["期滿後月付金","After grace period","据置終了後の返済額","거치 종료 후 상환액"],
 mPayFee:["其他費用（手續費・開辦費）","Other fees (handling / origination)","その他費用（手数料・事務手数料）","기타 비용(수수료·취급수수료)"],
+fExtraN:["貸款期間額外還款次數","Number of extra repayments","期間中の繰上返済回数","대출 기간 중 추가 상환 횟수"],
+fExtraYr:["第幾年","Year","何年目","몇 년째"],
+fExtraMo:["第幾月","Month","何ヶ月目","몇 개월째"],
+fExtraAmt:["還款金額（萬）","Amount (×10k)","返済額（万）","상환액(만)"],
+extraNote:["額外還款會提前清償本金、縮短年限，月付金維持不變。","Extra repayments cut the principal early and shorten the term; the monthly payment stays the same.","繰上返済は元金を前倒しで返済し期間を短縮します。毎月返済額は変わりません。","추가 상환은 원금을 앞당겨 갚아 기간을 단축하며 월 상환액은 그대로입니다."],
 ltv:["借款成數上限市場常見約","typical maximum loan-to-value around","掛目の上限は概ね","담보인정비율 상한 통상 약"],
 /* 關鍵指標 */
 kNet:["年後淨資產中位數","-year median net worth","年後の純資産中央値","년 후 순자산 중앙값"],
@@ -638,14 +651,21 @@ function pmtAfterGrace(d){if(d.method!=="grace")return layerPmt(d);
   return i===0?d.amount/M:d.amount*i/(1-Math.pow(1+i,-M));}
 function stepLayer(d,bal,m){const i=d.rate/100/12,N=Math.max(1,Math.round(d.years*12));
   const g=d.method==="grace"?Math.round((d.grace||0)*12):0;
-  if(bal<=0)return{int:0,prin:0,bal:0};
+  if(bal<=0)return{int:0,prin:0,bal:0,extra:0};
   const it=bal*i;let pr=0;
   if(d.method==="interest"||(d.method==="grace"&&m<g))pr=(m>=N-1)?bal:0;
   else if(d.method==="principal")pr=Math.min(bal,d.amount/N);
   else{const M=d.method==="grace"?Math.max(1,N-g):N;
     const p=i===0?d.amount/M:d.amount*i/(1-Math.pow(1+i,-M));pr=Math.max(0,Math.min(bal,p-it));}
   if(m>=N-1)pr=bal;
-  return{int:it,prin:pr,bal:bal-pr};}
+  let rest=bal-pr,ex=0;
+  // 額外還款：僅攤還型借款，於指定月繳完正常本息後一次性還本（月付金不變、提早還清）
+  if(extraAllowed(d)&&Array.isArray(d.extra)){
+    for(const e of d.extra){if(e&&Math.round(e.month)===m&&e.amount>0){
+      const pay=Math.min(rest,e.amount);rest-=pay;ex+=pay;}}}
+  return{int:it,prin:pr,bal:rest,extra:ex};}
+// 哪些借款允許額外還款：僅會攤還本金者（房貸、理財房貸、信貸、車貸）
+function extraAllowed(d){return d.method==="annuity"||d.method==="principal"||d.method==="grace";}
 const divTaxRate=st=>st.divTax==="none"?0:st.divTax==="separate"?0.28:Math.max(0,st.bracket/100-0.085);
 function rates(st){const ae=Math.pow(1+st.ret/100/st.freq,st.freq)-1,dv=st.divYield/100;
   return{priceM:Math.pow(Math.max(.01,1+ae-dv),1/12)-1,feeM:Math.pow(Math.max(.01,1-st.fee/100),1/12),divM:dv/12};}
@@ -666,7 +686,7 @@ function runDet(st){
     const nh=(st.nhi&&dv*12>=20000)?dv*0.0211:0;nhiP+=nh;
     a+=dv-tx-nh;
     if(uM){const c=st.monthly*Math.pow(1+st.stepUp/100,Math.floor(m/12));a+=c;own+=c;}
-    st.debts.forEach((d,k)=>{const r=stepLayer(d,bals[k],m);bals[k]=r.bal;intP+=r.int;prinP+=r.prin;});
+    st.debts.forEach((d,k)=>{const r=stepLayer(d,bals[k],m);bals[k]=r.bal;intP+=r.int;prinP+=r.prin+(r.extra||0);});
     if((m+1)%12===0||m===M-1)path.push({m:m+1,assets:a,debt:bals.reduce((x,y)=>x+y,0),own});}
   const de=bals.reduce((x,y)=>x+y,0);
   return{path,assets:a,debtEnd:de,net:a-de,ownIn:own,intP,prinP,feeP,taxP,nhiP,
@@ -884,6 +904,29 @@ function renderAdv(){
     `<div class="row"><span class="k">${T("fNhi")}</span><button class="info" data-x="nhi">i</button>
       <button class="sw ${S.nhi?"on":""}" data-t="nhi"></button></div>
       <div class="f" style="padding-top:0"><div class="expl" id="x_nhi">${EX.nhi[LG]||EX.nhi[0]}</div></div>`;}
+function extraFields(i,d){
+  const n=(d.extra&&d.extra.length)||0;
+  const opts=[0,1,2,3,4,5].map(k=>`<option value="${k}" ${n===k?"selected":""}>${k}</option>`).join("");
+  let rows="";
+  for(let j=0;j<n;j++){
+    const e=(d.extra&&d.extra[j])||{month:0,amount:0};
+    const yr=Math.floor((e.month||0)/12), mo=(e.month||0)%12;
+    rows+=`<div class="exrow">
+      <span class="exlab">(${j+1}) ${T("fExtraYr")}</span>
+      <input class="num exn" type="number" min="0" max="40" data-ex="${i}" data-ej="${j}" data-ef="yr" value="${yr}">
+      <span class="exu">${["年","y","年","년"][LG]}</span>
+      <input class="num exn" type="number" min="0" max="11" data-ex="${i}" data-ej="${j}" data-ef="mo" value="${mo}">
+      <span class="exu">${["月","m","月","월"][LG]}</span>
+      <input class="num exa" type="number" min="0" step="1" data-ex="${i}" data-ej="${j}" data-ef="amt" value="${(e.amount||0)/10000}">
+      <span class="exu">${["萬","×10k","万","만"][LG]}</span></div>`;
+  }
+  return `<div class="exwrap">
+    <div class="row"><span class="k">${T("fExtraN")}</span>
+      <select class="sel exsel" data-exn="${i}">${opts}</select></div>
+    ${rows}
+    ${n>0?`<div class="exnote">${T("extraNote")}</div>`:""}
+  </div>`;
+}
 function renderDebts(){
   const el=$("debts");
   if(!S.debts.length){el.innerHTML=`<div class="empty">${T("noDebt")}</div>`;return;}
@@ -903,6 +946,7 @@ function renderDebts(){
         <button class="sw ${d.invest?"on":""}" data-d="${i}" data-p="invest"></button></div>
       ${d.invest?`<div class="warn">${T("levWarn")}</div>`:""}
       <div class="warn" style="background:var(--fill);color:var(--label2);font-weight:400">${(D.cau[Ty.i]&&D.cau[Ty.i][LG])||D.cau[Ty.i][0]}</div>
+      ${extraAllowed(d)?extraFields(i,d):""}
       <div class="note" style="border-top:none;padding-top:0">${
         d.method==="grace"&&(d.grace||0)>0
         ? `${T("mPayGrace")} <b style="color:var(--tint);font-weight:700">${money(layerPmt(d))}</b> → ${T("mPayAfter")} <b style="color:var(--tint);font-weight:700">${money(pmtAfterGrace(d))}</b>`
@@ -1184,10 +1228,23 @@ document.addEventListener("input",e=>{const t=e.target;
           : `${T("mPay")} <b style="color:var(--tint);font-weight:700">${money(layerPmt(d))}</b>`)
           +(Ty.collateral?`・${T("ltv")} ${Ty.ltv}%`:"")
           +((d.fee||0)>0?`<br>${T("mPayFee")} <b>${money(d.fee)}</b>`:"");}}
+    update(false);}
+  if(t.dataset.ex!==undefined&&t.dataset.ef){const i=+t.dataset.ex,j=+t.dataset.ej,f=t.dataset.ef;
+    const arr=S.debts[i].extra;if(!arr||!arr[j])return;
+    const v=parseFloat(t.value||0);
+    if(f==="amt")arr[j].amount=v*10000;
+    else{let yr=Math.floor((arr[j].month||0)/12),mo=(arr[j].month||0)%12;
+      if(f==="yr")yr=Math.max(0,Math.round(v));if(f==="mo")mo=Math.max(0,Math.min(11,Math.round(v)));
+      arr[j].month=yr*12+mo;}
     update(false);}});
 document.addEventListener("change",e=>{const t=e.target;if(t.tagName!=="SELECT")return;
   if(t.id==="lang"){LG=+t.value;update(true);return;}
   if(t.dataset.k){S[t.dataset.k]=t.dataset.k==="freq"?+t.value:t.value;update(true);}
+  if(t.dataset.exn!==undefined){const i=+t.dataset.exn,n=+t.value;
+    if(!Array.isArray(S.debts[i].extra))S.debts[i].extra=[];
+    const cur=S.debts[i].extra;
+    while(cur.length<n)cur.push({month:12,amount:0});
+    cur.length=n; update(true); return;}
   if(t.dataset.d!==undefined){const i=+t.dataset.d,p=t.dataset.p;
     if(p==="type"){const Ty=DEBT_TYPES[t.value];
       S.debts[i]={type:t.value,amount:S.debts[i].amount,rate:Ty.rate,years:Ty.years,method:Ty.method,

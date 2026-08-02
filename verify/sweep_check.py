@@ -37,13 +37,16 @@ def pmt_after_grace(d):
     m = max(1, n-g)
     return d["amount"]/m if i == 0 else d["amount"]*i/(1-(1+i)**-m)
 
+def extra_allowed(d):
+    return d["method"] in ("annuity", "principal", "grace")
+
 def step_layer(d, bal, m):
-    """單期攤還。回傳 (利息, 本金, 期末餘額)"""
+    """單期攤還。回傳 (利息, 本金, 期末餘額, 額外還款)"""
     i = d["rate"]/100/12
     n = max(1, round(d["years"]*12))
     g = round((d.get("grace") or 0)*12) if d["method"] == "grace" else 0
     if bal <= 0:
-        return 0.0, 0.0, 0.0
+        return 0.0, 0.0, 0.0, 0.0
     interest = bal*i
     if d["method"] == "interest" or (d["method"] == "grace" and m < g):
         principal = bal if m >= n-1 else 0.0
@@ -55,7 +58,13 @@ def step_layer(d, bal, m):
         principal = max(0.0, min(bal, p-interest))
     if m >= n-1:
         principal = bal
-    return interest, principal, bal-principal
+    rest = bal - principal
+    ex = 0.0
+    if extra_allowed(d) and isinstance(d.get("extra"), list):
+        for e in d["extra"]:
+            if e and round(e.get("month", -1)) == m and e.get("amount", 0) > 0:
+                pay = min(rest, e["amount"]); rest -= pay; ex += pay
+    return interest, principal, rest, ex
 
 # ---------- 稅與報酬 ----------
 def div_tax_rate(s):
@@ -95,8 +104,8 @@ def run_det(s):
             c = s["monthly"]*(1 + s["stepUp"]/100)**(m//12)
             a += c; own += c
         for k, d in enumerate(s["debts"]):
-            it, pr, nb = step_layer(d, bals[k], m)
-            bals[k] = nb; int_p += it; prin_p += pr
+            it, pr, nb, ex = step_layer(d, bals[k], m)
+            bals[k] = nb; int_p += it; prin_p += pr + ex
         if (m+1) % 12 == 0 or m == months-1:
             path_len += 1
     debt_end = sum(bals)

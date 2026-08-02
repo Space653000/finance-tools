@@ -98,6 +98,32 @@ for(const init of [0,1,20000000]) for(const monthly of [0,1,300000])
   }
 cases.push(...edge);
 
+/* ---- E. 额外还款专项（仅攤還型借款）---- */
+const extraCases=[];
+const amMethods=["annuity","principal","grace"];
+for(let k=0;k<800;k++){
+  const s=E.DEF();
+  const method=pick(amMethods);
+  const years=5+Math.floor(rnd()*30);
+  const n=Math.floor(rnd()*6); // 0~5 次额外还款
+  const extra=[];
+  for(let j=0;j<n;j++){
+    extra.push({month:Math.floor(rnd()*years*12),amount:round(50000+rnd()*2000000,10000)});
+  }
+  const d=mkDebt("mortgage",round(1000000+rnd()*9000000,100000),
+    round(1+rnd()*5,0.05),years,method,method==="grace"?Math.floor(rnd()*4):0,rnd()<0.5);
+  d.extra=extra;
+  Object.assign(s,{mode:pick(["lump","dca","mix"]),
+    init:round(rnd()*10000000,50000),monthly:round(rnd()*100000,1000),
+    years:1+Math.floor(rnd()*40),ret:round(rnd()*15,0.1),vol:round(rnd()*40,1),
+    infl:round(rnd()*6,0.1),freq:pick([1,12]),divYield:round(rnd()*8,0.1),
+    fee:round(rnd()*2,0.01),divTax:pick(["combined","separate","none"]),
+    bracket:pick([5,12,20,30,40]),nhi:rnd()<0.5,income:round(rnd()*300000,5000),
+    cash:round(rnd()*5000000,50000),stepUp:0,debts:[d]});
+  extraCases.push(s);
+}
+cases.push(...extraCases);
+
 /* ---- 執行 ---- */
 const out=[];
 for(let i=0;i<cases.length;i++){
