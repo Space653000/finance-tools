@@ -893,10 +893,10 @@ function renderDebts(){
       <span class="chip">${wan(d.amount)}</span><button class="del" data-rm="${i}">×</button></div>
       ${dfield(i,"amount","fAmt",0,20000000,100000,"",d.amount)}
       ${dfield(i,"rate","fRate",0,20,.05,"%",d.rate)}
-      ${dfield(i,"years","fTerm",1,40,1,"",d.years)}
+      ${dfield(i,"years","fTerm",1,40,1,T("thYear"),d.years)}
       <div class="row"><span class="k">${T("fMethod")}</span><select class="sel" data-d="${i}" data-p="method">
         ${MK.map((k,j)=>`<option value="${k}" ${d.method===k?"selected":""}>${TA("mth",j)}</option>`).join("")}</select></div>
-      ${d.method==="grace"?dfield(i,"grace","fGrace",0,10,1,"",d.grace||0):""}
+      ${d.method==="grace"?dfield(i,"grace","fGrace",0,10,1,T("thYear"),d.grace||0):""}
       ${!Ty.secured?dfield(i,"fee","fOpen",0,100000,1000,"",d.fee||0):""}
       ${Ty.collateral?dfield(i,"call","fCall",100,220,1,"%",d.call||Ty.call)+dfield(i,"sell","fSell",100,220,1,"%",d.sell||Ty.sell):""}
       <div class="row"><span class="k">${T("fInvest")}</span>
@@ -1175,6 +1175,15 @@ document.addEventListener("input",e=>{const t=e.target;
     S.debts[i][p]=(t.type==="number"||t.type==="range")?parseFloat(t.value||0):t.value;
     document.querySelectorAll(`[data-d="${i}"][data-p="${p}"]`).forEach(o=>{if(o!==t)o.value=t.value;});
     if(p==="amount"){const c=t.closest(".layer").querySelector(".chip");if(c)c.textContent=wan(S.debts[i].amount);}
+    // 只更新該借款卡片底部的月付金說明，避免整卡重繪導致 range 游標中斷
+    const layer=t.closest(".layer");
+    if(layer){const nb=layer.querySelector(".note");
+      if(nb){const d=S.debts[i],Ty=DEBT_TYPES[d.type];
+        nb.innerHTML=(d.method==="grace"&&(d.grace||0)>0
+          ? `${T("mPayGrace")} <b style="color:var(--tint);font-weight:700">${money(layerPmt(d))}</b> → ${T("mPayAfter")} <b style="color:var(--tint);font-weight:700">${money(pmtAfterGrace(d))}</b>`
+          : `${T("mPay")} <b style="color:var(--tint);font-weight:700">${money(layerPmt(d))}</b>`)
+          +(Ty.collateral?`・${T("ltv")} ${Ty.ltv}%`:"")
+          +((d.fee||0)>0?`<br>${T("mPayFee")} <b>${money(d.fee)}</b>`:"");}}
     update(false);}});
 document.addEventListener("change",e=>{const t=e.target;if(t.tagName!=="SELECT")return;
   if(t.id==="lang"){LG=+t.value;update(true);return;}
