@@ -1,25 +1,226 @@
 <!DOCTYPE html>
-<!-- 暫時性首頁：M7 會以正式的工具總覽頁取代此檔。此處僅確保網站根目錄可用。 -->
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stephen AI Finance Tools</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stephen AI Finance｜台灣財務試算工具</title>
 <meta name="google-site-verification" content="Za9w8xysP4bE4whfpEvJCYiY1eq-em44Vt8HOm6IRiI" />
-<meta http-equiv="refresh" content="0; url=./tools/compound/">
-<link rel="canonical" href="./tools/compound/">
+<meta name="description" content="Stephen AI Finance 是一套為台灣市場打造的財務試算工具站。第一個工具是槓桿複利模擬器，含蒙地卡羅與擔保維持率防禦邊界。全部本地計算，不上傳任何財務資料。">
+<meta name="theme-color" content="#0A7C74">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Stephen AI Finance">
+<link rel="apple-touch-icon" href="./assets/icon-180.png">
+<link rel="canonical" href="https://money.space653000.workers.dev/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Stephen AI Finance｜台灣財務試算工具">
+<meta property="og:description" content="別人算會賺多少，我們算會不會撐不住。全部本地計算，不上傳任何財務資料。">
+<meta property="og:url" content="https://money.space653000.workers.dev/">
+<meta property="og:image" content="https://money.space653000.workers.dev/assets/og-image.png">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;
-  background:#F2F2F7;color:#000;display:flex;align-items:center;justify-content:center;
-  min-height:100vh;margin:0;padding:24px;text-align:center;line-height:1.6}
-a{color:#0A7C74;font-weight:600}
-@media(prefers-color-scheme:dark){body{background:#000;color:#fff}a{color:#3FA7A0}}
+:root{
+  --tint:#0A7C74; --gold:#C79A2E; --bg:#F2F2F7; --card:#FFF;
+  --label:#000; --label2:rgba(60,60,67,.78); --label3:rgba(60,60,67,.4);
+  --sep:rgba(60,60,67,.14); --fill:rgba(120,120,128,.11);
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.06);
+  --hero:linear-gradient(135deg,#0E1B2A,#08355F);
+}
+html{background:#F2F2F7;color-scheme:light}
+html.dark{background:#000;color-scheme:dark}
+body.dark{
+  --tint:#3FA7A0; --gold:#E8C05A; --bg:#000; --card:#1C1C1E;
+  --label:#FFF; --label2:rgba(235,235,245,.66); --label3:rgba(235,235,245,.36);
+  --sep:rgba(84,84,88,.5); --fill:rgba(120,120,128,.22);
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{max-width:100%;overflow-x:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",
+    "PingFang TC","Heiti TC","Microsoft JhengHei","Hiragino Sans","Yu Gothic",
+    "Apple SD Gothic Neo","Malgun Gothic","Noto Sans CJK TC",sans-serif;
+  background:var(--bg);color:var(--label);line-height:1.6;
+  padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);
+  padding-bottom:calc(40px + env(safe-area-inset-bottom));
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px}
+.top{display:flex;align-items:center;gap:10px;padding:calc(14px + env(safe-area-inset-top)) 20px 14px;max-width:960px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.brand img{width:34px;height:34px;border-radius:9px;flex:none}
+.brand b{font-size:17px;font-weight:700;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+select.lang,button.mode{background:var(--fill);border:none;border-radius:980px;padding:7px 11px;
+  font-size:13px;font-weight:600;cursor:pointer;color:var(--label);flex:none}
+select.lang option{background:var(--card);color:var(--label)}
+.hero{background:var(--hero);border-radius:20px;padding:40px 30px;margin:8px 0 30px;color:#fff;position:relative;overflow:hidden}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:-.5px;line-height:1.25;position:relative;z-index:2}
+.hero p{font-size:16px;color:#B9CCE0;margin-top:14px;position:relative;z-index:2;max-width:560px}
+.hero .arrow{position:absolute;right:-10px;bottom:-20px;width:200px;height:200px;opacity:.9;z-index:1}
+@media(max-width:560px){.hero{padding:32px 22px}.hero h1{font-size:25px}.hero .arrow{width:140px;height:140px;opacity:.5}}
+.sec{font-size:13px;font-weight:600;color:var(--label2);margin:0 4px 12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:34px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:22px;
+  display:flex;flex-direction:column;gap:10px;text-decoration:none;color:inherit;
+  border:1px solid transparent;transition:transform .15s,border-color .15s;position:relative}
+a.card:hover{transform:translateY(-2px);border-color:var(--tint)}
+.card .ico{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:24px;background:var(--fill);flex:none}
+.card.live .ico{background:linear-gradient(135deg,#0E1B2A,#08355F)}
+.card h3{font-size:17px;font-weight:700;letter-spacing:-.2px}
+.card p{font-size:13.5px;color:var(--label2);line-height:1.55;flex:1}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:980px;align-self:flex-start}
+.tag.on{background:rgba(10,124,116,.14);color:var(--tint)}
+.tag.soon{background:var(--fill);color:var(--label3)}
+.card .go{font-size:13px;font-weight:600;color:var(--tint);margin-top:2px}
+.card.soon{cursor:default}
+.card.soon h3,.card.soon p{opacity:.72}
+.why{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:24px;margin-bottom:34px}
+.why h2{font-size:19px;font-weight:700;margin-bottom:14px;letter-spacing:-.2px}
+.why ul{list-style:none;display:grid;gap:14px}
+.why li{display:flex;gap:12px;align-items:flex-start}
+.why .dot{width:8px;height:8px;border-radius:50%;background:var(--tint);margin-top:8px;flex:none}
+.why li b{font-weight:650}
+.why li span{color:var(--label2);font-size:14px}
+.foot{border-top:1px solid var(--sep);padding-top:22px;color:var(--label2);font-size:12.5px;line-height:1.7}
+.foot a{color:var(--tint);text-decoration:none}
 </style>
 </head>
 <body>
-<div>
-  <p>正在前往槓桿複利模擬器…</p>
-  <p><a href="./tools/compound/">若未自動跳轉，請點這裡</a></p>
+
+<div class="top">
+  <div class="brand">
+    <img src="./assets/icon-192.png" alt="Stephen AI Finance">
+    <b id="brandName">Stephen AI Finance</b>
+  </div>
+  <select class="lang" id="lang" aria-label="Language">
+    <option value="0">繁體中文</option><option value="1">English</option>
+    <option value="2">日本語</option><option value="3">한국어</option>
+  </select>
+  <button class="mode" id="mode">深色</button>
 </div>
+
+<div class="wrap">
+  <section class="hero">
+    <h1 id="heroTitle"></h1>
+    <p id="heroSub"></p>
+    <img class="arrow" src="./assets/icon.svg" alt="">
+  </section>
+
+  <div class="sec" id="secTools">工具</div>
+  <div class="grid" id="grid"></div>
+
+  <div class="why">
+    <h2 id="whyTitle"></h2>
+    <ul id="whyList"></ul>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+"use strict";
+const D={
+brand:["Stephen AI Finance","Stephen AI Finance","Stephen AI Finance","Stephen AI Finance"],
+heroTitle:["別人算會賺多少<br>我們算會不會撐不住",
+  "Others calculate how much you'll gain<br>we calculate whether you'll survive",
+  "他人は「いくら儲かるか」<br>私たちは「耐えられるか」を計算します",
+  "남들은 얼마 버는지 계산하지만<br>우리는 버틸 수 있는지 계산합니다"],
+heroSub:["為台灣市場打造的財務試算工具。稅制、DBR、擔保維持率全依台灣法規與銀行實務。全部本地計算，不上傳任何財務資料。",
+  "Financial tools built for the Taiwan market. Tax, DBR and margin thresholds follow Taiwan regulations and banking practice. Everything is calculated locally — no financial data is uploaded.",
+  "台湾市場向けの財務試算ツール。税制・DBR・担保維持率はいずれも台湾の法令と銀行実務に基づきます。すべて端末内で計算し、財務データは一切アップロードしません。",
+  "대만 시장을 위한 재무 계산 도구. 세제·DBR·담보유지율은 모두 대만 법규와 은행 실무를 따릅니다. 모든 계산은 로컬에서 이루어지며 재무 데이터는 전송되지 않습니다."],
+secTools:["工具","Tools","ツール","도구"],
+whyTitle:["為什麼是這裡","Why here","なぜここか","왜 여기인가"],
+live:["可使用","Available","利用可能","사용 가능"],
+soon:["即將推出","Coming soon","近日公開","출시 예정"],
+open:["開啟工具 →","Open →","開く →","열기 →"],
+why:[
+ [["風險看得比報酬清楚","把追繳、斷頭、可撐月數放在最上面，不是藏在最後一頁。"],
+  ["把別人漏算的成本算進去","內扣費用、股利稅、二代健保、利息，難看但真實。"],
+  ["不預測、不推薦、不排名","只依你輸入的假設做數學，決定權完全在你手上。"],
+  ["資料留在你的裝置","預設不上傳任何財務資料，這是隱私，也是設計原則。"]],
+ [["Risk shown more clearly than reward","Margin calls, liquidation and months of runway sit at the top — not hidden on the last page."],
+  ["Counts the costs others skip","Fund fees, dividend tax, NHI premium, interest — ugly but real."],
+  ["No forecasts, no picks, no rankings","Only arithmetic on your own assumptions. The decision stays yours."],
+  ["Your data stays on your device","Nothing is uploaded by default — privacy as a design principle."]],
+ [["リスクをリターンより明確に","追証・強制決済・耐えられる月数を最上部に。最後のページに隠しません。"],
+  ["他社が省くコストも計算","信託報酬・配当税・二代健保・利息。見栄えは悪くても現実です。"],
+  ["予測せず、推奨せず、順位付けせず","あなたの前提での計算のみ。決定権はあなたにあります。"],
+  ["データは端末内に","既定では何もアップロードしません。プライバシーは設計原則です。"]],
+ [["수익보다 위험을 더 명확하게","추가담보·강제처분·버틸 개월수를 맨 위에. 마지막 페이지에 숨기지 않습니다."],
+  ["남들이 빼먹는 비용까지 계산","보수·배당세·건보료·이자. 보기엔 나빠도 현실입니다."],
+  ["예측·추천·순위 없음","입력한 가정에 대한 계산만. 결정은 당신의 몫입니다."],
+  ["데이터는 기기 안에","기본적으로 아무것도 전송하지 않습니다. 프라이버시는 설계 원칙입니다."]]],
+tools:[
+ [["📈","槓桿複利模擬器","單筆 × 定期定額 × 六種借款，含蒙地卡羅與擔保維持率防禦邊界。",true,"./tools/compound/"],
+  ["💰","ETF 定期定額","定期定額試算，含內扣費用、股利課稅與再投入的長期真實報酬。",false],
+  ["🏠","房貸試算","買房負擔試算：本息攤還、寬限期、升息情境與月付比檢核。",false],
+  ["🔥","FIRE 退休試算","提前退休試算，含傳統 4% 法則與 Guyton-Klinger 動態提領。",false],
+  ["⚖️","資產配置","四大類配置：預備、防守、攻擊、樂透，各司其職。",false],
+  ["🛡️","保險與稅務","規劃中。",false]],
+ [["📈","Leverage Compound Simulator","Lump sum × recurring × six loan types, with Monte Carlo and margin-maintenance defence boundaries.",true,"./tools/compound/"],
+  ["💰","ETF Recurring Plan","Recurring-investment projection with fund fees, dividend tax and reinvestment over the long run.",false],
+  ["🏠","Mortgage Planner","Home-buying affordability: amortisation, grace period, rate-hike scenarios and payment ratio checks.",false],
+  ["🔥","FIRE / Retirement","Early-retirement projection with the classic 4% rule and Guyton-Klinger dynamic withdrawals.",false],
+  ["⚖️","Asset Allocation","Four buckets: reserve, defence, offence, lottery — each with its own job.",false],
+  ["🛡️","Insurance & Tax","In planning.",false]],
+ [["📈","レバレッジ複利シミュレーター","一括 × 積立 × 6種のローン、モンテカルロと担保維持率の防衛ライン付き。",true,"./tools/compound/"],
+  ["💰","ETF 積立投資","信託報酬・配当課税・再投資を含む長期の実質リターンを試算。",false],
+  ["🏠","住宅ローン試算","住宅購入の負担試算：元利返済・据置期間・利上げシナリオ・返済比率チェック。",false],
+  ["🔥","FIRE・退職試算","早期退職の試算。従来の4%ルールとGuyton-Klinger動的取り崩しに対応。",false],
+  ["⚖️","資産配分","4分類：予備・防御・攻撃・宝くじ。それぞれの役割で。",false],
+  ["🛡️","保険と税務","計画中。",false]],
+ [["📈","레버리지 복리 시뮬레이터","거치식 × 적립식 × 6가지 대출, 몬테카를로 및 담보유지율 방어선 포함.",true,"./tools/compound/"],
+  ["💰","ETF 적립식","보수·배당과세·재투자를 포함한 장기 실질 수익률 계산.",false],
+  ["🏠","주택담보대출 계산","주택 구입 부담 계산: 원리금 상환·거치 기간·금리 인상 시나리오·상환비율 점검.",false],
+  ["🔥","FIRE 은퇴 계산","조기 은퇴 계산. 전통적 4% 법칙과 Guyton-Klinger 동적 인출 지원.",false],
+  ["⚖️","자산 배분","4가지: 예비·방어·공격·복권. 각자의 역할대로.",false],
+  ["🛡️","보험과 세무","기획 중.",false]]],
+foot:[
+ "本站工具僅依使用者輸入的假設進行數學運算，不提供任何預測、投資建議、標的推薦或方案排名。所有計算在你的裝置本地完成，預設不上傳任何財務資料。投資有風險，槓桿會同時放大獲利與虧損。",
+ "The tools on this site perform arithmetic on the assumptions you enter. They provide no forecasts, investment advice, security recommendations or rankings. All calculations run locally on your device; no financial data is uploaded by default. Investing carries risk, and leverage magnifies both gains and losses.",
+ "本サイトのツールは入力された前提に基づく計算のみを行い、予測・投資助言・銘柄推奨・順位付けは一切提供しません。すべての計算は端末内で行われ、既定では財務データをアップロードしません。投資にはリスクがあり、レバレッジは利益と損失の双方を拡大させます。",
+ "이 사이트의 도구는 입력한 가정에 대한 계산만 수행하며 예측·투자자문·종목추천·순위를 제공하지 않습니다. 모든 계산은 기기에서 로컬로 이루어지며 기본적으로 재무 데이터를 전송하지 않습니다. 투자에는 위험이 따르며 레버리지는 이익과 손실을 모두 확대합니다."],
+modeLight:["淺色","Light","ライト","라이트"],
+modeDark:["深色","Dark","ダーク","다크"]
+};
+let LG=0;
+const $=id=>document.getElementById(id);
+function render(){
+  document.documentElement.lang=["zh-Hant","en","ja","ko"][LG];
+  $("brandName").textContent=D.brand[LG];
+  $("heroTitle").innerHTML=D.heroTitle[LG];
+  $("heroSub").textContent=D.heroSub[LG];
+  $("secTools").textContent=D.secTools[LG];
+  $("whyTitle").textContent=D.whyTitle[LG];
+  $("foot").textContent=D.foot[LG];
+  $("mode").textContent=document.body.classList.contains("dark")?D.modeLight[LG]:D.modeDark[LG];
+  $("grid").innerHTML=D.tools[LG].map(t=>{
+    const ico=t[0],name=t[1],desc=t[2],live=t[3],url=t[4];
+    const tag=live?'<span class="tag on">'+D.live[LG]+'</span>':'<span class="tag soon">'+D.soon[LG]+'</span>';
+    if(live){
+      return '<a class="card live" href="'+url+'"><div class="ico">'+ico+'</div>'+tag+
+        '<h3>'+name+'</h3><p>'+desc+'</p><div class="go">'+D.open[LG]+'</div></a>';
+    }
+    return '<div class="card soon"><div class="ico">'+ico+'</div>'+tag+
+      '<h3>'+name+'</h3><p>'+desc+'</p></div>';
+  }).join("");
+  $("whyList").innerHTML=D.why[LG].map(function(x){
+    return '<li><span class="dot"></span><span><b>'+x[0]+'</b>　'+x[1]+'</span></li>';}).join("");
+}
+$("lang").addEventListener("change",function(e){LG=+e.target.value;render();});
+$("mode").addEventListener("click",function(){
+  document.body.classList.toggle("dark");
+  document.documentElement.classList.toggle("dark");
+  render();
+});
+(function(){var l=(navigator.language||"zh").toLowerCase();
+  LG=l.startsWith("ja")?2:l.startsWith("ko")?3:(l.startsWith("zh")?0:1);})();
+if(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches){
+  document.body.classList.add("dark");document.documentElement.classList.add("dark");}
+render();
+</script>
 </body>
 </html>
