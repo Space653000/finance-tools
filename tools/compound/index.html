@@ -239,7 +239,7 @@ body.busy #chMain,body.busy #gauge{opacity:.4;transition:opacity .12s}
     <div class="card" id="debts"></div>
     <div class="sec" id="s_pers"></div>
     <div class="card" id="personal"></div>
-    <div class="card"><details><summary id="s_adv"></summary><div id="adv"></div></details></div>
+    <div class="card"><details open><summary id="s_adv"></summary><div id="adv"></div></details></div>
     <div class="sec" id="s_plans"><span class="sp" style="font-weight:400;font-size:11px" id="planCount"></span></div>
     <div class="card" id="plans"></div>
     <div class="card"><details><summary id="s_hist"></summary><div id="hist"></div></details></div>
@@ -596,7 +596,7 @@ const DEBT_TYPES={
   car:{i:5,rate:5.5,years:5,method:"annuity",collateral:false,invest:false,secured:false}};
 const MK=["annuity","principal","interest","grace"];
 const DEF=()=>({mode:"mix",init:3000000,monthly:12000,stepUp:0,years:20,ret:6.5,
-  vol:20,infl:2,freq:12,divYield:3.2,fee:0.45,divTax:"combined",bracket:12,nhi:true,
+  vol:20,infl:2,freq:1,divYield:0,fee:0.45,divTax:"combined",bracket:12,nhi:true,
   income:120000,cash:600000,
   debts:[{type:"pledge",amount:2000000,rate:3.2,years:1,method:"interest",grace:0,invest:true,call:140,sell:130,fee:0}]});
 let S=DEF(),PLANS=[],HIST=[],SEL=[],PID=1,TBLV="brief",SIMS=1000,ADV=[];
@@ -899,7 +899,7 @@ function renderDebts(){
       <div class="row"><span class="k">${T("fInvest")}</span>
         <button class="sw ${d.invest?"on":""}" data-d="${i}" data-p="invest"></button></div>
       ${d.invest?`<div class="warn">${T("levWarn")}</div>`:""}
-      <div class="warn" style="background:var(--fill);color:var(--label2);font-weight:400">${TA("cau",Ty.i)}</div>
+      <div class="warn" style="background:var(--fill);color:var(--label2);font-weight:400">${(D.cau[Ty.i]&&D.cau[Ty.i][LG])||D.cau[Ty.i][0]}</div>
       <div class="note" style="border-top:none;padding-top:0">${T("mPay")} ${money(layerPmt(d))}${Ty.collateral?`・${T("ltv")} ${Ty.ltv}%`:""}</div></div>`;}).join("");}
 function renderPlans(){
   $("planCount").textContent=PLANS.length?T("planN",{n:PLANS.length}):"";
