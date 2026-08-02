@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>槓桿複利模擬器</title>
+<style>
+:root{
+  --tint:#0A7C74; --amber:#B87410; --danger:#B93A25; --ok:#1F7A46;
+  --bg:#F2F2F7; --card:#FFF;
+  --label:#000; --label2:rgba(60,60,67,.78); --label3:rgba(60,60,67,.34);
+  --sep:rgba(60,60,67,.2); --fill:rgba(120,120,128,.11); --fill2:rgba(120,120,128,.18);
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 6px 18px rgba(0,0,0,.05);
+  --barbg:rgba(247,247,250,.96); --hh:112px;
+}
+body.dark{
+  --tint:#3FA7A0; --amber:#E8A33D; --danger:#E2705A; --ok:#30D158;
+  --bg:#000; --card:#1C1C1E;
+  --label:#FFF; --label2:rgba(235,235,245,.62); --label3:rgba(235,235,245,.32);
+  --sep:rgba(84,84,88,.6); --fill:rgba(120,120,128,.22); --fill2:rgba(120,120,128,.32);
+  --shadow:0 1px 3px rgba(0,0,0,.4); --barbg:rgba(20,20,22,.96);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;min-width:0}
+html,body{max-width:100%;overflow-x:hidden}
+html{background:#F2F2F7;color-scheme:light}
+html.dark{background:#000;color-scheme:dark}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",
+    "PingFang TC","Heiti TC","Microsoft JhengHei",
+    "Hiragino Sans","Yu Gothic","Meiryo",
+    "Apple SD Gothic Neo","Malgun Gothic","Noto Sans CJK TC",sans-serif;
+  background:var(--bg);color:var(--label);font-size:15px;line-height:1.5;
+  font-feature-settings:"tnum" 1;padding-bottom:56px;overflow-wrap:break-word;
+}
+button,input,select{font:inherit;color:inherit;font-feature-settings:"tnum" 1;max-width:100%}
+svg{display:block;max-width:100%}
+header{position:sticky;top:0;z-index:50;background:var(--barbg);
+  backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep)}
+.hrow{max-width:1360px;margin:0 auto;padding:9px 14px 8px;display:flex;align-items:center;gap:6px}
+.htxt{flex:1;min-width:0}
+.htxt b{display:block;font-size:17px;font-weight:700;letter-spacing:-.4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.htxt span{display:block;font-size:11px;color:var(--label2);margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.scrolled .htxt span{display:none}
+@media(max-width:520px){.htxt span{display:none}}
+.tbtn{background:var(--fill);border:none;border-radius:980px;padding:6px 10px;
+  font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.tbtn:hover{background:var(--fill2)}
+.tbtn.pri{background:var(--tint);color:#fff}
+.tbtn:focus-visible{outline:2px solid var(--tint);outline-offset:2px}
+select.lang{background:var(--fill);border:none;border-radius:980px;padding:6px 8px;
+  font-size:12.5px;font-weight:600;cursor:pointer;flex:none}
+.keyin{max-width:1360px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;padding:0 14px 9px;gap:12px}
+.key{min-width:0}
+.key + .key{border-left:.5px solid var(--sep);padding-left:12px}
+.key .l{font-size:11px;color:var(--label2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.key .n{font-size:30px;font-weight:700;letter-spacing:-1px;line-height:1.12;margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.key .s{font-size:10.5px;color:var(--label2);margin-top:2px;line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media(max-width:520px){.key .n{font-size:23px}}
+main{max-width:1360px;margin:0 auto;padding:14px;display:grid;
+  grid-template-columns:minmax(0,392px) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:980px){main{grid-template-columns:minmax(0,1fr);padding:12px}}
+.col{display:grid;gap:13px;min-width:0}
+@media(min-width:981px){.left{position:sticky;top:calc(var(--hh) + 12px);
+  max-height:calc(100vh - var(--hh) - 26px);overflow-y:auto;overflow-x:hidden;padding-right:4px}}
+.left::-webkit-scrollbar{width:6px}
+.left::-webkit-scrollbar-thumb{background:var(--sep);border-radius:6px}
+.sec{font-size:12.5px;font-weight:600;color:var(--label2);padding:2px 4px 0;
+  display:flex;align-items:center;gap:10px;min-width:0}
+.sec button{background:none;border:none;color:var(--tint);font-size:13px;font-weight:600;cursor:pointer;padding:2px 0;flex:none}
+.sec .sp{margin-left:auto}
+.card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;min-width:0}
+.f{padding:10px 14px}
+.f + .f{border-top:.5px solid var(--sep)}
+.ftop{display:flex;align-items:center;gap:7px;margin-bottom:6px;min-width:0}
+.ftop label{font-size:13.5px;flex:1;min-width:0;line-height:1.3}
+.info{width:19px;height:19px;border-radius:50%;background:var(--fill);border:none;
+  color:var(--label2);font-size:11px;font-weight:700;cursor:pointer;flex:none;line-height:19px;text-align:center}
+.num{width:96px;text-align:right;background:var(--fill);border:none;border-radius:8px;
+  padding:5px 8px;font-size:15px;font-weight:600;-moz-appearance:textfield;flex:none}
+.num::-webkit-outer-spin-button,.num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.num:focus{outline:2px solid var(--tint)}
+.u{font-size:12.5px;color:var(--label2);width:14px;text-align:left;flex:none}
+.chip{background:var(--fill);color:var(--label2);font-size:11px;font-weight:600;
+  padding:3px 7px;border-radius:980px;white-space:nowrap;flex:none}
+input[type=range]{width:100%;-webkit-appearance:none;background:transparent;height:22px;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:var(--fill2)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35);margin-top:-8px}
+body.dark input[type=range]::-webkit-slider-thumb{background:#F2F2F7}
+input[type=range]::-moz-range-track{height:4px;border-radius:4px;background:var(--fill2)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border:none;border-radius:50%;background:#fff}
+input[type=range]:focus-visible{outline:2px solid var(--tint);outline-offset:4px;border-radius:6px}
+.expl{font-size:12.5px;line-height:1.62;color:var(--label2);background:var(--fill);
+  border-radius:9px;padding:9px 10px;margin-top:8px;display:none}
+.expl.on{display:block}
+.seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;margin:0 14px;min-width:0}
+.seg button{flex:1;min-width:0;border:none;background:none;font-size:12.5px;font-weight:500;
+  padding:7px 2px;border-radius:7px;cursor:pointer;color:var(--label);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg button.on{background:var(--card);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.16)}
+body.dark .seg button.on{background:#48484A}
+select.sel{background:var(--fill);border:none;border-radius:8px;padding:5px 7px;
+  font-size:13px;font-weight:600;cursor:pointer;min-width:0;text-overflow:ellipsis}
+.row{display:flex;align-items:center;gap:8px;padding:9px 14px;min-height:44px;min-width:0}
+.row + .row{border-top:.5px solid var(--sep)}
+.row .k{font-size:13.5px;flex:1;min-width:0}
+.sw{width:46px;height:28px;border-radius:980px;background:var(--fill2);border:none;
+  position:relative;cursor:pointer;flex:none;transition:background .18s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .18s}
+.sw.on{background:var(--ok)}
+.sw.on::after{transform:translateX(18px)}
+.layer{border-top:.5px solid var(--sep)}
+.layer:first-child{border-top:none}
+.lhead{display:flex;align-items:center;gap:7px;padding:10px 14px 7px;min-width:0}
+.lhead select{flex:1;min-width:0}
+.del{background:none;border:none;color:var(--danger);font-size:19px;cursor:pointer;padding:0 2px;line-height:1;flex:none}
+.empty{padding:20px 14px;text-align:center;font-size:13.5px;color:var(--label2);line-height:1.65}
+.warn{margin:0 14px 11px;padding:9px 10px;border-radius:9px;font-size:11.8px;line-height:1.6;
+  background:rgba(184,116,16,.13);color:var(--amber);font-weight:500}
+body.dark .warn{background:rgba(232,163,61,.14)}
+.hero{padding:16px 16px 4px}
+.conc{font-size:21px;font-weight:700;letter-spacing:-.5px;line-height:1.36}
+.concs{font-size:13px;color:var(--label2);margin-top:7px;line-height:1.6}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:.5px solid var(--sep);margin-top:14px}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stats > div{padding:12px 6px;text-align:center;border-left:.5px solid var(--sep);min-width:0}
+.stats > div:first-child{border-left:none}
+@media(max-width:640px){.stats > div:nth-child(3){border-left:none}
+  .stats > div:nth-child(n+3){border-top:.5px solid var(--sep)}}
+.stats .n{font-size:21px;font-weight:700;letter-spacing:-.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats .l{font-size:10.5px;color:var(--label2);margin-top:3px}
+.legend{display:flex;gap:13px;flex-wrap:wrap;padding:4px 16px 14px;font-size:11.5px;color:var(--label2)}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:-1px}
+.reads{display:grid;grid-template-columns:repeat(4,1fr)}
+@media(max-width:640px){.reads{grid-template-columns:repeat(2,1fr)}}
+.reads > div{padding:13px 4px;text-align:center;border-left:.5px solid var(--sep);min-width:0}
+.reads > div:first-child{border-left:none}
+@media(max-width:640px){.reads > div:nth-child(3){border-left:none}
+  .reads > div:nth-child(n+3){border-top:.5px solid var(--sep)}}
+.reads .n{font-size:24px;font-weight:700;letter-spacing:-.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reads .l{font-size:10.5px;color:var(--label2);margin-top:3px}
+.tw{overflow:auto;-webkit-overflow-scrolling:touch}
+.tw::-webkit-scrollbar{width:6px;height:6px}
+.tw::-webkit-scrollbar-thumb{background:var(--sep);border-radius:6px}
+.tw.full{max-height:320px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px;font-size:13px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:11.5px;font-weight:600;color:var(--label2);border-bottom:.5px solid var(--sep);
+  position:sticky;top:0;background:var(--card);z-index:1}
+tbody tr + tr{border-top:.5px solid var(--sep)}
+tr.gap td{color:var(--label2);font-size:12px;text-align:center;padding:6px}
+td.v{font-weight:600}
+.tag{display:inline-block;padding:2px 8px;border-radius:980px;font-size:11.5px;font-weight:700;color:#fff;flex:none}
+.note{padding:10px 14px;font-size:12.3px;line-height:1.62;color:var(--label2);border-top:.5px solid var(--sep)}
+.disc{font-size:11.8px;line-height:1.68;color:var(--label2);padding:6px 6px 0}
+details > summary{list-style:none;cursor:pointer;padding:12px 14px;font-size:13.5px;font-weight:600;display:flex;align-items:center}
+details > summary::-webkit-details-marker{display:none}
+details > summary::after{content:"›";margin-left:auto;color:var(--label3);font-size:18px;transform:rotate(90deg)}
+details[open] > summary::after{transform:rotate(-90deg)}
+.plan{padding:10px 14px;display:flex;align-items:center;gap:9px;min-width:0}
+.plan + .plan{border-top:.5px solid var(--sep)}
+.plan .pi{flex:1;min-width:0}
+.plan .pt{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plan .pm{font-size:11px;color:var(--label2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cb{width:22px;height:22px;border-radius:6px;border:1.8px solid var(--label3);background:none;
+  cursor:pointer;flex:none;position:relative}
+.cb.on{background:var(--tint);border-color:var(--tint)}
+.cb.on::after{content:"✓";position:absolute;inset:0;color:#fff;font-size:14px;font-weight:800;line-height:19px}
+.mini{background:var(--fill);border:none;border-radius:7px;padding:5px 9px;font-size:12px;font-weight:600;cursor:pointer;flex:none}
+.mini:hover{background:var(--fill2)}
+.mini.d{color:var(--danger)}
+.adv{padding:12px 14px;display:flex;gap:10px;align-items:flex-start;min-width:0}
+.adv + .adv{border-top:.5px solid var(--sep)}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;margin-top:6px}
+.adv .ac{flex:1;min-width:0}
+.adv .at{font-size:13.5px;font-weight:600;line-height:1.42}
+.adv .ad{font-size:12.3px;color:var(--label2);line-height:1.62;margin-top:4px}
+.adv .mini{margin-top:8px}
+.jur{margin:0 0 4px;padding:10px 12px;border-radius:10px;background:var(--fill);
+  font-size:12px;line-height:1.6;color:var(--label2)}
+body.busy #chMain,body.busy #gauge{opacity:.4;transition:opacity .12s}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <div class="htxt"><b id="hTitle">槓桿複利模擬器</b><span id="hSub"></span></div>
+    <select class="lang" id="lang" aria-label="Language">
+      <option value="0">繁體中文</option><option value="1">English</option>
+      <option value="2">日本語</option><option value="3">한국어</option>
+    </select>
+    <button class="tbtn pri" id="save">存檔</button>
+    <button class="tbtn" id="mode">深色</button>
+    <button class="tbtn" id="reset">重設</button>
+  </div>
+  <div class="keyin">
+    <div class="key"><div class="l" id="k1l">—</div><div class="n" id="k1n" style="color:var(--tint)">—</div><div class="s" id="k1s">—</div></div>
+    <div class="key"><div class="l" id="k2l">—</div><div class="n" id="k2n">—</div><div class="s" id="k2s">—</div></div>
+  </div>
+</header>
+
+<main>
+  <div class="col left">
+    <div class="jur" id="jur"></div>
+    <div class="sec" id="s_mode"></div>
+    <div class="card" style="padding:10px 0">
+      <div class="seg" id="segMode"><button data-m="lump"></button><button data-m="dca"></button><button data-m="mix" class="on"></button></div>
+      <div class="note" style="border-top:none;padding-bottom:2px" id="modeNote"></div>
+    </div>
+    <div class="sec" id="s_basic"><button class="sp" id="cons"></button></div>
+    <div class="card" id="basic"></div>
+    <div class="sec" id="s_debt"><button class="sp" id="addDebt"></button></div>
+    <div class="card" id="debts"></div>
+    <div class="sec" id="s_pers"></div>
+    <div class="card" id="personal"></div>
+    <div class="card"><details><summary id="s_adv"></summary><div id="adv"></div></details></div>
+    <div class="sec" id="s_plans"><span class="sp" style="font-weight:400;font-size:11px" id="planCount"></span></div>
+    <div class="card" id="plans"></div>
+    <div class="card"><details><summary id="s_hist"></summary><div id="hist"></div></details></div>
+  </div>
+
+  <div class="col">
+    <div class="card">
+      <div class="hero"><div class="conc" id="conc">—</div><div class="concs" id="concs">—</div></div>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="sec" id="s_advisor"><span class="sp" style="font-weight:400;font-size:11px" id="advCount"></span></div>
+    <div class="card" id="advisor"></div>
+    <div class="sec" id="s_chart"></div>
+    <div class="card">
+      <div style="padding:13px 4px 2px"><svg id="chMain" width="100%" height="248" viewBox="0 0 700 248" preserveAspectRatio="none"></svg></div>
+      <div class="legend" id="legend"></div>
+      <div style="padding:2px 0 10px"><div class="seg" id="segSims">
+        <button data-s="1000" class="on">1,000</button><button data-s="5000">5,000</button><button data-s="10000">10,000</button>
+      </div></div>
+      <div class="note" id="mcNote">—</div>
+    </div>
+    <div class="sec" id="s_gauge"></div>
+    <div class="card">
+      <div style="padding:10px 0 0"><svg id="gauge" width="100%" height="150" viewBox="0 0 380 150"></svg></div>
+      <div class="reads" id="reads"></div>
+      <div class="note" id="bNote">—</div>
+    </div>
+    <div class="sec" id="s_stress"></div>
+    <div class="card"><div id="stress"></div><div class="note" id="stressNote"></div></div>
+    <div class="sec" id="s_wf"></div>
+    <div class="card">
+      <div style="padding:13px 4px 4px"><svg id="chWf" width="100%" height="212" viewBox="0 0 700 212" preserveAspectRatio="none"></svg></div>
+      <div class="note" id="wfNote">—</div>
+    </div>
+    <div class="sec" id="s_con"></div>
+    <div class="card" id="constraints"></div>
+    <div class="sec" id="cmpSec" style="display:none"></div>
+    <div class="card" id="cmpCard" style="display:none">
+      <div class="tw"><table id="cmpTbl"></table></div><div class="note" id="cmpNote"></div>
+    </div>
+    <div class="sec" id="s_tbl"></div>
+    <div class="card">
+      <div style="padding:10px 0"><div class="seg" id="segTbl">
+        <button data-v="hide"></button><button data-v="brief" class="on"></button><button data-v="full"></button>
+      </div></div>
+      <div id="tblWrap"></div>
+    </div>
+    <p class="disc" id="disc"></p>
+  </div>
+</main>
+
+<script>
+"use strict";
+/* ==================== 多語系 ==================== */
+const LANG_CODES=["zh","en","ja","ko"];
+let LG=0;
+const D={
+hSub:["單筆 × 定期定額 × 六種借款・即時運算","Lump sum × Recurring × 6 loan types · Live",
+  "一括 × 積立 × 6種のローン・リアルタイム","거치식 × 적립식 × 6가지 대출 · 실시간"],
+save:["存檔","Save","保存","저장"], dark:["深色","Dark","ダーク","다크"], light:["淺色","Light","ライト","라이트"],
+reset:["重設","Reset","リセット","초기화"],
+jur:["本工具依台灣市場規則計算：稅制、DBR 22 倍上限、擔保維持率門檻均為台灣法規與銀行實務。切換語言只改變介面文字，計算規則不變。",
+  "This tool models Taiwan market rules. Tax treatment, the DBR 22× cap and margin maintenance thresholds follow Taiwan regulations and banking practice. Changing the interface language does not change the calculation rules.",
+  "本ツールは台湾市場のルールに基づいて計算します。税制、DBR22倍の上限、担保維持率の基準はいずれも台湾の法令と銀行実務によるものです。言語を切り替えても計算ルールは変わりません。",
+  "본 도구는 대만 시장 규칙을 기준으로 계산합니다. 세제, DBR 22배 상한, 담보유지율 기준은 모두 대만 법규와 은행 실무를 따릅니다. 언어를 바꿔도 계산 규칙은 변하지 않습니다."],
+/* 區塊 */
+sMode:["投資模式","Investment mode","投資モード","투자 방식"],
+sBasic:["基本假設","Assumptions","基本前提","기본 가정"],
+sDebt:["借款","Loans","借入","대출"],
+sPers:["你的財務條件","Your finances","あなたの財務状況","재무 상황"],
+sAdv:["進階：標準差、費用、稅、複利頻率","Advanced: volatility, fees, tax, compounding",
+  "詳細設定：標準偏差・費用・税・複利頻度","고급: 표준편차, 수수료, 세금, 복리 주기"],
+sPlans:["已存方案","Saved plans","保存した案","저장된 계획"],
+sHist:["最近記錄","Recent history","最近の履歴","최근 기록"],
+sAdvisor:["檢視提醒","Review notices","チェック項目","점검 알림"],
+sChart:["淨資產走勢","Net worth projection","純資産の推移","순자산 추이"],
+sGauge:["擔保維持率與防禦邊界","Margin ratio & defence boundary","担保維持率と防衛ライン","담보유지율 및 방어선"],
+sStress:["壓力測試 — 若明天重演台股歷史空頭","Stress test — if a historical Taiwan bear market repeated tomorrow",
+  "ストレステスト — 台湾株の歴史的下落が明日再現したら","스트레스 테스트 — 대만 증시 역사적 하락이 재현된다면"],
+sWf:["資金流向拆解","Where the money goes","資金の流れ","자금 흐름 분해"],
+sCon:["法規與銀行實務約束檢查","Regulatory & lending constraints","法規制・銀行実務のチェック","법규 및 은행 실무 제약 점검"],
+sCmp:["方案比較","Plan comparison","案の比較","계획 비교"],
+sTbl:["逐年明細","Year-by-year detail","年次明細","연도별 상세"],
+cons:["套用保守假設","Apply conservative","保守的な前提を適用","보수적 가정 적용"],
+add:["＋ 新增","+ Add","＋ 追加","＋ 추가"],
+/* 模式 */
+mLump:["單筆投入","Lump sum","一括投資","거치식"],
+mDca:["定期定額","Recurring","積立投資","적립식"],
+mMix:["混合模式","Both","併用","혼합"],
+noteMix:["混合模式同時採用期初單筆與每月投入，兩個欄位的數值在切換模式時都會保留。",
+  "Both modes active. Values in each field are preserved when you switch modes.",
+  "初期一括と毎月積立を同時に適用します。モードを切り替えても各項目の数値は保持されます。",
+  "초기 거치금과 매월 적립금을 동시에 적용합니다. 모드를 바꿔도 각 항목 값은 유지됩니다."],
+noteLump:["目前只計算期初單筆。每月投入的數值仍保留著，切回混合模式即自動帶入。",
+  "Only the lump sum is used. Your recurring amount is kept and returns when you switch back.",
+  "初期一括のみ計算します。毎月積立の数値は保持され、併用に戻すと自動で反映されます。",
+  "초기 거치금만 계산합니다. 매월 적립금 값은 유지되며 혼합으로 돌아가면 자동 반영됩니다."],
+noteDca:["目前只計算每月投入。期初單筆的數值仍保留著，切回混合模式即自動帶入。",
+  "Only the recurring amount is used. Your lump sum is kept and returns when you switch back.",
+  "毎月積立のみ計算します。初期一括の数値は保持され、併用に戻すと自動で反映されます。",
+  "매월 적립금만 계산합니다. 초기 거치금 값은 유지되며 혼합으로 돌아가면 자동 반영됩니다."],
+/* 欄位 */
+fInit:["期初單筆投入","Initial lump sum","初期一括投資額","초기 거치금"],
+fMonthly:["每月投入","Monthly contribution","毎月の積立額","매월 적립금"],
+fYears:["投資年期","Investment horizon","投資期間","투자 기간"],
+fRet:["預期年化報酬率","Expected annual return","期待年率リターン","기대 연 수익률"],
+fVol:["年化標準差","Annualised volatility","年率標準偏差","연환산 표준편차"],
+fInfl:["通貨膨脹率","Inflation rate","インフレ率","물가상승률"],
+fDiv:["現金股利殖利率","Dividend yield","配当利回り","배당수익률"],
+fFee:["內扣總費用率","Total expense ratio","信託報酬等の合計","총보수율"],
+fStep:["每年投入調升率","Annual contribution increase","積立額の年間増加率","연간 적립금 증액률"],
+fFreq:["複利頻率","Compounding frequency","複利頻度","복리 주기"],
+fDivTax:["股利課稅方式","Dividend tax treatment","配当課税方式","배당 과세 방식"],
+fBracket:["綜合所得稅適用稅率","Income tax bracket","所得税率","종합소득세율"],
+fNhi:["二代健保補充保險費","NHI supplementary premium","二代健保 補充保険料","건강보험 추가보험료"],
+fIncome:["月平均收入（稅前）","Monthly income (pre-tax)","月平均収入（税引前）","월평균 소득(세전)"],
+fCash:["可動用現金","Available cash","利用可能な現金","가용 현금"],
+fAmt:["借款金額","Loan amount","借入額","대출 금액"],
+fRate:["名目年利率","Nominal annual rate","名目年利率","명목 연이율"],
+fTerm:["借款期間","Loan term","借入期間","대출 기간"],
+fMethod:["還款方式","Repayment type","返済方式","상환 방식"],
+fGrace:["寬限期","Grace period","据置期間","거치 기간"],
+fOpen:["開辦費／手續費","Origination fee","事務手数料","취급수수료"],
+fCall:["追繳維持率","Margin call ratio","追証となる維持率","추가담보 요구 유지율"],
+fSell:["處分維持率","Liquidation ratio","強制決済となる維持率","강제처분 유지율"],
+fInvest:["借款投入市場","Invest the borrowed funds","借入金を市場へ投入","대출금을 시장에 투자"],
+/* 頻率／稅 */
+frq:[["年複利","半年複利","季複利","月複利","日複利"],["Annual","Semi-annual","Quarterly","Monthly","Daily"],
+  ["年複利","半年複利","四半期複利","月複利","日複利"],["연 복리","반기 복리","분기 복리","월 복리","일 복리"]],
+tax:[["合併計稅","分開計稅 28%","不計算"],["Aggregated","Separate 28%","Ignore"],
+  ["総合課税","分離課税 28%","計算しない"],["종합과세","분리과세 28%","계산 안 함"]],
+/* 借款 */
+dt:[["不限用途款項借貸（股票質押）","證券融資","房屋貸款","理財型房屋貸款","個人信用貸款","汽車貸款"],
+  ["Securities-backed loan","Margin loan","Mortgage","Revolving home equity line","Personal loan","Auto loan"],
+  ["有価証券担保ローン","信用取引の融資","住宅ローン","極度型住宅ローン","個人信用ローン","自動車ローン"],
+  ["유가증권 담보대출","신용거래 융자","주택담보대출","한도형 주택담보대출","신용대출","자동차대출"]],
+dtS:[["股票質押","融資","房貸","理財型房貸","信貸","車貸"],["Securities loan","Margin","Mortgage","HELOC","Personal","Auto"],
+  ["証券担保","信用","住宅","極度型","信用","自動車"],["증권담보","신용융자","주택","한도형","신용","자동차"]],
+mth:[["本息平均攤還","本金平均攤還","按期付息、到期一次還本","寬限期後本息平均攤還"],
+  ["Equal payment","Equal principal","Interest-only, bullet","Interest-only then equal payment"],
+  ["元利均等返済","元金均等返済","利息のみ・満期一括","据置後 元利均等返済"],
+  ["원리금균등","원금균등","이자만 · 만기일시","거치 후 원리금균등"]],
+cau:[
+ ["券商辦理之不限用途款項借貸。利率多為機動，借款期間通常僅一年，到期需重新申請展延，券商有權不予展延或調整成數與維持率標準。擔保品市值下跌時會被要求補繳，未補足可能遭處分。",
+  "Offered by brokers against your securities. Rates are usually floating and terms are typically one year, requiring renewal — the broker may decline to renew or change the loan-to-value and maintenance requirements. If collateral value falls you will be asked to top up, and unmet calls can lead to liquidation.",
+  "証券会社が提供する有価証券担保ローン。金利は変動が多く、期間は通常1年で更新が必要です。証券会社は更新を拒否したり、掛目や維持率基準を変更したりできます。担保評価額が下落すると追証が発生し、対応できなければ強制決済となる可能性があります。",
+  "증권사가 취급하는 유가증권 담보대출입니다. 금리는 대개 변동이며 기간은 통상 1년으로 만기 시 재연장이 필요합니다. 증권사는 연장을 거절하거나 담보인정비율·유지율 기준을 변경할 수 있습니다. 담보 가치가 하락하면 추가담보를 요구받으며, 충족하지 못하면 처분될 수 있습니다."],
+ ["融資利率為所有借款中最高（市場常見約 6%–6.5%）。整戶擔保維持率低於 130% 將發出追繳通知，通常兩個營業日內未補繳即可能遭強制處分。上市股票融資成數約六成、上櫃約五成。",
+  "The most expensive form of borrowing here (commonly around 6%–6.5% in Taiwan). If the account-level maintenance ratio falls below 130% a margin call is issued, and failure to meet it within roughly two business days can trigger forced liquidation.",
+  "本ツールで扱う中で最も金利が高い借入です（台湾では概ね6%〜6.5%）。口座全体の担保維持率が130%を下回ると追証となり、概ね2営業日以内に対応できなければ強制決済となり得ます。",
+  "여기서 다루는 대출 중 금리가 가장 높습니다(대만 기준 통상 6%~6.5%). 계좌 전체 담보유지율이 130% 미만이면 추가담보 통지가 발송되며, 통상 2영업일 내 대응하지 못하면 강제처분될 수 있습니다."],
+ ["多為機動利率，央行升息時月付金會跟著增加。若設有寬限期，寬限期結束後月付金會明顯跳增，務必先確認屆時負擔得起。",
+  "Usually a floating rate — payments rise when the central bank raises rates. If you take a grace period, the payment jumps noticeably once it ends; make sure you can afford that level.",
+  "多くは変動金利で、利上げ時には毎月返済額が増えます。据置期間を設けた場合、終了後に返済額が大きく跳ね上がるため、その水準を負担できるか事前に確認してください。",
+  "대부분 변동금리로 금리 인상 시 월 상환액이 늘어납니다. 거치 기간을 두면 종료 후 상환액이 크게 뛰므로 그 수준을 감당할 수 있는지 미리 확인하세요."],
+ ["又稱回復型房貸，額度可隨借隨還、按日計息，但利率明顯高於一般房貸。動用即計息，部分銀行另設額度管理費。以住宅抵押借款投入股市，違約時可能失去自住房屋。",
+  "A revolving credit line secured on your home. Interest accrues daily from the moment you draw, at a rate clearly above a standard mortgage, and some banks charge a facility fee. Investing money secured on your home means a default can cost you the home you live in.",
+  "自宅を担保とする極度型のローンで、随時借入・返済が可能ですが、金利は通常の住宅ローンより明確に高く、引き出した時点から日割りで利息が発生します。自宅を担保に株式投資を行うと、返済不能時に居住する住宅を失う可能性があります。",
+  "자택을 담보로 하는 한도형 대출로 수시 인출·상환이 가능하지만 금리는 일반 주택담보대출보다 확실히 높고, 인출 시점부터 일할 이자가 발생합니다. 자택을 담보로 주식에 투자하면 상환 불능 시 거주 주택을 잃을 수 있습니다."],
+ ["無擔保借款，計入 DBR 22 倍上限。名目利率外通常另收開辦費，實際負擔的總費用年百分率（APR）高於名目利率。提前清償多有違約金，首年清償尤其常見。",
+  "Unsecured, and counts toward the DBR 22× cap. An origination fee is usually charged on top of the headline rate, so the effective APR is higher than the nominal rate. Early repayment penalties are common, especially in the first year.",
+  "無担保借入で、DBR22倍の上限に算入されます。表面金利のほかに事務手数料がかかるのが一般的で、実質年率（APR）は名目金利より高くなります。繰上返済には違約金が設定されていることが多く、特に初年度は一般的です。",
+  "무담보 대출로 DBR 22배 상한에 산입됩니다. 표면금리 외에 취급수수료가 부과되는 것이 일반적이어서 실질연이율(APR)은 명목금리보다 높습니다. 중도상환 위약금이 흔하며 특히 첫해에 많습니다."],
+ ["車輛折舊速度通常快於本金攤還速度，貸款期間前段常出現貸款餘額高於車輛殘值的情形。部分方案另收帳管費與手續費。",
+  "Vehicles usually depreciate faster than the loan amortises, so early in the term the outstanding balance often exceeds the car's resale value. Some plans add servicing and handling fees.",
+  "車両の減価償却は元金の返済より速いのが一般的で、期間の前半では残債が車両の残存価値を上回ることがよくあります。プランによっては管理手数料等が別途かかります。",
+  "차량 감가상각이 원금 상환보다 빠른 것이 일반적이어서, 기간 전반에는 잔액이 차량 잔존가치를 웃도는 경우가 많습니다. 일부 상품은 관리·취급 수수료가 추가됩니다."]],
+levWarn:["以借款投資屬槓桿操作。市場下跌時虧損會依槓桿倍數放大，利息仍須照常支付，可能造成損失超過原始本金。",
+  "Investing borrowed money is leverage. Losses are amplified in a downturn, interest is still due regardless, and you can lose more than your original capital.",
+  "借入金による投資はレバレッジ取引です。下落局面では損失が倍率分だけ拡大し、それでも利息は支払い続ける必要があり、当初元本を超える損失が生じる可能性があります。",
+  "차입금 투자는 레버리지 거래입니다. 하락장에서 손실이 배수로 확대되고 이자는 계속 부담해야 하므로 원금을 초과하는 손실이 발생할 수 있습니다."],
+noDebt:["目前沒有任何借款。按上方「＋ 新增」加入股票質押、房貸或信貸，「擔保維持率與防禦邊界」才會有內容。",
+  "No loans yet. Tap “+ Add” above to include a securities-backed loan, mortgage or personal loan — the margin section will then populate.",
+  "借入がありません。上の「＋追加」から有価証券担保ローン・住宅ローン・信用ローンを追加すると、担保維持率のセクションが表示されます。",
+  "대출이 없습니다. 위의 「＋ 추가」로 유가증권 담보대출·주택담보대출·신용대출을 추가하면 담보유지율 섹션이 표시됩니다."],
+mPay:["月付金","Monthly payment","毎月返済額","월 상환액"],
+ltv:["借款成數上限市場常見約","typical maximum loan-to-value around","掛目の上限は概ね","담보인정비율 상한 통상 약"],
+/* 關鍵指標 */
+kNet:["年後淨資產中位數","-year median net worth","年後の純資産中央値","년 후 순자산 중앙값"],
+kP10:["第 10 百分位","10th percentile","第10パーセンタイル","10 백분위"],
+kReal:["實質購買力","real purchasing power","実質購買力","실질 구매력"],
+kProb:["期間內被追繳的機率","Probability of a margin call","期間中に追証となる確率","기간 중 추가담보 요구 확률"],
+kPayR:["月付金佔月收入比","Payments as % of income","返済額の収入比","상환액 소득 대비 비율"],
+kRealT:["扣除通膨後的實質購買力","Real purchasing power after inflation","インフレ調整後の実質購買力","물가 반영 후 실질 구매력"],
+kDrop:["再跌","A further","さらに","추가"],
+kToCall:["即觸及追繳維持率","drop hits the margin call ratio","の下落で追証水準に到達","하락 시 추가담보 요구 수준 도달"],
+kBelow:["已低於追繳維持率","Already below the margin call ratio","すでに追証水準を下回っています","이미 추가담보 요구 수준 미만"],
+kMonthly:["每月須償還","Monthly repayment","毎月の返済額","매월 상환액"],
+kDisc:["以年通膨率折現至今日幣值","discounted to today's value","現在価値に割り引いた金額","현재 가치로 할인"],
+/* 統計 */
+stNet:["淨資產中位數","Median net worth","純資産の中央値","순자산 중앙값"],
+stReal:["實質購買力","Real value","実質価値","실질 가치"],
+stCost:["利息費用稅合計","Interest, fees & tax","利息・費用・税 合計","이자·수수료·세금 합계"],
+stRoi:["自有資金累積報酬率","Return on own capital","自己資金の累積リターン","자기자본 누적 수익률"],
+/* 圖例 */
+lgMed:["淨資產中位數","Median net worth","純資産の中央値","순자산 중앙값"],
+lgBand:["第 10–90 百分位","10th–90th percentile","第10〜90パーセンタイル","10~90 백분위"],
+lgDebt:["借款餘額","Loan balance","借入残高","대출 잔액"],
+lgOwn:["自有投入本金","Own contributions","自己資金の投入額","자기자금 투입액"],
+/* 邊界 */
+rCall:["距離追繳","To margin call","追証まで","추가담보까지"],
+rSell:["距離處分","To liquidation","強制決済まで","강제처분까지"],
+rMonths:["現金可支應月數","Months cash covers","現金で賄える月数","현금 감당 개월수"],
+rProb:["期間被追繳機率","Margin call probability","追証となる確率","추가담보 요구 확률"],
+gRatio:["擔保維持率","Margin ratio","担保維持率","담보유지율"],
+gCall:["追繳","call","追証","추가담보"],
+gSell:["處分","liquidation","強制決済","강제처분"],
+gSafe:["安全","safe","安全","안전"],
+gNone:["目前沒有以有價證券為擔保的借款","No securities-backed loan yet","有価証券を担保とする借入はありません","유가증권 담보대출이 없습니다"],
+gNone2:["加入股票質押或證券融資後，此處會顯示擔保維持率",
+  "Add a securities-backed or margin loan to see your maintenance ratio",
+  "有価証券担保ローンまたは信用取引を追加すると担保維持率が表示されます",
+  "유가증권 담보대출 또는 신용융자를 추가하면 담보유지율이 표시됩니다"],
+hit:["已觸及","Reached","到達","도달"],
+/* 壓力測試 */
+cr:[["網路泡沫破滅","全球金融危機","新冠疫情急跌","通膨與升息循環"],
+  ["Dot-com collapse","Global financial crisis","COVID-19 crash","Inflation & rate hikes"],
+  ["ITバブル崩壊","世界金融危機","コロナショック","インフレと利上げ局面"],
+  ["닷컴버블 붕괴","글로벌 금융위기","코로나 급락","인플레이션·금리인상"]],
+vLiq:["達處分標準","Liquidation level","強制決済水準","강제처분 수준"],
+vCall:["達追繳標準","Margin call level","追証水準","추가담보 수준"],
+vOk:["維持率","Ratio","維持率","유지율"],
+vNa:["無證券擔保借款","No securities-backed loan","証券担保借入なし","증권담보 대출 없음"],
+stressNote:["跌幅為台灣加權股價指數各期最大回檔之概略值，四捨五入至整數，資料來源為公開市場統計。僅作情境模擬，不代表未來會重演，亦非預測。",
+  "Drawdowns are approximate peak-to-trough figures for the Taiwan Weighted Index in each period, rounded to whole numbers, based on public market data. Scenario illustration only — not a forecast and no indication that these will recur.",
+  "下落率は各期間における台湾加権株価指数のピークからの最大下落幅の概算値で、整数に四捨五入しています。出所は公開市場データです。シナリオの例示であり、予測ではなく、再現を示唆するものでもありません。",
+  "하락률은 각 기간 대만 가권지수의 고점 대비 최대 낙폭 근사치이며 정수로 반올림했습니다. 출처는 공개 시장 데이터입니다. 시나리오 예시일 뿐 예측이 아니며 재현을 시사하지 않습니다."],
+/* 瀑布 */
+wf:[["自有投入","借款投入","市場報酬","內扣費用","股利所得稅","補充保費","借款利息","開辦費","未償餘額","淨資產"],
+  ["Own capital","Borrowed","Market return","Fund fees","Dividend tax","NHI premium","Loan interest","Fees","Balance due","Net worth"],
+  ["自己資金","借入金","市場リターン","信託報酬","配当課税","補充保険料","支払利息","手数料","残債","純資産"],
+  ["자기자금","차입금","시장수익","보수","배당세","건보료","이자","수수료","잔여채무","순자산"]],
+wfUnit:["單位：新臺幣","Unit: TWD","単位：台湾ドル","단위: 대만 달러"],
+/* 約束 */
+cPay:["月付金 ÷ 月收入","Payments ÷ income","返済額 ÷ 収入","상환액 ÷ 소득"],
+cDbr:["DBR 無擔保債務所得比","DBR (unsecured debt to income)","DBR 無担保債務の収入倍率","DBR 무담보부채 소득배율"],
+cRatio:["擔保維持率","Margin ratio","担保維持率","담보유지율"],
+cPass:["通過","Pass","適合","통과"],
+cFail:["超出","Over","超過","초과"],
+cUp1:["利率上升 1 個百分點","Rate +1pp","金利+1%ポイント","금리 +1%p"],
+cUp2:["利率上升 2 個百分點","Rate +2pp","金利+2%ポイント","금리 +2%p"],
+cPayN:["銀行核貸實務多以 40% 為警戒值，部分銀行更嚴。",
+  "Lenders commonly treat 40% as the warning threshold; some are stricter.",
+  "金融機関は概ね40%を警戒水準としており、より厳しい先もあります。",
+  "금융기관은 통상 40%를 경계 수준으로 보며, 더 엄격한 곳도 있습니다."],
+cDbrN:["依銀行公會自律規範，無擔保債務歸戶後總餘額不宜超過月平均收入 22 倍。有擔保之房貸與股票質押不計入。",
+  "Under the Bankers Association self-regulatory rules, total unsecured debt should not exceed 22× monthly income. Secured mortgages and securities-backed loans are excluded.",
+  "銀行公会の自主規範により、無担保債務の合計残高は月平均収入の22倍を超えないことが望ましいとされています。担保付きの住宅ローンや証券担保ローンは算入されません。",
+  "은행공회 자율규범에 따라 무담보부채 총잔액은 월평균 소득의 22배를 넘지 않는 것이 바람직합니다. 담보가 있는 주택담보·증권담보 대출은 제외됩니다."],
+cUpN:["機動利率借款會隨央行政策調整，以上為保守情境試算。",
+  "Floating-rate loans move with central bank policy. The above is a conservative scenario.",
+  "変動金利の借入は中央銀行の政策により変動します。上記は保守的なシナリオです。",
+  "변동금리 대출은 중앙은행 정책에 따라 변동합니다. 위는 보수적 시나리오입니다."],
+/* 表格 */
+thYear:["年","Year","年","연차"],
+thAsset:["總資產","Total assets","総資産","총자산"],
+thDebt:["借款餘額","Loan balance","借入残高","대출 잔액"],
+thNet:["淨資產","Net worth","純資産","순자산"],
+thOwn:["自有投入","Own capital","自己資金","자기자금"],
+tHide:["隱藏","Hidden","非表示","숨김"],
+tBrief:["期初期末","First & last","初回と最終","처음과 마지막"],
+tFull:["逐年完整","All years","全期間","전체 연도"],
+tHidden:["明細已隱藏。選「期初期末」看首尾兩筆，選「逐年完整」看每一年。",
+  "Detail hidden. Choose “First & last” for the endpoints, or “All years” for every row.",
+  "明細は非表示です。「初回と最終」で両端、「全期間」で各年を表示します。",
+  "상세가 숨겨졌습니다. 「처음과 마지막」 또는 「전체 연도」를 선택하세요."],
+tGap:["中間 {n} 年已收合・選「逐年完整」展開","{n} years collapsed — choose “All years” to expand",
+  "中間の{n}年は折りたたみ・「全期間」で展開","중간 {n}년 접힘 — 「전체 연도」로 펼치기"],
+/* 方案 */
+noPlan:["還沒有存檔。調好參數後按右上角「存檔」，就能保留下來並互相比較。",
+  "No saved plans yet. Set your parameters and tap “Save” to keep and compare them.",
+  "保存した案がありません。条件を設定して右上の「保存」を押すと保存・比較できます。",
+  "저장된 계획이 없습니다. 조건을 설정하고 우측 상단 「저장」을 누르면 저장·비교할 수 있습니다."],
+planN:["已存 {n} 個・勾選 2–3 個比較","{n} saved · tick 2–3 to compare","{n}件保存・2〜3件選択で比較","{n}개 저장 · 2~3개 선택 시 비교"],
+noHist:["尚無記錄。每次調整參數穩定後會自動記下，最多保留 12 筆。",
+  "No history yet. Settings are logged automatically after each change, up to 12 entries.",
+  "履歴はまだありません。設定変更後に自動記録され、最大12件保持します。",
+  "기록이 없습니다. 설정 변경 후 자동 기록되며 최대 12건 보관합니다."],
+load:["載入","Load","読込","불러오기"], del:["刪除","Delete","削除","삭제"], restore:["還原","Restore","復元","복원"],
+noAdvC:["目前沒有需要注意的項目","No items need attention","注意が必要な項目はありません","주의가 필요한 항목이 없습니다"],
+advC:["{a} 項警示・{b} 項注意","{a} alerts · {b} notices","警告{a}件・注意{b}件","경고 {a}건 · 주의 {b}건"],
+advFoot:["這是把你輸入的數值與公開市場統計、銀行實務基準對照後的檢核結果，不是投資建議，也不代表任何一種做法比較好。",
+  "These are checks comparing your own inputs against public market statistics and standard lending practice. They are not investment advice and do not imply any approach is better.",
+  "これはあなたが入力した数値を、公開市場統計および銀行実務の基準と照合した結果です。投資助言ではなく、いずれかの方法が優れていることを示すものでもありません。",
+  "이는 입력값을 공개 시장 통계 및 은행 실무 기준과 대조한 점검 결과입니다. 투자 자문이 아니며 특정 방식이 더 낫다는 의미도 아닙니다."],
+cmpNote:["比較表不排名、不評分、不標示推薦方案。報酬較高的方案通常伴隨較高的被追繳機率與較低的現金可支應月數，請一併衡量。比較模式固定使用 1,000 條模擬路徑。",
+  "This table does not rank, score or recommend. Higher-return plans generally carry a higher margin call probability and fewer months of cash cover — weigh both. Comparison uses 1,000 simulated paths.",
+  "この表は順位付け・採点・推奨を行いません。リターンの高い案ほど追証確率が高く、現金で賄える月数が短くなる傾向があります。比較は1,000本のシミュレーションを使用します。",
+  "이 표는 순위·점수·추천을 제공하지 않습니다. 수익이 높은 계획일수록 추가담보 요구 확률이 높고 현금 감당 개월수는 짧아지는 경향이 있습니다. 비교는 1,000개 경로를 사용합니다."],
+mcNote:["以 {v}% 年化標準差模擬 {n} 條路徑。中線為中位數，淺色帶為第 10 至第 90 百分位。未來並非單一路徑，只給一條線的試算會讓人低估風險。",
+  "{n} paths simulated at {v}% annualised volatility. The line is the median; the band spans the 10th to 90th percentile. The future is not a single path — a single-line projection understates risk.",
+  "年率標準偏差{v}%で{n}本のパスをシミュレーションしています。線は中央値、帯は第10〜90パーセンタイルです。将来は一本道ではなく、単線の試算はリスクを過小評価させます。",
+  "연환산 표준편차 {v}%로 {n}개 경로를 시뮬레이션했습니다. 선은 중앙값, 띠는 10~90 백분위입니다. 미래는 단일 경로가 아니며 한 줄짜리 시산은 위험을 과소평가하게 만듭니다."],
+bNote:["擔保維持率 = 擔保品市值 ÷ 借款金額。目前擔保借款 {d}，擔保品市值 {a}。有多筆擔保借款時，本工具保守採用其中最嚴格的門檻（追繳 {c}%、處分 {s}%）。「期間被追繳機率」為 {n} 條模擬路徑中，曾於任一時點跌破追繳線的比例。",
+  "Margin ratio = collateral value ÷ loan amount. Current secured borrowing {d} against collateral of {a}. With multiple secured loans this tool conservatively applies the strictest thresholds ({c}% call, {s}% liquidation). “Margin call probability” is the share of {n} simulated paths that breached the call level at any point.",
+  "担保維持率＝担保評価額÷借入額。現在の担保付借入は{d}、担保評価額は{a}です。複数の担保付借入がある場合、本ツールは最も厳しい基準（追証{c}%、強制決済{s}%）を保守的に適用します。「追証となる確率」は{n}本のパスのうち、いずれかの時点で追証水準を下回った割合です。",
+  "담보유지율 = 담보평가액 ÷ 대출금액. 현재 담보대출 {d}, 담보평가액 {a}입니다. 담보대출이 여러 건이면 본 도구는 가장 엄격한 기준(추가담보 {c}%, 처분 {s}%)을 보수적으로 적용합니다. 「추가담보 요구 확률」은 {n}개 경로 중 어느 시점에라도 기준을 밑돈 비율입니다."],
+bNoteN:["房貸、理財型房貸、信貸與車貸不以有價證券為擔保，不會發生追繳，但仍佔用你的每月還款能力，請見下方約束檢查。",
+  "Mortgages, home equity lines, personal and auto loans are not secured on securities, so no margin call applies — but they still consume your monthly repayment capacity. See the constraints below.",
+  "住宅ローン・極度型・信用ローン・自動車ローンは有価証券担保ではないため追証は発生しませんが、毎月の返済余力を消費します。下部のチェックをご確認ください。",
+  "주택담보·한도형·신용·자동차 대출은 유가증권 담보가 아니므로 추가담보 요구는 없지만 월 상환 여력을 소모합니다. 아래 제약 점검을 확인하세요."],
+wfNote:["內扣總費用 {f}、股利所得稅 {t}、補充保險費 {h}、借款利息 {i}，合計 {s}。這些都是實際發生的支出，但市售複利計算器多半不列入。",
+  "Fund fees {f}, dividend tax {t}, NHI premium {h}, loan interest {i} — {s} in total. These are real outflows that most compound interest calculators omit.",
+  "信託報酬{f}、配当課税{t}、補充保険料{h}、支払利息{i}で合計{s}。いずれも実際に発生する支出ですが、市販の複利計算ツールの多くは考慮していません。",
+  "보수 {f}, 배당세 {t}, 건강보험료 {h}, 이자 {i}로 합계 {s}입니다. 모두 실제 발생하는 지출이지만 시중 복리계산기는 대부분 반영하지 않습니다."],
+/* 結論 */
+cTitleCall:["市場再跌 {x}%，擔保維持率就會觸及追繳線",
+  "A further {x}% market decline reaches your margin call level",
+  "市場がさらに{x}%下落すると追証水準に到達します",
+  "시장이 {x}% 더 하락하면 추가담보 요구 수준에 도달합니다"],
+cSubCall:["{y} 年後淨資產中位數約 {m}；第 10 百分位（較差情境）為 {p}。以目前可動用現金，可支應 {n} 個月的還款。",
+  "Median net worth in {y} years is about {m}; the 10th percentile (weaker outcome) is {p}. Your available cash covers about {n} months of repayments.",
+  "{y}年後の純資産中央値は約{m}、第10パーセンタイル（悪いケース）は{p}です。現在の現金で約{n}か月分の返済を賄えます。",
+  "{y}년 후 순자산 중앙값은 약 {m}, 10 백분위(부진한 경우)는 {p}입니다. 현재 현금으로 약 {n}개월치 상환이 가능합니다."],
+cTitleBelow:["擔保維持率已低於 {c}% 追繳線","Margin ratio is already below the {c}% call level",
+  "担保維持率はすでに追証水準{c}%を下回っています","담보유지율이 이미 추가담보 기준 {c}% 미만입니다"],
+cSubBelow:["目前擔保維持率 {r}%，券商得隨時通知補繳擔保品或償還部分借款。",
+  "Current ratio {r}%. The broker may call for additional collateral or partial repayment at any time.",
+  "現在の維持率は{r}%で、証券会社はいつでも追加担保の差入れや一部返済を求めることができます。",
+  "현재 유지율 {r}%로, 증권사는 언제든 추가담보 또는 일부 상환을 요구할 수 있습니다."],
+cTitlePlain:["{y} 年後淨資產中位數約 {m}","Median net worth in {y} years is about {m}",
+  "{y}年後の純資産中央値は約{m}","{y}년 후 순자산 중앙값은 약 {m}"],
+cSubPlain:["第 10 百分位（較差情境）為 {p}，第 90 百分位為 {q}。以 {i}% 通膨折現，實質購買力約 {r}。",
+  "The 10th percentile (weaker outcome) is {p} and the 90th is {q}. Discounted at {i}% inflation, real purchasing power is about {r}.",
+  "第10パーセンタイル（悪いケース）は{p}、第90パーセンタイルは{q}です。インフレ率{i}%で割り引くと実質購買力は約{r}です。",
+  "10 백분위(부진한 경우)는 {p}, 90 백분위는 {q}입니다. 물가상승률 {i}%로 할인하면 실질 구매력은 약 {r}입니다."],
+disc:["本工具僅依使用者輸入的假設進行數學運算，不提供任何預測、投資建議、標的推薦或方案排名。所有借款成數、利率區間與擔保維持率門檻均為市場常見值，各金融機構規定不同，實際條件請以合約與該機構公告為準。運用借款投資屬槓桿操作，會同時放大獲利與虧損，並可能因擔保品市值下跌而被要求補繳或遭處分，導致損失超過原始本金。",
+  "This tool performs arithmetic on the assumptions you enter. It provides no forecasts, investment advice, security recommendations or plan rankings. Loan-to-value ratios, rate ranges and maintenance thresholds are common market values; each institution sets its own terms, so rely on your contract and the institution's published terms. Investing with borrowed money is leverage: it magnifies both gains and losses, and a fall in collateral value can trigger a call or liquidation, causing losses greater than your original capital.",
+  "本ツールは入力された前提に基づく計算のみを行い、予測・投資助言・銘柄推奨・案の順位付けは一切提供しません。掛目、金利水準、維持率基準はいずれも市場で一般的な値であり、条件は各金融機関で異なります。実際の条件は契約および各機関の公表内容をご確認ください。借入金による投資はレバレッジ取引であり、利益と損失の双方を拡大させ、担保評価額の下落により追証や強制決済が生じ、当初元本を超える損失となる可能性があります。",
+  "본 도구는 입력한 가정에 대한 계산만 수행하며 예측·투자자문·종목추천·계획순위는 일절 제공하지 않습니다. 담보인정비율, 금리 구간, 유지율 기준은 시장에서 일반적인 값이며 조건은 기관마다 다릅니다. 실제 조건은 계약 및 해당 기관 공시를 확인하세요. 차입금 투자는 레버리지 거래로 이익과 손실을 모두 확대하며, 담보가치 하락 시 추가담보 요구나 강제처분이 발생해 원금을 초과하는 손실이 생길 수 있습니다."],
+consMsg:["已套用保守假設：預期年化報酬 5.5%、年化標準差 22%、通膨 2%、內扣總費用 0.5%，各筆借款利率上調 0.5 個百分點。\n\n保守假設不是悲觀，是把「事情沒有照計畫走」也算進去。",
+  "Conservative assumptions applied: 5.5% expected return, 22% volatility, 2% inflation, 0.5% expense ratio, and every loan rate raised by 0.5pp.\n\nBeing conservative isn't pessimism — it's allowing for things not going to plan.",
+  "保守的な前提を適用しました：期待年率リターン5.5%、年率標準偏差22%、インフレ2%、信託報酬0.5%、各借入金利を0.5%ポイント引き上げ。\n\n保守的であることは悲観ではなく、「計画どおりに進まない場合」を織り込むことです。",
+  "보수적 가정을 적용했습니다: 기대수익률 5.5%, 표준편차 22%, 물가 2%, 총보수 0.5%, 각 대출금리 0.5%p 상향.\n\n보수적이라는 것은 비관이 아니라 「계획대로 되지 않는 경우」를 반영하는 것입니다."],
+resetMsg:["重設會清除目前所有輸入值（已存方案會保留）。確定嗎？",
+  "This clears all current inputs. Saved plans are kept. Continue?",
+  "現在の入力値をすべて消去します（保存した案は残ります）。よろしいですか？",
+  "현재 입력값을 모두 지웁니다(저장된 계획은 유지). 계속할까요?"],
+planName:["方案名稱","Plan name","案の名称","계획 이름"]
+};
+const T=(k,v)=>{ let s=(D[k]&&D[k][LG])||(D[k]&&D[k][0])||k;
+  if(v) for(const p in v) s=s.split("{"+p+"}").join(v[p]);
+  return s; };
+const TA=(k,i)=>((D[k]&&D[k][LG])||(D[k]&&D[k][0])||[])[i]||"";
+
+/* ==================== 狀態 ==================== */
+const DK=["pledge","margin","mortgage","heloc","credit","car"];
+const DEBT_TYPES={
+  pledge:{i:0,rate:3.2,years:1,method:"interest",collateral:true,invest:true,secured:true,call:140,sell:130,ltv:60},
+  margin:{i:1,rate:6.4,years:1,method:"interest",collateral:true,invest:true,secured:true,call:130,sell:120,ltv:60},
+  mortgage:{i:2,rate:2.35,years:30,method:"annuity",collateral:false,invest:false,secured:true},
+  heloc:{i:3,rate:3.0,years:20,method:"interest",collateral:false,invest:true,secured:true},
+  credit:{i:4,rate:5.5,years:7,method:"annuity",collateral:false,invest:true,secured:false,fee:20000},
+  car:{i:5,rate:5.5,years:5,method:"annuity",collateral:false,invest:false,secured:false}};
+const MK=["annuity","principal","interest","grace"];
+const DEF=()=>({mode:"mix",init:3000000,monthly:12000,stepUp:0,years:20,ret:6.5,
+  vol:20,infl:2,freq:12,divYield:3.2,fee:0.45,divTax:"combined",bracket:12,nhi:true,
+  income:120000,cash:600000,
+  debts:[{type:"pledge",amount:2000000,rate:3.2,years:1,method:"interest",grace:0,invest:true,call:140,sell:130,fee:0}]});
+let S=DEF(),PLANS=[],HIST=[],SEL=[],PID=1,TBLV="brief",SIMS=1000,ADV=[];
+
+const $=id=>document.getElementById(id);
+function wan(n){const a=Math.abs(n);
+  if(LG===1){ if(a>=1e6)return "NT$"+(n/1e6).toFixed(2).replace(/\.?0+$/,"")+"M";
+    if(a>=1e3)return "NT$"+(n/1e3).toFixed(0)+"K"; return "NT$"+Math.round(n).toLocaleString("en-US"); }
+  const U=[["億","萬","元"],["","",""],["億","万","元"],["억","만","원"]][LG];
+  if(a>=1e8)return (n/1e8).toFixed(2).replace(/\.?0+$/,"")+" "+U[0];
+  if(a>=1e4)return Math.round(n/1e4).toLocaleString("en-US")+" "+U[1];
+  return Math.round(n).toLocaleString("en-US")+" "+U[2];}
+const money=n=>Math.round(n).toLocaleString("en-US");
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;
+  let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(u===0)u=r();while(v===0)v=r();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+const clone=o=>JSON.parse(JSON.stringify(o));
+function persist(){try{if(window.storage)window.storage.set("levercalc",JSON.stringify({S,PLANS,PID,LG})).catch(()=>{});}catch(e){}}
+async function restore(){try{if(!window.storage)return;
+  const r=await window.storage.get("levercalc");
+  if(r&&r.value){const d=JSON.parse(r.value);if(d.S)S=d.S;if(d.PLANS)PLANS=d.PLANS;if(d.PID)PID=d.PID;
+    if(typeof d.LG==="number")LG=d.LG;}}catch(e){}}
+
+/* ==================== 引擎 ==================== */
+function layerPmt(d){const i=d.rate/100/12,N=Math.max(1,Math.round(d.years*12));
+  if(d.method==="interest")return d.amount*i;
+  if(d.method==="grace"){if((d.grace||0)>0)return d.amount*i;
+    return i===0?d.amount/N:d.amount*i/(1-Math.pow(1+i,-N));}
+  if(d.method==="principal")return d.amount/N+d.amount*i;
+  return i===0?d.amount/N:d.amount*i/(1-Math.pow(1+i,-N));}
+function pmtAfterGrace(d){if(d.method!=="grace")return layerPmt(d);
+  const i=d.rate/100/12,N=Math.max(1,Math.round(d.years*12)),g=Math.round((d.grace||0)*12),M=Math.max(1,N-g);
+  return i===0?d.amount/M:d.amount*i/(1-Math.pow(1+i,-M));}
+function stepLayer(d,bal,m){const i=d.rate/100/12,N=Math.max(1,Math.round(d.years*12));
+  const g=d.method==="grace"?Math.round((d.grace||0)*12):0;
+  if(bal<=0)return{int:0,prin:0,bal:0};
+  const it=bal*i;let pr=0;
+  if(d.method==="interest"||(d.method==="grace"&&m<g))pr=(m>=N-1)?bal:0;
+  else if(d.method==="principal")pr=Math.min(bal,d.amount/N);
+  else{const M=d.method==="grace"?Math.max(1,N-g):N;
+    const p=i===0?d.amount/M:d.amount*i/(1-Math.pow(1+i,-M));pr=Math.max(0,Math.min(bal,p-it));}
+  if(m>=N-1)pr=bal;
+  return{int:it,prin:pr,bal:bal-pr};}
+const divTaxRate=st=>st.divTax==="none"?0:st.divTax==="separate"?0.28:Math.max(0,st.bracket/100-0.085);
+function rates(st){const ae=Math.pow(1+st.ret/100/st.freq,st.freq)-1,dv=st.divYield/100;
+  return{priceM:Math.pow(Math.max(.01,1+ae-dv),1/12)-1,feeM:Math.pow(Math.max(.01,1-st.fee/100),1/12),divM:dv/12};}
+const borrowedIn=st=>st.debts.reduce((s,d)=>s+(d.invest?d.amount:0),0);
+const colDebt0=st=>st.debts.reduce((s,d)=>s+(DEBT_TYPES[d.type].collateral?d.amount:0),0);
+const openFees=st=>st.debts.reduce((s,d)=>s+(d.fee||0),0);
+function bindingLines(st){let c=0,s=0;st.debts.forEach(d=>{if(DEBT_TYPES[d.type].collateral){
+  c=Math.max(c,d.call||DEBT_TYPES[d.type].call);s=Math.max(s,d.sell||DEBT_TYPES[d.type].sell);}});
+  return{call:c||130,sell:s||120};}
+function runDet(st){
+  const M=Math.round(st.years*12),R=rates(st),uI=st.mode!=="dca",uM=st.mode!=="lump";
+  let a=(uI?st.init:0)+borrowedIn(st),bals=st.debts.map(d=>d.amount);
+  let own=uI?st.init:0,intP=0,prinP=0,feeP=0,taxP=0,nhiP=0;
+  const path=[{m:0,assets:a,debt:bals.reduce((x,y)=>x+y,0),own}];
+  for(let m=0;m<M;m++){
+    const b0=a;a=a*(1+R.priceM);const f=a*(1-R.feeM);feeP+=f;a-=f;
+    const dv=b0*R.divM,tx=dv*divTaxRate(st);taxP+=tx;
+    const nh=(st.nhi&&dv*12>=20000)?dv*0.0211:0;nhiP+=nh;
+    a+=dv-tx-nh;
+    if(uM){const c=st.monthly*Math.pow(1+st.stepUp/100,Math.floor(m/12));a+=c;own+=c;}
+    st.debts.forEach((d,k)=>{const r=stepLayer(d,bals[k],m);bals[k]=r.bal;intP+=r.int;prinP+=r.prin;});
+    if((m+1)%12===0||m===M-1)path.push({m:m+1,assets:a,debt:bals.reduce((x,y)=>x+y,0),own});}
+  const de=bals.reduce((x,y)=>x+y,0);
+  return{path,assets:a,debtEnd:de,net:a-de,ownIn:own,intP,prinP,feeP,taxP,nhiP,
+    firstPay:st.debts.reduce((s,d)=>s+layerPmt(d),0),borrowed:borrowedIn(st),openFee:openFees(st)};}
+function runMC(st,N){
+  N=N||SIMS;const M=Math.round(st.years*12),R=rates(st);
+  const sm=(st.vol/100)/Math.sqrt(12),mu=Math.log(1+R.priceM)-sm*sm/2;
+  const uI=st.mode!=="dca",uM=st.mode!=="lump";
+  const a0=(uI?st.init:0)+borrowedIn(st),L=bindingLines(st),call=L.call/100;
+  const ci=st.debts.map((d,i)=>DEBT_TYPES[d.type].collateral?i:-1).filter(i=>i>=0);
+  const yrs=Math.floor(M/12),snap=Array.from({length:yrs+1},()=>[]),fin=[];
+  let hitN=0;const rnd=mulberry32(20260801);
+  for(let p=0;p<N;p++){
+    let a=a0,bals=st.debts.map(d=>d.amount),hit=false;
+    snap[0].push(a-bals.reduce((x,y)=>x+y,0));
+    for(let m=0;m<M;m++){
+      const b0=a;a=a*Math.exp(mu+sm*gauss(rnd))*R.feeM;
+      const dv=b0*R.divM;
+      a+=dv-dv*divTaxRate(st)-(st.nhi&&dv*12>=20000?dv*0.0211:0);
+      if(a<0)a=0;
+      if(uM)a+=st.monthly*Math.pow(1+st.stepUp/100,Math.floor(m/12));
+      st.debts.forEach((d,k)=>{bals[k]=stepLayer(d,bals[k],m).bal;});
+      if(!hit&&ci.length){const cd=ci.reduce((s,i)=>s+bals[i],0);if(cd>0&&a/cd<call)hit=true;}
+      if((m+1)%12===0){const y=(m+1)/12;if(snap[y])snap[y].push(a-bals.reduce((x,z)=>x+z,0));}}
+    if(hit)hitN++;fin.push(a-bals.reduce((x,y)=>x+y,0));}
+  const q=(arr,p)=>{const s=[...arr].sort((x,y)=>x-y);return s[clamp(Math.floor(p*(s.length-1)),0,s.length-1)];};
+  return{band:snap.map(x=>({p10:q(x,.1),p50:q(x,.5),p90:q(x,.9)})),
+    p10:q(fin,.1),p50:q(fin,.5),p90:q(fin,.9),callProb:ci.length?hitN/N:null};}
+function boundary(st,det){
+  const cd=colDebt0(st),a0=(st.mode!=="dca"?st.init:0)+borrowedIn(st);
+  if(cd<=0||a0<=0)return null;
+  const L=bindingLines(st);
+  return{ratio:a0/cd*100,toCall:(1-(L.call/100)*cd/a0)*100,toSell:(1-(L.sell/100)*cd/a0)*100,
+    months:det.firstPay>0?st.cash/det.firstPay:Infinity,cd,a0,call:L.call,sell:L.sell};}
+const CR=[{y:"2000–2001",d:66},{y:"2008",d:58},{y:"2020",d:30},{y:"2022",d:32}];
+
+/* ==================== 檢視提醒 ==================== */
+const AD={
+retHi:[["預期年化報酬率高於長期經驗值","你設定 {r}%。台灣加權股價指數含息長期約在 8% 上下，且結果高度取決於起訖時點。假設訂得高，會讓你高估自己能承受的槓桿。","改用 6% 再算一次"],
+  ["Expected return above long-run experience","You entered {r}%. The Taiwan Weighted Index has returned around 8% including dividends over the long run, and the figure depends heavily on start and end dates. A high assumption makes you overestimate the leverage you can carry.","Recalculate at 6%"],
+  ["期待リターンが長期実績を上回っています","{r}%と入力されています。台湾加権株価指数の配当込み長期リターンは概ね8%前後で、開始・終了時点により大きく変わります。前提が高いと、耐えられるレバレッジを過大評価しやすくなります。","6%で再計算"],
+  ["기대수익률이 장기 실적보다 높습니다","{r}%로 입력했습니다. 대만 가권지수의 배당 포함 장기 수익률은 약 8% 수준이며 시작·종료 시점에 크게 좌우됩니다. 가정이 높으면 감당 가능한 레버리지를 과대평가하게 됩니다.","6%로 재계산"]],
+volLo:[["年化標準差偏低，風險會被低估","目前 {v}%，但台灣加權股價指數長期約 20%。標準差設得太低，「被追繳機率」會嚴重失真。","改用 20%"],
+  ["Volatility set too low — risk is understated","You have {v}%, but the Taiwan Weighted Index has run near 20% long term. Too low a figure badly distorts the margin call probability.","Use 20%"],
+  ["標準偏差が低すぎ、リスクを過小評価しています","現在{v}%ですが、台湾加権株価指数は長期で約20%です。低すぎると「追証となる確率」が大きく歪みます。","20%にする"],
+  ["표준편차가 너무 낮아 위험이 과소평가됩니다","현재 {v}%이지만 대만 가권지수는 장기적으로 약 20%입니다. 너무 낮으면 「추가담보 요구 확률」이 크게 왜곡됩니다.","20%로 변경"]],
+inflZ:[["未計入通貨膨脹","通膨為 0 時，未來的金額看起來會比實際購買力大很多。台灣近二十年消費者物價指數年增率平均約 1.5%。","設為 2%"],
+  ["Inflation not included","At zero inflation, future amounts look far larger than their real purchasing power. Taiwan's CPI has averaged around 1.5% a year over the past two decades.","Set to 2%"],
+  ["インフレを考慮していません","インフレ0%だと、将来の金額は実質購買力より大きく見えます。台湾の消費者物価指数は過去20年で年平均約1.5%です。","2%にする"],
+  ["물가상승을 반영하지 않았습니다","물가상승률이 0이면 미래 금액이 실질 구매력보다 훨씬 크게 보입니다. 대만 CPI는 최근 20년간 연평균 약 1.5%입니다.","2%로 설정"]],
+feeZ:[["未計入內扣總費用","基金與 ETF 每年自淨值扣除經理費與保管費。台股市值型 ETF 近年多在 0.4%–0.5% 區間，長期累積金額可觀。實際數字請以各投信公開說明書為準。","設為 0.45%"],
+  ["Fund fees not included","Funds and ETFs deduct management and custody fees from net asset value each year. Broad Taiwan equity ETFs have commonly sat in the 0.4%–0.5% range; the cumulative effect over decades is large. Check each issuer's prospectus for exact figures.","Set to 0.45%"],
+  ["信託報酬を考慮していません","ファンドやETFは毎年、信託報酬等を純資産から控除します。台湾株式型ETFは概ね0.4%〜0.5%の水準で、長期の累積額は無視できません。正確な数値は各運用会社の目論見書をご確認ください。","0.45%にする"],
+  ["보수를 반영하지 않았습니다","펀드와 ETF는 매년 순자산에서 운용·수탁 보수를 차감합니다. 대만 시가총액형 ETF는 통상 0.4%~0.5% 수준이며 장기 누적액은 상당합니다. 정확한 수치는 각 운용사 투자설명서를 확인하세요.","0.45%로 설정"]],
+taxZ:[["未計入股利所得稅","現金股利屬所得，須併入綜合所得或採分開計稅，長期存股者每年都會被課到。","改為合併計稅"],
+  ["Dividend tax not included","Cash dividends are taxable income in Taiwan, either aggregated or taxed separately. Long-term dividend investors pay this every year.","Use aggregated tax"],
+  ["配当課税を考慮していません","現金配当は所得に該当し、総合課税または分離課税の対象です。長期の配当投資では毎年発生します。","総合課税にする"],
+  ["배당소득세를 반영하지 않았습니다","현금배당은 소득에 해당하여 종합과세 또는 분리과세 대상입니다. 장기 배당투자자는 매년 부담합니다.","종합과세로 변경"]],
+cashLo:[["可動用現金不足六個月還款","目前只夠 {m} 個月。市場下跌時，現金是你唯一不必賣出擔保品就能撐住的東西。實務上多建議保留 6–12 個月的還款金額。","把現金補到 6 個月（{a}）"],
+  ["Less than six months of cash cover","Currently {m} months. In a downturn, cash is the only thing that lets you hold on without selling collateral. Six to twelve months of repayments is a common guideline.","Top cash up to 6 months ({a})"],
+  ["現金が6か月分の返済に届いていません","現在{m}か月分です。下落局面では、担保を売らずに耐えられる唯一の手段が現金です。6〜12か月分の返済額を確保するのが一般的な目安です。","6か月分（{a}）に増やす"],
+  ["현금이 6개월치 상환에 못 미칩니다","현재 {m}개월분입니다. 하락장에서 담보를 팔지 않고 버틸 수 있는 유일한 수단이 현금입니다. 6~12개월분 확보가 일반적 기준입니다.","6개월분({a})으로 늘리기"]],
+payHi:[["每月還款總額超過月收入 40%","目前 {r}%。銀行核貸實務多以 40% 為警戒值。比率偏高時，市場下跌期間你將沒有餘裕加碼，也難以承受收入中斷。",""],
+  ["Repayments exceed 40% of income","Currently {r}%. Lenders commonly treat 40% as a warning threshold. At a high ratio you have no room to add to positions in a downturn and little tolerance for an income gap.",""],
+  ["返済額が収入の40%を超えています","現在{r}%です。金融機関は概ね40%を警戒水準としています。比率が高いと下落局面で買い増す余力がなく、収入が途絶えた場合の耐性も低くなります。",""],
+  ["상환액이 소득의 40%를 초과합니다","현재 {r}%입니다. 금융기관은 통상 40%를 경계 수준으로 봅니다. 비율이 높으면 하락장에서 추가 매수 여력이 없고 소득 공백에도 취약합니다.",""]],
+dbrHi:[["DBR 已超過 22 倍上限","無擔保債務 {u}，為月收入的 {x} 倍。依銀行公會自律規範不宜超過 22 倍，超過時多數銀行不會核貸。",""],
+  ["DBR exceeds the 22× cap","Unsecured debt of {u} is {x}× monthly income. The Bankers Association self-regulatory guideline is 22×; above that most banks will decline.",""],
+  ["DBRが22倍の上限を超えています","無担保債務{u}は月収の{x}倍です。銀行公会の自主規範では22倍以内が望ましく、超過すると多くの銀行は融資を行いません。",""],
+  ["DBR이 22배 상한을 초과했습니다","무담보부채 {u}는 월소득의 {x}배입니다. 은행공회 자율규범 기준은 22배이며, 초과 시 대부분 은행은 승인하지 않습니다.",""]],
+callHi:[["模擬路徑中有 {p}% 會被追繳","這代表在相同假設下，超過四分之一的模擬路徑中，你會在某個時點被要求補繳擔保品或償還部分借款。被追繳時往往正是市場最差的時候。","把擔保借款金額降三成試算"],
+  ["{p}% of simulated paths hit a margin call","Under the same assumptions, in more than a quarter of paths you are asked for additional collateral or partial repayment at some point — typically when the market is at its worst.","Try cutting secured borrowing by 30%"],
+  ["シミュレーションの{p}%で追証が発生します","同じ前提のもとで、4分の1を超えるパスにおいて、いずれかの時点で追加担保または一部返済を求められます。多くの場合、市場が最悪の局面でそれが起こります。","担保付借入を3割減らして試算"],
+  ["시뮬레이션 경로의 {p}%에서 추가담보 요구가 발생합니다","동일한 가정에서 4분의 1이 넘는 경로에서 어느 시점엔가 추가담보 또는 일부 상환을 요구받습니다. 대개 시장이 가장 나쁠 때 발생합니다.","담보대출을 30% 줄여 시산"]],
+pledgeShort:[["質押借款期限短於投資年期","質押借款期間為 {d} 年，但你的投資規劃是 {y} 年。這類借款到期需重新申請展延，券商有權不予展延或調整條件。規劃長期持有時，不能假設借款一定續得下去。",""],
+  ["Loan term is shorter than your investment horizon","The securities-backed loan runs {d} year(s) against a {y}-year plan. These loans must be renewed at maturity and the broker may decline or change terms. A long holding plan cannot assume the credit line will always be there.",""],
+  ["担保ローンの期間が投資期間より短いです","担保ローンの期間は{d}年ですが、投資計画は{y}年です。この種の借入は満期時に更新申請が必要で、証券会社は更新を拒否したり条件を変更したりできます。長期保有を前提にする場合、借入が必ず継続できるとは限りません。",""],
+  ["담보대출 기간이 투자 기간보다 짧습니다","담보대출 기간은 {d}년이지만 투자 계획은 {y}년입니다. 이런 대출은 만기 시 재연장 신청이 필요하고 증권사가 거절하거나 조건을 바꿀 수 있습니다. 장기 보유를 전제로 할 때 대출이 반드시 연장된다고 가정할 수 없습니다.",""]],
+graceJump:[["寬限期結束後月付金會跳增","寬限期內每月 {a} 元，期滿後變成每月 {b} 元，增加 {c} 元。請先確認屆時的收入負擔得起。",""],
+  ["Payments jump when the grace period ends","{a} per month during the grace period, rising to {b} afterwards — an increase of {c}. Make sure your income at that point can absorb it.",""],
+  ["据置期間終了後に返済額が跳ね上がります","据置期間中は毎月{a}、終了後は毎月{b}となり、{c}増加します。その時点の収入で負担できるか事前にご確認ください。",""],
+  ["거치 기간 종료 후 상환액이 급증합니다","거치 기간 중 월 {a}, 종료 후 월 {b}로 {c} 증가합니다. 그 시점 소득으로 감당 가능한지 미리 확인하세요.",""]],
+levHi:[["借款投入金額已超過自有本金","借款投入 {l}，自有期初本金 {o}，槓桿倍數約 {x} 倍。市場下跌 {d}% 左右，自有本金即可能歸零，但借款利息仍須照付。",""],
+  ["Borrowed funds exceed your own capital","{l} borrowed against {o} of your own initial capital — roughly {x}× leverage. A market fall of around {d}% could wipe out your own capital, while the interest still has to be paid.",""],
+  ["借入額が自己資金を上回っています","借入{l}に対し自己資金{o}、レバレッジは約{x}倍です。市場が{d}%程度下落すると自己資金がゼロになり得ますが、利息の支払いは続きます。",""],
+  ["차입금이 자기자본을 초과했습니다","차입 {l}, 자기 초기자본 {o}로 레버리지는 약 {x}배입니다. 시장이 {d}% 정도 하락하면 자기자본이 소진될 수 있으나 이자는 계속 부담해야 합니다.",""]],
+homeRisk:[["以住宅抵押借款投入股市","理財型房貸的擔保品是你的房子。若市場長期不如預期而無法還款，失去的不只是投資部位，還包括自住的房屋。這類決策建議與家人充分討論。",""],
+  ["Investing money secured on your home","A home equity line is secured on the place you live in. If markets disappoint for long enough that you cannot service it, you lose more than the portfolio. This is worth discussing thoroughly with your family.",""],
+  ["自宅を担保にした資金で株式投資を行っています","極度型住宅ローンの担保はご自宅です。市場が長期にわたり想定を下回り返済できなくなった場合、失うのは投資ポジションだけではありません。ご家族と十分に話し合うことをお勧めします。",""],
+  ["자택을 담보로 한 자금으로 주식에 투자하고 있습니다","한도형 주택담보대출의 담보는 거주 중인 집입니다. 시장이 오래 부진해 상환이 어려워지면 잃는 것은 투자 포지션만이 아닙니다. 가족과 충분히 상의하시기 바랍니다.",""]],
+ok:[["目前的設定沒有觸發任何檢視提醒","報酬假設、標準差、現金水位、月付比與 DBR 都落在常見的保守範圍內。這不代表沒有風險，只代表你的輸入值與市場統計和銀行實務基準一致。",""],
+  ["No review notices triggered","Your return assumption, volatility, cash buffer, payment ratio and DBR all sit within commonly used conservative ranges. That does not mean there is no risk — only that your inputs line up with market statistics and standard lending practice.",""],
+  ["チェックに該当する項目はありません","リターン前提、標準偏差、現金水準、返済比率、DBRのいずれも一般的な保守的範囲内です。リスクがないという意味ではなく、入力値が市場統計と銀行実務の基準に整合しているということです。",""],
+  ["점검에 걸린 항목이 없습니다","수익률 가정, 표준편차, 현금 수준, 상환 비율, DBR 모두 일반적인 보수적 범위 내에 있습니다. 위험이 없다는 뜻이 아니라 입력값이 시장 통계 및 은행 실무 기준과 부합한다는 의미입니다.",""]]
+};
+const A_=(k,i)=>((AD[k]&&AD[k][LG])||AD[k][0])[i];
+function fill(s,v){for(const p in v)s=s.split("{"+p+"}").join(v[p]);return s;}
+function advisories(det,mc,bd){
+  const A=[],P=(k,lv,v,f)=>{const t=A_(k,0),d=A_(k,1),a=A_(k,2);
+    A.push({lv,t:fill(t,v||{}),d:fill(d,v||{}),a:a?fill(a,v||{}):"",f});};
+  if(S.ret>8)P("retHi",2,{r:S.ret},()=>{S.ret=6;});
+  if(S.vol<12)P("volLo",2,{v:S.vol},()=>{S.vol=20;});
+  if(S.infl===0)P("inflZ",1,{},()=>{S.infl=2;});
+  if(S.fee===0)P("feeZ",1,{},()=>{S.fee=0.45;});
+  if(S.divTax==="none"&&S.divYield>0)P("taxZ",1,{},()=>{S.divTax="combined";});
+  if(bd&&det.firstPay>0&&bd.months<6){const a=Math.ceil(det.firstPay*6/10000)*10000;
+    P("cashLo",3,{m:Math.floor(bd.months),a:wan(a)},()=>{S.cash=a;});}
+  const r=S.income>0?det.firstPay/S.income*100:0;
+  if(r>40)P("payHi",3,{r:r.toFixed(1)});
+  const unsec=S.debts.filter(d=>!DEBT_TYPES[d.type].secured).reduce((s,d)=>s+d.amount,0);
+  if(S.income>0&&unsec/S.income>22)P("dbrHi",3,{u:wan(unsec),x:(unsec/S.income).toFixed(1)});
+  if(bd&&mc.callProb>0.25)P("callHi",3,{p:(mc.callProb*100).toFixed(0)},
+    ()=>{S.debts.forEach(d=>{if(DEBT_TYPES[d.type].collateral)d.amount=Math.round(d.amount*0.7/100000)*100000;});});
+  const sp=S.debts.filter(d=>d.type==="pledge"&&d.years<S.years);
+  if(sp.length)P("pledgeShort",2,{d:sp[0].years,y:S.years});
+  const gr=S.debts.filter(d=>d.method==="grace"&&(d.grace||0)>0);
+  if(gr.length){const n=layerPmt(gr[0]),af=pmtAfterGrace(gr[0]);
+    P("graceJump",2,{a:money(n),b:money(af),c:money(af-n)});}
+  const lev=S.debts.filter(d=>d.invest).reduce((s,d)=>s+d.amount,0);
+  const oc=S.mode!=="dca"?S.init:0;
+  if(lev>0&&oc>0&&lev/oc>1)P("levHi",3,{l:wan(lev),o:wan(oc),
+    x:(1+lev/oc).toFixed(1),d:(100/(1+lev/oc)).toFixed(0)});
+  if(S.debts.some(d=>d.type==="heloc"&&d.invest))P("homeRisk",3);
+  if(!A.length)P("ok",0);
+  return A.sort((a,b)=>b.lv-a.lv);}
+
+/* ==================== 說明 ==================== */
+const EX={
+init:["期初一次投入的金額。選「定期定額」模式時不計入，但數值會保留。",
+  "The amount invested at the start. Ignored in recurring-only mode, but the value is kept.",
+  "開始時に一括で投資する金額。積立のみのモードでは計算に含まれませんが、数値は保持されます。",
+  "시작 시 일시 투자하는 금액. 적립식 전용 모드에서는 계산에 포함되지 않지만 값은 유지됩니다."],
+monthly:["每月固定投入金額。選「單筆投入」模式時不計入，但數值會保留。",
+  "Fixed amount added each month. Ignored in lump-sum-only mode, but the value is kept.",
+  "毎月一定額を投資する金額。一括のみのモードでは計算に含まれませんが、数値は保持されます。",
+  "매월 일정액 투자 금액. 거치식 전용 모드에서는 계산에 포함되지 않지만 값은 유지됩니다."],
+years:["預計持有期間。年期是複利最重要的變數，影響通常大於報酬率。",
+  "How long you plan to hold. Time horizon matters more to compounding than the rate itself.",
+  "保有予定期間。複利においては期間が最も重要な変数で、利率以上に効きます。",
+  "보유 예정 기간. 복리에서는 기간이 가장 중요한 변수로 수익률보다 영향이 큽니다."],
+ret:["含息的預期年化總報酬，由你自行假設，本工具不提供任何預測值。台灣加權股價指數含息長期約落在 8% 上下，但那是事後回顧的數字，起訖點不同差異很大。規劃時建議用較低的假設，例如 5%–7%。",
+  "Your own assumption for total annual return including dividends. This tool provides no forecast. The Taiwan Weighted Index has returned around 8% including dividends over the long run, but that is a backward-looking figure that varies greatly with start and end dates. Planning with a lower figure, say 5%–7%, is safer.",
+  "配当込みの期待年率トータルリターンで、ご自身の前提です。本ツールは予測値を提供しません。台湾加権株価指数の配当込み長期リターンは概ね8%前後ですが、これは事後的な数値で、開始・終了時点により大きく変動します。計画時は5%〜7%など低めの前提が安全です。",
+  "배당 포함 기대 연 수익률로 본인이 정하는 가정입니다. 본 도구는 예측값을 제공하지 않습니다. 대만 가권지수의 배당 포함 장기 수익률은 약 8% 수준이나 이는 사후적 수치로 시작·종료 시점에 따라 크게 달라집니다. 계획 시 5%~7% 등 낮은 가정이 안전합니다."],
+vol:["報酬的年化標準差，決定結果的散布範圍。台灣加權股價指數長期約 20%、全球股票約 15%–18%。填 0 會得到一條看似確定的直線，那並不存在。",
+  "Annualised standard deviation of returns — it sets how widely outcomes spread. The Taiwan Weighted Index has run near 20% long term; global equities around 15%–18%. Enter 0 and you get a line that looks certain; no such line exists.",
+  "リターンの年率標準偏差で、結果のばらつきを決めます。台湾加権株価指数は長期で約20%、世界株式は15%〜18%程度です。0にすると確実に見える一本線が出ますが、そのようなものは存在しません。",
+  "수익률의 연환산 표준편차로 결과의 분포 폭을 결정합니다. 대만 가권지수는 장기 약 20%, 글로벌 주식은 15%~18% 수준입니다. 0을 넣으면 확실해 보이는 직선이 나오지만 그런 것은 존재하지 않습니다."],
+infl:["用來把未來金額換算成今日購買力。台灣近二十年消費者物價指數年增率平均約 1.5%，近年較高。保守起見建議填 2%。",
+  "Converts future amounts into today's purchasing power. Taiwan's CPI has averaged around 1.5% a year over two decades, higher recently. 2% is a conservative choice.",
+  "将来の金額を現在の購買力に換算します。台湾の消費者物価指数は過去20年で年平均約1.5%、近年はやや高めです。保守的には2%を推奨します。",
+  "미래 금액을 현재 구매력으로 환산합니다. 대만 CPI는 최근 20년 연평균 약 1.5%, 최근에는 더 높습니다. 보수적으로 2%를 권합니다."],
+divYield:["年度現金股利佔市值的比率。這一段會被課稅，因此必須與價差分開計算。台灣加權股價指數整體殖利率近年約 3%–4%。",
+  "Annual cash dividends as a share of market value. This portion is taxed, so it must be modelled separately from price change. The Taiwan Weighted Index has yielded around 3%–4% in recent years.",
+  "時価に対する年間現金配当の比率。この部分は課税されるため、値上がり益と分けて計算する必要があります。台湾加権株価指数の配当利回りは近年概ね3%〜4%です。",
+  "시가 대비 연간 현금배당 비율. 이 부분은 과세되므로 시세차익과 분리해 계산해야 합니다. 대만 가권지수 배당수익률은 최근 약 3%~4%입니다."],
+fee:["基金或 ETF 每年自淨值中扣除的經理費、保管費及其他費用合計。台股市值型 ETF 近年多在 0.4%–0.5%，海外股票型多在 0.6%–0.7%。實際數字每年公告，請以各投信公開說明書為準。",
+  "Management, custody and other fees deducted from net asset value each year. Broad Taiwan equity ETFs have commonly sat at 0.4%–0.5%, overseas equity ETFs at 0.6%–0.7%. Figures are published annually — check each issuer's prospectus.",
+  "ファンドやETFが毎年、純資産から控除する信託報酬・保管費用等の合計。台湾株式型ETFは概ね0.4%〜0.5%、海外株式型は0.6%〜0.7%です。数値は毎年公表されるため、各運用会社の目論見書をご確認ください。",
+  "펀드·ETF가 매년 순자산에서 차감하는 운용·수탁 등 보수 합계. 대만 주식형 ETF는 통상 0.4%~0.5%, 해외 주식형은 0.6%~0.7%입니다. 수치는 매년 공시되므로 각 운용사 투자설명서를 확인하세요."],
+freq:["利息滾入本金的頻率。同一個名目年利率，複利頻率越高，實際年化報酬越高。",
+  "How often interest is added to principal. For the same nominal rate, more frequent compounding gives a higher effective return.",
+  "利息が元本に組み入れられる頻度。同じ名目年利率でも、頻度が高いほど実効リターンは高くなります。",
+  "이자가 원금에 편입되는 주기. 같은 명목이율이라도 주기가 짧을수록 실효 수익률이 높아집니다."],
+bracket:["綜合所得稅適用稅率。採合併計稅時，股利可按 8.5% 計算可抵減稅額（每一申報戶上限 8 萬元），故有效稅率約為級距減 8.5%。本工具為簡化計算，未計入抵減上限。",
+  "Your income tax bracket. Under aggregated taxation, dividends carry an 8.5% credit (capped at NT$80,000 per filing household), so the effective rate is roughly your bracket minus 8.5%. This tool simplifies by ignoring the cap.",
+  "所得税の適用税率。総合課税では配当に8.5%の税額控除（1申告世帯あたり上限8万台湾ドル）が適用されるため、実効税率は概ね税率マイナス8.5%となります。本ツールは簡略化のため上限を考慮していません。",
+  "종합소득세 적용세율. 종합과세 시 배당에 8.5% 세액공제(신고가구당 상한 8만 대만달러)가 적용되어 실효세율은 대략 세율에서 8.5%를 뺀 값입니다. 본 도구는 단순화를 위해 상한을 반영하지 않습니다."],
+nhi:["單次給付之股利達 20,000 元者，需扣取 2.11% 補充保險費（單次給付上限 1,000 萬元）。長期存股者每年都會被扣，但幾乎沒有計算器把它算進去。",
+  "In Taiwan, a single dividend payment of NT$20,000 or more attracts a 2.11% supplementary health insurance premium (capped at NT$10 million per payment). Long-term dividend investors pay it every year, yet almost no calculator includes it.",
+  "1回の配当支払額が20,000台湾ドル以上の場合、2.11%の補充保険料が徴収されます（1回あたり上限1,000万台湾ドル）。長期の配当投資では毎年発生しますが、これを計算に含めるツールはほとんどありません。",
+  "1회 배당 지급액이 20,000 대만달러 이상이면 2.11%의 추가 건강보험료가 부과됩니다(1회 상한 1,000만 대만달러). 장기 배당투자자는 매년 부담하지만 이를 반영하는 계산기는 거의 없습니다."],
+income:["稅前月平均收入，用於檢核月付金佔收入比與 DBR。銀行核貸時會查驗財力證明。",
+  "Pre-tax monthly income, used to check the payment ratio and DBR. Lenders verify this with documentation.",
+  "税引前の月平均収入で、返済比率とDBRの確認に使用します。金融機関は所得証明で確認します。",
+  "세전 월평균 소득으로 상환 비율과 DBR 확인에 사용합니다. 금융기관은 소득증빙으로 확인합니다."],
+cash:["可立即動用的現金與約當現金。這決定市場下跌時你能撐幾個月不被迫賣出擔保品。建議至少保留 6–12 個月的還款金額。",
+  "Cash and cash equivalents you can access immediately. This decides how many months you can hold on without selling collateral. Six to twelve months of repayments is a common guideline.",
+  "即座に動かせる現金および現金同等物。下落局面で担保を売らずに何か月耐えられるかを決めます。返済額の6〜12か月分の確保が一般的な目安です。",
+  "즉시 사용 가능한 현금 및 현금성 자산. 하락장에서 담보를 팔지 않고 몇 개월을 버틸 수 있는지 결정합니다. 상환액 6~12개월분 확보가 일반적 기준입니다."],
+stepUp:["每年調高定期定額金額的百分比。若不確定未來加薪幅度，建議填 0，不要把還沒發生的加薪算進計畫。",
+  "Annual percentage increase to your recurring contribution. If you are unsure about future pay rises, use 0 — do not plan around income you have not received.",
+  "毎月の積立額を年ごとに引き上げる割合。将来の昇給が不確実なら0を推奨します。まだ得ていない収入を計画に織り込まないでください。",
+  "매월 적립금을 매년 인상하는 비율. 향후 임금 인상이 불확실하면 0을 권합니다. 아직 받지 않은 소득을 계획에 넣지 마세요."]};
+
+/* ==================== 輸入 UI ==================== */
+function field(k,lk,min,max,step,unit,chip){const v=S[k];
+  return `<div class="f"><div class="ftop"><label for="i_${k}">${T(lk)}</label>
+    ${EX[k]?`<button class="info" data-x="${k}">i</button>`:""}
+    <input class="num" id="i_${k}" type="number" data-k="${k}" value="${v}" min="${min}" max="${max}" step="${step}">
+    <span class="u">${unit||""}</span>${chip?`<span class="chip" id="c_${k}">${chip(v)}</span>`:""}</div>
+    <input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${v}" aria-label="${T(lk)}">
+    ${EX[k]?`<div class="expl" id="x_${k}">${EX[k][LG]||EX[k][0]}</div>`:""}</div>`;}
+function dfield(i,p,lk,min,max,step,unit,val){
+  return `<div class="f"><div class="ftop"><label>${T(lk)}</label>
+    <input class="num" type="number" data-d="${i}" data-p="${p}" value="${val}" min="${min}" max="${max}" step="${step}">
+    <span class="u">${unit||""}</span></div>
+    <input type="range" data-d="${i}" data-p="${p}" min="${min}" max="${max}" step="${step}" value="${val}" aria-label="${T(lk)}"></div>`;}
+function renderBasic(){
+  $("basic").innerHTML=(S.mode!=="dca"?field("init","fInit",0,20000000,50000,"",wan):"")+
+    (S.mode!=="lump"?field("monthly","fMonthly",0,300000,1000,"",wan):"")+
+    field("years","fYears",1,40,1,"")+field("ret","fRet",0,20,.1,"%");
+  $("modeNote").textContent=T(S.mode==="mix"?"noteMix":S.mode==="lump"?"noteLump":"noteDca");}
+function renderPersonal(){$("personal").innerHTML=field("income","fIncome",0,500000,5000,"",wan)+field("cash","fCash",0,10000000,50000,"",wan);}
+function renderAdv(){
+  $("adv").innerHTML=field("vol","fVol",0,45,1,"%")+field("infl","fInfl",0,8,.1,"%")+
+    field("divYield","fDiv",0,10,.1,"%")+field("fee","fFee",0,3,.01,"%")+
+    (S.mode!=="lump"?field("stepUp","fStep",0,15,.5,"%"):"")+
+    `<div class="f"><div class="ftop"><label>${T("fFreq")}</label><button class="info" data-x="freq">i</button>
+      <select class="sel" data-k="freq">${[1,2,4,12,365].map((o,j)=>`<option value="${o}" ${S.freq==o?"selected":""}>${TA("frq",j)}</option>`).join("")}</select></div>
+      <div class="expl" id="x_freq">${EX.freq[LG]||EX.freq[0]}</div></div>`+
+    `<div class="f"><div class="ftop"><label>${T("fDivTax")}</label>
+      <select class="sel" data-k="divTax">${["combined","separate","none"].map((o,j)=>`<option value="${o}" ${S.divTax===o?"selected":""}>${TA("tax",j)}</option>`).join("")}</select></div></div>`+
+    (S.divTax==="combined"?field("bracket","fBracket",5,40,1,"%"):"")+
+    `<div class="row"><span class="k">${T("fNhi")}</span><button class="info" data-x="nhi">i</button>
+      <button class="sw ${S.nhi?"on":""}" data-t="nhi"></button></div>
+      <div class="f" style="padding-top:0"><div class="expl" id="x_nhi">${EX.nhi[LG]||EX.nhi[0]}</div></div>`;}
+function renderDebts(){
+  const el=$("debts");
+  if(!S.debts.length){el.innerHTML=`<div class="empty">${T("noDebt")}</div>`;return;}
+  el.innerHTML=S.debts.map((d,i)=>{const Ty=DEBT_TYPES[d.type];
+    return `<div class="layer"><div class="lhead">
+      <select class="sel" data-d="${i}" data-p="type">${DK.map(k=>`<option value="${k}" ${d.type===k?"selected":""}>${TA("dt",DEBT_TYPES[k].i)}</option>`).join("")}</select>
+      <span class="chip">${wan(d.amount)}</span><button class="del" data-rm="${i}">×</button></div>
+      ${dfield(i,"amount","fAmt",0,20000000,100000,"",d.amount)}
+      ${dfield(i,"rate","fRate",0,20,.05,"%",d.rate)}
+      ${dfield(i,"years","fTerm",1,40,1,"",d.years)}
+      <div class="row"><span class="k">${T("fMethod")}</span><select class="sel" data-d="${i}" data-p="method">
+        ${MK.map((k,j)=>`<option value="${k}" ${d.method===k?"selected":""}>${TA("mth",j)}</option>`).join("")}</select></div>
+      ${d.method==="grace"?dfield(i,"grace","fGrace",0,10,1,"",d.grace||0):""}
+      ${!Ty.secured?dfield(i,"fee","fOpen",0,100000,1000,"",d.fee||0):""}
+      ${Ty.collateral?dfield(i,"call","fCall",100,220,1,"%",d.call||Ty.call)+dfield(i,"sell","fSell",100,220,1,"%",d.sell||Ty.sell):""}
+      <div class="row"><span class="k">${T("fInvest")}</span>
+        <button class="sw ${d.invest?"on":""}" data-d="${i}" data-p="invest"></button></div>
+      ${d.invest?`<div class="warn">${T("levWarn")}</div>`:""}
+      <div class="warn" style="background:var(--fill);color:var(--label2);font-weight:400">${TA("cau",Ty.i)}</div>
+      <div class="note" style="border-top:none;padding-top:0">${T("mPay")} ${money(layerPmt(d))}${Ty.collateral?`・${T("ltv")} ${Ty.ltv}%`:""}</div></div>`;}).join("");}
+function renderPlans(){
+  $("planCount").textContent=PLANS.length?T("planN",{n:PLANS.length}):"";
+  $("plans").innerHTML=PLANS.length?PLANS.map(p=>`<div class="plan">
+    <button class="cb ${SEL.includes(p.id)?"on":""}" data-sel="${p.id}"></button>
+    <div class="pi"><div class="pt" title="${p.name}">${p.name}</div><div class="pm" title="${p.meta}">${p.meta}</div></div>
+    <button class="mini" data-load="${p.id}">${T("load")}</button><button class="mini d" data-delp="${p.id}">${T("del")}</button></div>`).join("")
+    :`<div class="empty">${T("noPlan")}</div>`;}
+function renderHist(){
+  $("hist").innerHTML=HIST.length?HIST.map((h,i)=>`<div class="plan">
+    <div class="pi"><div class="pt">${h.name}</div><div class="pm">${h.time}・${h.meta}</div></div>
+    <button class="mini" data-hload="${i}">${T("restore")}</button></div>`).join("")
+    :`<div class="empty">${T("noHist")}</div>`;}
+function renderChrome(){
+  document.documentElement.lang=["zh-Hant","en","ja","ko"][LG];
+  $("hSub").textContent=T("hSub"); $("jur").textContent=T("jur");
+  $("save").textContent=T("save"); $("reset").textContent=T("reset");
+  $("mode").textContent=document.body.classList.contains("dark")?T("light"):T("dark");
+  $("s_mode").textContent=T("sMode");
+  $("s_basic").innerHTML=T("sBasic")+`<button class="sp" id="cons">${T("cons")}</button>`;
+  $("s_debt").innerHTML=T("sDebt")+`<button class="sp" id="addDebt">${T("add")}</button>`;
+  $("s_pers").textContent=T("sPers"); $("s_adv").textContent=T("sAdv");
+  $("s_plans").innerHTML=T("sPlans")+`<span class="sp" style="font-weight:400;font-size:11px" id="planCount"></span>`;
+  $("s_hist").textContent=T("sHist");
+  $("s_advisor").innerHTML=T("sAdvisor")+`<span class="sp" style="font-weight:400;font-size:11px" id="advCount"></span>`;
+  $("s_chart").textContent=T("sChart"); $("s_gauge").textContent=T("sGauge");
+  $("s_stress").textContent=T("sStress"); $("s_wf").textContent=T("sWf");
+  $("s_con").textContent=T("sCon"); $("cmpSec").textContent=T("sCmp"); $("s_tbl").textContent=T("sTbl");
+  $("stressNote").textContent=T("stressNote"); $("disc").textContent=T("disc");
+  $("lang").value=String(LG);
+  ["lump","dca","mix"].forEach((m,j)=>{const b=document.querySelector(`#segMode [data-m="${m}"]`);
+    b.textContent=T(["mLump","mDca","mMix"][j]); b.classList.toggle("on",S.mode===m);});
+  ["hide","brief","full"].forEach((v,j)=>{const b=document.querySelector(`#segTbl [data-v="${v}"]`);
+    b.textContent=T(["tHide","tBrief","tFull"][j]); b.classList.toggle("on",TBLV===v);});
+  $("legend").innerHTML=[["lgMed","var(--tint)"],["lgBand","var(--tint);opacity:.25"],
+    ["lgDebt","var(--danger);opacity:.55"],["lgOwn","var(--label3)"]]
+    .map(x=>`<span><i style="background:${x[1]}"></i>${T(x[0])}</span>`).join("");}
+function renderInputs(){renderChrome();renderBasic();renderPersonal();renderAdv();renderDebts();renderPlans();renderHist();}
+
+/* ==================== 圖表 ==================== */
+const NS="http://www.w3.org/2000/svg";
+const cv=n=>getComputedStyle(document.body).getPropertyValue(n).trim();
+function mk(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function tx(x,y,s,o){const e=mk("text",Object.assign({x,y,fill:cv("--label2"),"font-size":11},o||{}));e.textContent=s;return e;}
+function drawMain(det,mc){
+  const s=$("chMain");s.innerHTML="";
+  const W=700,H=248,L=62,R=12,T0=12,B=24,w=W-L-R,h=H-T0-B,yrs=S.years;
+  const vals=[];mc.band.forEach(b=>vals.push(b.p10,b.p90));
+  det.path.forEach(p=>vals.push(p.assets,p.own,-p.debt));
+  let max=Math.max(...vals,1),min=Math.min(...vals,0);
+  const pd=(max-min)*.08;max+=pd;min-=pd;
+  const X=i=>L+w*i/Math.max(1,yrs),Y=v=>T0+h-((v-min)/(max-min))*h;
+  for(let g=0;g<=4;g++){const gy=T0+h*g/4;
+    s.appendChild(mk("line",{x1:L,y1:gy,x2:L+w,y2:gy,stroke:cv("--sep"),"stroke-width":.6}));
+    s.appendChild(tx(L-6,gy+4,wan(max-(max-min)*g/4),{"text-anchor":"end","font-size":9.5}));}
+  if(min<0&&max>0)s.appendChild(mk("line",{x1:L,y1:Y(0),x2:L+w,y2:Y(0),stroke:cv("--label3"),"stroke-width":1}));
+  const n=mc.band.length-1;
+  let d="M"+X(0)+" "+Y(mc.band[0].p10);
+  for(let i=1;i<=n;i++)d+="L"+X(i)+" "+Y(mc.band[i].p10);
+  for(let j=n;j>=0;j--)d+="L"+X(j)+" "+Y(mc.band[j].p90);
+  s.appendChild(mk("path",{d:d+"Z",fill:cv("--tint"),opacity:.2}));
+  let dd="M"+X(0)+" "+Y(0);det.path.forEach(p=>dd+="L"+X(p.m/12)+" "+Y(-p.debt));
+  s.appendChild(mk("path",{d:dd+"L"+X(yrs)+" "+Y(0)+"Z",fill:cv("--danger"),opacity:.2}));
+  let dc="M"+X(0)+" "+Y(det.path[0].own);det.path.forEach(p=>dc+="L"+X(p.m/12)+" "+Y(p.own));
+  s.appendChild(mk("path",{d:dc,fill:"none",stroke:cv("--label3"),"stroke-width":1.6,"stroke-dasharray":"5 4"}));
+  let dm="M"+X(0)+" "+Y(mc.band[0].p50);
+  for(let i=1;i<=n;i++)dm+="L"+X(i)+" "+Y(mc.band[i].p50);
+  s.appendChild(mk("path",{d:dm,fill:"none",stroke:cv("--tint"),"stroke-width":2.8,"stroke-linejoin":"round","stroke-linecap":"round"}));
+  s.appendChild(mk("circle",{cx:X(n),cy:Y(mc.band[n].p50),r:4,fill:cv("--tint")}));
+  const yl=[T("thYear"),"y","年","년"][LG]||"";
+  [0,Math.round(yrs/2),yrs].forEach((m,k)=>s.appendChild(tx(X(m),H-6,LG===1?m+"y":m+" "+yl,
+    {"text-anchor":k===0?"start":(k===2?"end":"middle"),"font-size":10})));}
+function drawGauge(bd){
+  const s=$("gauge");s.innerHTML="";
+  if(!bd){s.appendChild(tx(190,68,T("gNone"),{"text-anchor":"middle","font-size":13,fill:cv("--label2")}));
+    s.appendChild(tx(190,90,T("gNone2"),{"text-anchor":"middle","font-size":10.5}));return;}
+  const cx=190,cy=126,r=92,tw=16,lo=100,hi=260;
+  const toA=v=>180-((clamp(v,lo,hi)-lo)/(hi-lo))*180;
+  const pt=a=>{const q=a*Math.PI/180;return[cx+r*Math.cos(q),cy-r*Math.sin(q)];};
+  const arc=(v1,v2,c)=>{const p1=pt(toA(v1)),p2=pt(toA(v2));
+    s.appendChild(mk("path",{d:`M${p1[0]} ${p1[1]}A${r} ${r} 0 0 1 ${p2[0]} ${p2[1]}`,fill:"none",stroke:c,"stroke-width":tw}));};
+  arc(lo,bd.sell,cv("--danger"));arc(bd.sell,bd.call,cv("--amber"));arc(bd.call,hi,cv("--tint"));
+  const np=pt(toA(bd.ratio));
+  s.appendChild(mk("line",{x1:cx,y1:cy,x2:np[0],y2:np[1],stroke:cv("--label"),"stroke-width":3.2,"stroke-linecap":"round"}));
+  s.appendChild(mk("circle",{cx,cy,r:6.5,fill:cv("--label")}));
+  const col=bd.ratio<bd.sell?cv("--danger"):(bd.ratio<bd.call?cv("--amber"):cv("--tint"));
+  s.appendChild(tx(cx,cy-30,bd.ratio>999?"999%+":Math.round(bd.ratio)+"%",
+    {"text-anchor":"middle","font-size":38,"font-weight":700,fill:col,"letter-spacing":-1}));
+  s.appendChild(tx(cx,cy-11,T("gRatio"),{"text-anchor":"middle","font-size":11.5}));
+  s.appendChild(tx(cx-r-2,cy+18,bd.sell+"% "+T("gSell"),{"text-anchor":"start","font-size":9.5}));
+  s.appendChild(tx(cx,cy+22,bd.call+"% "+T("gCall"),{"text-anchor":"middle","font-size":9.5}));
+  s.appendChild(tx(cx+r+2,cy+18,T("gSafe"),{"text-anchor":"end","font-size":9.5}));}
+function drawWf(det){
+  const s=$("chWf");s.innerHTML="";
+  const W=700,H=212,L=8,R=8,T0=24,B=40,w=W-L-R,h=H-T0-B;
+  const nm=j=>TA("wf",j);
+  const items=[{n:nm(0),v:det.ownIn,c:cv("--label3")},{n:nm(1),v:det.borrowed,c:"#8FA3B8"},
+    {n:nm(2),v:det.assets-det.ownIn-det.borrowed+det.feeP+det.taxP+det.nhiP,c:cv("--tint")},
+    {n:nm(3),v:-det.feeP,c:cv("--amber")},{n:nm(4),v:-det.taxP,c:cv("--amber")},
+    {n:nm(5),v:-det.nhiP,c:cv("--amber")},{n:nm(6),v:-det.intP,c:cv("--danger")},
+    {n:nm(7),v:-det.openFee,c:cv("--danger")},{n:nm(8),v:-det.debtEnd,c:cv("--danger")}];
+  let run=0;const st=items.map(it=>{const a=run;run+=it.v;return{...it,a,b:run};});
+  const fv=run,vals=st.flatMap(x=>[x.a,x.b]).concat([0,fv]);
+  let max=Math.max(...vals),min=Math.min(...vals,0);
+  const pd=(max-min)*.1||1;max+=pd;min-=pd*.3;
+  const Y=v=>T0+h-((v-min)/(max-min))*h;
+  const gw=w/(st.length+1),bw=gw*.6;
+  s.appendChild(mk("line",{x1:L,y1:Y(0),x2:L+w,y2:Y(0),stroke:cv("--sep"),"stroke-width":1}));
+  st.forEach((x0,i)=>{const x=L+gw*i+(gw-bw)/2,y1=Y(Math.max(x0.a,x0.b)),hh=Math.max(2,Y(Math.min(x0.a,x0.b))-y1);
+    s.appendChild(mk("rect",{x,y:y1,width:bw,height:hh,rx:3,fill:x0.c,opacity:.9}));
+    if(Math.abs(x0.v)>1)s.appendChild(tx(x+bw/2,y1-5,(x0.v>=0?"+":"−")+wan(Math.abs(x0.v)),{"text-anchor":"middle","font-size":8.5,"font-weight":600}));
+    s.appendChild(tx(x+bw/2,H-22,x0.n,{"text-anchor":"middle","font-size":8.5}));
+    if(i<st.length-1)s.appendChild(mk("line",{x1:x+bw,y1:Y(x0.b),x2:x+gw+(gw-bw)/2,y2:Y(x0.b),stroke:cv("--label3"),"stroke-width":1,"stroke-dasharray":"3 3"}));});
+  const fx=L+gw*st.length+(gw-bw)/2,fy=Y(Math.max(0,fv)),fh=Math.max(2,Math.abs(Y(fv)-Y(0)));
+  s.appendChild(mk("rect",{x:fx,y:fy,width:bw,height:fh,rx:3,fill:fv>=0?cv("--tint"):cv("--danger")}));
+  s.appendChild(tx(fx+bw/2,fy-5,wan(fv),{"text-anchor":"middle","font-size":10,"font-weight":700,fill:cv("--label")}));
+  s.appendChild(tx(fx+bw/2,H-22,TA("wf",9),{"text-anchor":"middle","font-size":8.5,"font-weight":700,fill:cv("--label")}));
+  s.appendChild(tx(L,12,T("wfUnit"),{"font-size":9.5,fill:cv("--label3")}));}
+
+function metaOf(st){const m=[T("mLump"),T("mDca"),T("mMix")][["lump","dca","mix"].indexOf(st.mode)];
+  const d=st.debts.length?st.debts.map(x=>TA("dtS",DEBT_TYPES[x.type].i)+" "+wan(x.amount)).join("・"):"—";
+  return `${m}・${st.years}${LG===1?"y":""}・${st.ret}%・${d}`;}
+function autoName(st){const p=[];
+  if(st.mode!=="dca")p.push(T("fInit")+" "+wan(st.init));
+  if(st.mode!=="lump")p.push(T("fMonthly")+" "+wan(st.monthly));
+  p.push(st.years+(LG===1?"y":[" 年","","年","년"][LG]));
+  if(st.debts.length)p.push(T("sDebt")+" "+wan(st.debts.reduce((s,d)=>s+d.amount,0)));
+  return p.join("・");}
+
+function renderTable(det){
+  const w=$("tblWrap");
+  if(TBLV==="hide"){w.innerHTML=`<div class="note" style="border-top:.5px solid var(--sep)">${T("tHidden")}</div>`;return;}
+  const head=`<thead><tr><th>${T("thYear")}</th><th>${T("thAsset")}</th><th>${T("thDebt")}</th><th>${T("thNet")}</th><th>${T("thOwn")}</th></tr></thead><tbody>`;
+  const row=p=>`<tr><td>${p.m/12}</td><td class="v">${wan(p.assets)}</td>
+    <td class="v" style="color:var(--danger)">${p.debt>0?wan(p.debt):"—"}</td>
+    <td class="v" style="color:var(--tint)">${wan(p.assets-p.debt)}</td><td>${wan(p.own)}</td></tr>`;
+  if(TBLV==="brief"){const a=det.path[0],b=det.path[det.path.length-1];
+    w.innerHTML=`<div class="tw"><table>${head}${row(a)}<tr class="gap"><td colspan="5">${T("tGap",{n:Math.max(0,det.path.length-2)})}</td></tr>${row(b)}</tbody></table></div>`;
+  }else{let body="";det.path.forEach(p=>body+=row(p));
+    w.innerHTML=`<div class="tw full"><table>${head}${body}</tbody></table></div>`;}}
+
+/* ==================== 輸出 ==================== */
+function render(){
+  const det=runDet(S),mc=runMC(S),bd=boundary(S,det);
+  const real=mc.p50/Math.pow(1+S.infl/100,S.years);
+  const yLab=LG===1?S.years+T("kNet"):S.years+" "+T("kNet");
+  $("k1l").textContent=yLab; $("k1n").textContent=wan(mc.p50);
+  $("k1s").textContent=T("kP10")+" "+wan(mc.p10)+"　"+T("kReal")+" "+wan(real);
+  if(bd){const cp=mc.callProb;
+    $("k2l").textContent=T("kProb");$("k2n").textContent=(cp*100).toFixed(0)+"%";
+    $("k2n").style.color=cp>.3?"var(--danger)":cp>.1?"var(--amber)":"var(--tint)";
+    $("k2s").textContent=bd.toCall>0?T("kDrop")+" "+bd.toCall.toFixed(0)+"% "+T("kToCall"):T("kBelow");
+  }else if(S.debts.length){const r=S.income>0?det.firstPay/S.income*100:0;
+    $("k2l").textContent=T("kPayR");$("k2n").textContent=r.toFixed(1)+"%";
+    $("k2n").style.color=r>40?"var(--danger)":r>30?"var(--amber)":"var(--tint)";
+    $("k2s").textContent=T("kMonthly")+" "+money(det.firstPay);
+  }else{$("k2l").textContent=T("kRealT");$("k2n").textContent=wan(real);
+    $("k2n").style.color="var(--label)";$("k2s").textContent=S.infl+"% — "+T("kDisc");}
+
+  let head,sub;
+  if(bd&&bd.toCall>0){head=T("cTitleCall",{x:bd.toCall.toFixed(0)});
+    sub=T("cSubCall",{y:S.years,m:wan(mc.p50),p:wan(mc.p10),n:bd.months===Infinity?"∞":Math.floor(bd.months)});}
+  else if(bd){head=T("cTitleBelow",{c:bd.call});sub=T("cSubBelow",{r:Math.round(bd.ratio)});}
+  else{head=T("cTitlePlain",{y:S.years,m:wan(mc.p50)});
+    sub=T("cSubPlain",{p:wan(mc.p10),q:wan(mc.p90),i:S.infl,r:wan(real)});}
+  $("conc").textContent=head;$("concs").textContent=sub;
+
+  $("stats").innerHTML=`<div><div class="n" style="color:var(--tint)">${wan(mc.p50)}</div><div class="l">${T("stNet")}</div></div>
+    <div><div class="n">${wan(real)}</div><div class="l">${T("stReal")}</div></div>
+    <div><div class="n" style="color:var(--amber)">${wan(det.intP+det.feeP+det.taxP+det.nhiP+det.openFee)}</div><div class="l">${T("stCost")}</div></div>
+    <div><div class="n">${det.ownIn>0?((mc.p50-det.ownIn)/det.ownIn*100).toFixed(0)+"%":"—"}</div><div class="l">${T("stRoi")}</div></div>`;
+
+  ADV=advisories(det,mc,bd);
+  const COL={0:"var(--ok)",1:"var(--label3)",2:"var(--amber)",3:"var(--danger)"};
+  const n3=ADV.filter(a=>a.lv===3).length,n2=ADV.filter(a=>a.lv===2).length;
+  const ac=$("advCount"); if(ac)ac.textContent=ADV[0].lv===0?T("noAdvC"):T("advC",{a:n3,b:n2});
+  $("advisor").innerHTML=ADV.map((a,i)=>`<div class="adv"><div class="dot" style="background:${COL[a.lv]}"></div>
+    <div class="ac"><div class="at">${a.t}</div><div class="ad">${a.d}</div>
+    ${a.a?`<button class="mini" data-adv="${i}">${a.a}</button>`:""}</div></div>`).join("")
+    +`<div class="note">${T("advFoot")}</div>`;
+
+  drawMain(det,mc);
+  $("mcNote").textContent=T("mcNote",{v:S.vol,n:SIMS.toLocaleString("en-US")});
+  drawGauge(bd);
+  if(bd){$("reads").innerHTML=`<div><div class="n" style="color:var(--amber)">${bd.toCall>0?"−"+bd.toCall.toFixed(0)+"%":T("hit")}</div><div class="l">${T("rCall")}</div></div>
+    <div><div class="n" style="color:var(--danger)">${bd.toSell>0?"−"+bd.toSell.toFixed(0)+"%":T("hit")}</div><div class="l">${T("rSell")}</div></div>
+    <div><div class="n">${bd.months===Infinity?"∞":Math.floor(bd.months)}</div><div class="l">${T("rMonths")}</div></div>
+    <div><div class="n" style="color:${mc.callProb>.3?"var(--danger)":mc.callProb>.1?"var(--amber)":"var(--tint)"}">${(mc.callProb*100).toFixed(0)}%</div><div class="l">${T("rProb")}</div></div>`;
+    $("bNote").textContent=T("bNote",{d:wan(bd.cd),a:wan(bd.a0),c:bd.call,s:bd.sell,n:SIMS.toLocaleString("en-US")});
+  }else{$("reads").innerHTML="";$("bNote").textContent=T("bNoteN");}
+
+  $("stress").innerHTML=CR.map((c,j)=>{let v,col;
+    if(!bd){v=T("vNa");col="var(--label2)";}
+    else{const a=bd.a0*(1-c.d/100)/bd.cd*100;
+      if(a<bd.sell){v=T("vLiq");col="var(--danger)";}
+      else if(a<bd.call){v=T("vCall");col="var(--amber)";}
+      else{v=T("vOk")+" "+Math.round(a)+"%";col="var(--tint)";}}
+    return `<div class="row"><span style="flex:none;width:78px;color:var(--label2);font-size:12px">${c.y}</span>
+      <span style="flex:none;width:${LG===1?150:104}px;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${TA("cr",j)}</span>
+      <span style="flex:none;width:46px;font-weight:600">−${c.d}%</span>
+      <span style="flex:1;text-align:right;font-weight:600;font-size:12.5px;color:${col}">${v}</span></div>`;}).join("");
+
+  drawWf(det);
+  $("wfNote").textContent=T("wfNote",{f:wan(det.feeP),t:wan(det.taxP),h:wan(det.nhiP),
+    i:wan(det.intP),s:wan(det.feeP+det.taxP+det.nhiP+det.intP+det.openFee)});
+
+  const pay=det.firstPay,r=S.income>0?pay/S.income*100:0;
+  const unsec=S.debts.filter(d=>!DEBT_TYPES[d.type].secured).reduce((s,d)=>s+d.amount,0);
+  const dbr=S.income>0?unsec/S.income:0;
+  const up=b=>S.debts.reduce((s,d)=>s+layerPmt({...d,rate:d.rate+b}),0);
+  const chk=(ok,k,v,note)=>`<div class="row"><span class="k">${k}</span>
+    <span style="font-weight:600;color:${ok?"var(--tint)":"var(--danger)"}">${v}</span>
+    <span class="tag" style="background:${ok?"var(--ok)":"var(--danger)"}">${ok?T("cPass"):T("cFail")}</span></div>
+    ${note?`<div class="note" style="border-top:none;padding-top:0;padding-bottom:8px">${note}</div>`:""}`;
+  $("constraints").innerHTML=
+    chk(r<=40,T("cPay"),pay>0?`${r.toFixed(1)}% (${money(pay)})`:"0%",T("cPayN"))+
+    chk(dbr<=22,T("cDbr"),dbr.toFixed(1)+"×",T("cDbrN"))+
+    chk(bd?bd.ratio>=bd.call:true,T("cRatio"),bd?Math.round(bd.ratio)+"%":T("vNa"),"")+
+    (pay>0?`<div class="row"><span class="k">${T("cUp1")}</span><span style="font-weight:600">${money(up(1))}</span><span class="chip">+${money(up(1)-pay)}</span></div>
+    <div class="row"><span class="k">${T("cUp2")}</span><span style="font-weight:600">${money(up(2))}</span><span class="chip">+${money(up(2)-pay)}</span></div>
+    <div class="note" style="border-top:none">${T("cUpN")}</div>`:"");
+
+  renderTable(det);
+  ["init","monthly","income","cash"].forEach(k=>{const c=$("c_"+k);if(c)c.textContent=wan(S[k]);});
+  renderCompare();persist();
+  document.documentElement.style.setProperty("--hh",document.querySelector("header").offsetHeight+"px");}
+
+function renderCompare(){
+  const sel=PLANS.filter(p=>SEL.includes(p.id));
+  if(sel.length<2){$("cmpSec").style.display="none";$("cmpCard").style.display="none";return;}
+  $("cmpSec").style.display="";$("cmpCard").style.display="";
+  const R=sel.map(p=>{const st=p.state,det=runDet(st),mc=runMC(st,1000),bd=boundary(st,det);return{p,st,det,mc,bd};});
+  const rows=[[T("fYears"),r=>r.st.years],[T("fRet"),r=>r.st.ret+"%"],
+    [T("thOwn"),r=>wan(r.det.ownIn)],[T("sDebt"),r=>wan(r.st.debts.reduce((s,d)=>s+d.amount,0))],
+    [T("stNet"),r=>wan(r.mc.p50)],[T("kP10"),r=>wan(r.mc.p10)],
+    [T("stReal"),r=>wan(r.mc.p50/Math.pow(1+r.st.infl/100,r.st.years))],
+    [T("stCost"),r=>wan(r.det.intP+r.det.feeP+r.det.taxP+r.det.nhiP+r.det.openFee)],
+    [T("mPay"),r=>money(r.det.firstPay)],
+    [T("kPayR"),r=>r.st.income>0?(r.det.firstPay/r.st.income*100).toFixed(1)+"%":"—"],
+    [T("gRatio"),r=>r.bd?Math.round(r.bd.ratio)+"%":"—"],
+    [T("rCall"),r=>r.bd?(r.bd.toCall>0?"−"+r.bd.toCall.toFixed(0)+"%":T("hit")):"—"],
+    [T("rProb"),r=>r.bd?(r.mc.callProb*100).toFixed(0)+"%":"—"],
+    ["2008 (−58%)",r=>{if(!r.bd)return "—";const a=r.bd.a0*.42/r.bd.cd*100;
+      return a<r.bd.sell?T("vLiq"):(a<r.bd.call?T("vCall"):T("vOk")+" "+Math.round(a)+"%");}]];
+  let h=`<thead><tr><th></th>${R.map(r=>`<th>${r.p.name}</th>`).join("")}</tr></thead><tbody>`;
+  rows.forEach(([k,f])=>{h+=`<tr><td>${k}</td>${R.map(r=>`<td class="v">${f(r)}</td>`).join("")}</tr>`;});
+  $("cmpTbl").innerHTML=h+"</tbody>";$("cmpNote").textContent=T("cmpNote");}
+
+let histTimer=null;
+function logHistory(){clearTimeout(histTimer);histTimer=setTimeout(()=>{
+  const meta=metaOf(S),name=autoName(S);
+  if(HIST.length&&HIST[0].meta===meta&&HIST[0].name===name)return;
+  HIST.unshift({name,meta,time:new Date().toLocaleTimeString(["zh-TW","en-US","ja-JP","ko-KR"][LG],{hour:"2-digit",minute:"2-digit"}),state:clone(S)});
+  if(HIST.length>12)HIST.pop();renderHist();},1400);}
+let t1=null;
+function update(re){if(re)renderInputs();clearTimeout(t1);
+  document.body.classList.add("busy");
+  t1=setTimeout(()=>{setTimeout(()=>{render();logHistory();document.body.classList.remove("busy");},0);},SIMS>=5000?380:90);}
+
+document.addEventListener("input",e=>{const t=e.target;
+  if(t.dataset.k&&t.dataset.d===undefined){const k=t.dataset.k;
+    S[k]=(t.type==="number"||t.type==="range")?parseFloat(t.value||0):t.value;
+    document.querySelectorAll(`[data-k="${k}"]`).forEach(o=>{if(o!==t)o.value=t.value;});
+    const c=$("c_"+k);if(c)c.textContent=wan(S[k]);update(false);}
+  if(t.dataset.d!==undefined&&t.dataset.p){const i=+t.dataset.d,p=t.dataset.p;
+    S.debts[i][p]=(t.type==="number"||t.type==="range")?parseFloat(t.value||0):t.value;
+    document.querySelectorAll(`[data-d="${i}"][data-p="${p}"]`).forEach(o=>{if(o!==t)o.value=t.value;});
+    if(p==="amount"){const c=t.closest(".layer").querySelector(".chip");if(c)c.textContent=wan(S.debts[i].amount);}
+    update(false);}});
+document.addEventListener("change",e=>{const t=e.target;if(t.tagName!=="SELECT")return;
+  if(t.id==="lang"){LG=+t.value;update(true);return;}
+  if(t.dataset.k){S[t.dataset.k]=t.dataset.k==="freq"?+t.value:t.value;update(true);}
+  if(t.dataset.d!==undefined){const i=+t.dataset.d,p=t.dataset.p;
+    if(p==="type"){const Ty=DEBT_TYPES[t.value];
+      S.debts[i]={type:t.value,amount:S.debts[i].amount,rate:Ty.rate,years:Ty.years,method:Ty.method,
+        grace:0,invest:Ty.invest,call:Ty.call||0,sell:Ty.sell||0,fee:Ty.fee||0};}
+    else S.debts[i][p]=t.value;update(true);}});
+document.addEventListener("click",e=>{const t=e.target;
+  if(t.classList.contains("info")){const x=$("x_"+t.dataset.x);if(x)x.classList.toggle("on");return;}
+  if(t.dataset.adv!==undefined){const a=ADV[+t.dataset.adv];if(a&&a.f){a.f();update(true);}return;}
+  if(t.dataset.rm!==undefined){S.debts.splice(+t.dataset.rm,1);update(true);return;}
+  if(t.classList.contains("sw")){
+    if(t.dataset.t==="nhi"){S.nhi=!S.nhi;t.classList.toggle("on");update(false);}
+    else if(t.dataset.d!==undefined){S.debts[+t.dataset.d].invest=!S.debts[+t.dataset.d].invest;update(true);}
+    return;}
+  if(t.dataset.m){S.mode=t.dataset.m;update(true);return;}
+  if(t.dataset.s){SIMS=+t.dataset.s;
+    document.querySelectorAll("#segSims button").forEach(b=>b.classList.toggle("on",+b.dataset.s===SIMS));
+    update(false);return;}
+  if(t.dataset.v){TBLV=t.dataset.v;
+    document.querySelectorAll("#segTbl button").forEach(b=>b.classList.toggle("on",b.dataset.v===TBLV));
+    renderTable(runDet(S));return;}
+  if(t.dataset.sel){const id=+t.dataset.sel;
+    if(SEL.includes(id))SEL=SEL.filter(x=>x!==id);else if(SEL.length<3)SEL.push(id);
+    renderPlans();renderCompare();return;}
+  if(t.dataset.load){const p=PLANS.find(x=>x.id===+t.dataset.load);if(p){S=clone(p.state);update(true);}return;}
+  if(t.dataset.delp){PLANS=PLANS.filter(x=>x.id!==+t.dataset.delp);SEL=SEL.filter(x=>x!==+t.dataset.delp);
+    renderPlans();renderCompare();persist();return;}
+  if(t.dataset.hload!==undefined){S=clone(HIST[+t.dataset.hload].state);update(true);return;}
+  if(t.id==="addDebt"){const Ty=DEBT_TYPES.credit;
+    S.debts.push({type:"credit",amount:1000000,rate:Ty.rate,years:Ty.years,method:Ty.method,
+      grace:0,invest:Ty.invest,call:0,sell:0,fee:Ty.fee||0});update(true);return;}
+  if(t.id==="save"){const n=prompt(T("planName"),autoName(S));if(n===null)return;
+    PLANS.push({id:PID++,name:n.trim()||autoName(S),meta:metaOf(S),state:clone(S)});
+    renderPlans();persist();return;}
+  if(t.id==="cons"){S.ret=5.5;S.vol=22;S.infl=2;S.fee=0.5;S.stepUp=0;
+    S.debts.forEach(d=>{d.rate=Math.max(d.rate,DEBT_TYPES[d.type].rate+0.5);});update(true);
+    alert(T("consMsg"));return;}
+  if(t.id==="reset"){if(!confirm(T("resetMsg")))return;S=DEF();update(true);return;}
+  if(t.id==="mode"){document.body.classList.toggle("dark");
+    document.documentElement.classList.toggle("dark");
+    t.textContent=document.body.classList.contains("dark")?T("light"):T("dark");render();return;}});
+addEventListener("scroll",()=>{document.body.classList.toggle("scrolled",scrollY>28);
+  document.documentElement.style.setProperty("--hh",document.querySelector("header").offsetHeight+"px");},{passive:true});
+addEventListener("resize",()=>{document.documentElement.style.setProperty("--hh",document.querySelector("header").offsetHeight+"px");});
+(function(){const l=(navigator.language||"zh").toLowerCase();
+  LG=l.startsWith("ja")?2:l.startsWith("ko")?3:(l.startsWith("zh")?0:1);})();
+if(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches){
+  document.body.classList.add("dark");document.documentElement.classList.add("dark");}
+restore().then(()=>{renderInputs();render();});
+</script>
+</body>
+</html>
