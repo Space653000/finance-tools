@@ -416,6 +416,9 @@ noDebt:["目前沒有任何借款。按上方「＋ 新增」加入股票質押�
   "借入がありません。上の「＋追加」から有価証券担保ローン・住宅ローン・信用ローンを追加すると、担保維持率のセクションが表示されます。",
   "대출이 없습니다. 위의 「＋ 추가」로 유가증권 담보대출·주택담보대출·신용대출을 추가하면 담보유지율 섹션이 표시됩니다."],
 mPay:["月付金","Monthly payment","毎月返済額","월 상환액"],
+mPayGrace:["寬限期內月付金","During grace period","据置期間中の返済額","거치 기간 중 상환액"],
+mPayAfter:["期滿後月付金","After grace period","据置終了後の返済額","거치 종료 후 상환액"],
+mPayFee:["其他費用（手續費・開辦費）","Other fees (handling / origination)","その他費用（手数料・事務手数料）","기타 비용(수수료·취급수수료)"],
 ltv:["借款成數上限市場常見約","typical maximum loan-to-value around","掛目の上限は概ね","담보인정비율 상한 통상 약"],
 /* 關鍵指標 */
 kNet:["年後淨資產中位數","-year median net worth","年後の純資産中央値","년 후 순자산 중앙값"],
@@ -900,7 +903,11 @@ function renderDebts(){
         <button class="sw ${d.invest?"on":""}" data-d="${i}" data-p="invest"></button></div>
       ${d.invest?`<div class="warn">${T("levWarn")}</div>`:""}
       <div class="warn" style="background:var(--fill);color:var(--label2);font-weight:400">${(D.cau[Ty.i]&&D.cau[Ty.i][LG])||D.cau[Ty.i][0]}</div>
-      <div class="note" style="border-top:none;padding-top:0">${T("mPay")} ${money(layerPmt(d))}${Ty.collateral?`・${T("ltv")} ${Ty.ltv}%`:""}</div></div>`;}).join("");}
+      <div class="note" style="border-top:none;padding-top:0">${
+        d.method==="grace"&&(d.grace||0)>0
+        ? `${T("mPayGrace")} <b style="color:var(--tint);font-weight:700">${money(layerPmt(d))}</b> → ${T("mPayAfter")} <b style="color:var(--tint);font-weight:700">${money(pmtAfterGrace(d))}</b>`
+        : `${T("mPay")} <b style="color:var(--tint);font-weight:700">${money(layerPmt(d))}</b>`
+      }${Ty.collateral?`・${T("ltv")} ${Ty.ltv}%`:""}${(d.fee||0)>0?`<br>${T("mPayFee")} <b>${money(d.fee)}</b>`:""}</div></div>`;}).join("");}
 function renderPlans(){
   $("planCount").textContent=PLANS.length?T("planN",{n:PLANS.length}):"";
   $("plans").innerHTML=PLANS.length?PLANS.map(p=>`<div class="plan">
