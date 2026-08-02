@@ -4,12 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>槓桿複利模擬器</title>
-<meta name="theme-color" content="#0A7C74">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="複利模擬器">
-<link rel="apple-touch-icon" href="../../assets/icon-180.png">
-<link rel="manifest" href="./manifest.json">
 <style>
 :root{
   --tint:#0A7C74; --amber:#B87410; --danger:#B93A25; --ok:#1F7A46;
@@ -1210,11 +1204,6 @@ addEventListener("resize",()=>{document.documentElement.style.setProperty("--hh"
 if(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches){
   document.body.classList.add("dark");document.documentElement.classList.add("dark");}
 restore().then(()=>{renderInputs();render();});
-</script>
-<script>
-if ("serviceWorker" in navigator) {
-  addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
-}
 </script>
 </body>
 </html>
