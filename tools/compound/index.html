@@ -184,6 +184,16 @@ td.v{font-weight:600}
 .exsel{min-width:64px}
 .exnote{font-size:11.5px;color:var(--label2);line-height:1.55;padding:6px 0 2px}
 .note{padding:10px 14px;font-size:12.3px;line-height:1.62;color:var(--label2);border-top:.5px solid var(--sep)}
+.datamgmt{margin:14px 0 6px;padding:14px;background:var(--card);border-radius:14px;box-shadow:var(--shadow)}
+.dm-time{font-size:12px;color:var(--label2);margin-bottom:10px;min-height:16px}
+.dm-btns{display:flex;flex-wrap:wrap;gap:8px}
+.dm-btn{flex:1;min-width:110px;padding:9px 12px;border:none;border-radius:10px;
+  background:var(--fill);color:var(--label);font-size:13px;font-weight:600;cursor:pointer}
+.dm-btn:hover{opacity:.85}
+.dm-btn.danger{color:var(--danger)}
+.adslot{min-height:0;margin:0}
+.adslot:not(:empty){min-height:90px;margin:14px 0;display:flex;align-items:center;justify-content:center;
+  background:var(--fill);border-radius:12px;color:var(--label3);font-size:12px}
 .disc{font-size:11.8px;line-height:1.68;color:var(--label2);padding:6px 6px 0}
 details > summary{list-style:none;cursor:pointer;padding:12px 14px;font-size:13.5px;font-weight:600;display:flex;align-items:center}
 details > summary::-webkit-details-marker{display:none}
@@ -295,6 +305,18 @@ body.busy #chMain,body.busy #gauge{opacity:.4;transition:opacity .12s}
       </div></div>
       <div id="tblWrap"></div>
     </div>
+    <div class="datamgmt">
+      <div class="dm-time" id="savedTime"></div>
+      <div class="dm-btns">
+        <button class="dm-btn" id="btnExport"></button>
+        <button class="dm-btn" id="btnImport"></button>
+        <button class="dm-btn" id="btnRestoreDef"></button>
+        <button class="dm-btn danger" id="btnClear"></button>
+      </div>
+      <input type="file" id="fileImport" accept="application/json" style="display:none">
+    </div>
+    <!-- 廣告預留位：日後放 Google AdSense，現在保持空白不顯示 -->
+    <div class="adslot" id="adslot" aria-hidden="true"></div>
     <p class="disc" id="disc"></p>
   </div>
 </main>
@@ -308,6 +330,14 @@ const D={
 hSub:["單筆 × 定期定額 × 六種借款・即時運算","Lump sum × Recurring × 6 loan types · Live",
   "一括 × 積立 × 6種のローン・リアルタイム","거치식 × 적립식 × 6가지 대출 · 실시간"],
 save:["存檔","Save","保存","저장"], dark:["深色","Dark","ダーク","다크"], light:["淺色","Light","ライト","라이트"],
+autoSaved:["自動儲存於","Auto-saved","自動保存","자동 저장"],
+clearData:["清除資料","Clear data","データ消去","데이터 지우기"],
+restoreDef:["恢復預設值","Restore defaults","初期値に戻す","기본값 복원"],
+exportJSON:["匯出備份","Export","バックアップ","백업 내보내기"],
+importJSON:["匯入備份","Import","読み込み","가져오기"],
+clearConfirm:["確定清除所有本機資料？已存的方案也會一併刪除，此動作無法復原。","Clear all local data? Saved plans will also be deleted. This cannot be undone.","保存済みのプランを含むすべてのローカルデータを消去しますか？元に戻せません。","저장된 플랜을 포함한 모든 로컬 데이터를 지우시겠습니까? 되돌릴 수 없습니다."],
+restoreConfirm:["恢復所有欄位為預設值？（已存的方案不受影響）","Restore all fields to defaults? (Saved plans are not affected.)","すべての項目を初期値に戻しますか？（保存済みプランは影響なし）","모든 항목을 기본값으로 되돌리시겠습니까?（저장된 플랜은 영향 없음）"],
+dataMgmt:["資料管理","Data","データ管理","데이터 관리"],
 reset:["重設","Reset","リセット","초기화"],
 jur:["本工具依台灣市場規則計算：稅制、DBR 22 倍上限、擔保維持率門檻均為台灣法規與銀行實務。切換語言只改變介面文字，計算規則不變。",
   "This tool models Taiwan market rules. Tax treatment, the DBR 22× cap and margin maintenance thresholds follow Taiwan regulations and banking practice. Changing the interface language does not change the calculation rules.",
@@ -633,11 +663,18 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;
 function gauss(r){let u=0,v=0;while(u===0)u=r();while(v===0)v=r();
   return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
 const clone=o=>JSON.parse(JSON.stringify(o));
-function persist(){try{if(window.storage)window.storage.set("levercalc",JSON.stringify({S,PLANS,PID,LG})).catch(()=>{});}catch(e){}}
+let lastSaved=0;
+function persist(){try{if(window.storage){lastSaved=Date.now();
+  window.storage.set("levercalc",JSON.stringify({S,PLANS,PID,LG,ts:lastSaved})).catch(()=>{});
+  updateSavedTime();}}catch(e){}}
+function updateSavedTime(){const el=$("savedTime");if(!el||!lastSaved)return;
+  const d=new Date(lastSaved),pad=n=>String(n).padStart(2,"0");
+  const str=`${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  el.textContent=`${T("autoSaved")} ${str}`;}
 async function restore(){try{if(!window.storage)return;
   const r=await window.storage.get("levercalc");
   if(r&&r.value){const d=JSON.parse(r.value);if(d.S)S=d.S;if(d.PLANS)PLANS=d.PLANS;if(d.PID)PID=d.PID;
-    if(typeof d.LG==="number")LG=d.LG;}}catch(e){}}
+    if(typeof d.LG==="number")LG=d.LG;if(d.ts)lastSaved=d.ts;}}catch(e){}}
 
 /* ==================== 引擎 ==================== */
 function layerPmt(d){const i=d.rate/100/12,N=Math.max(1,Math.round(d.years*12));
@@ -980,6 +1017,9 @@ function renderChrome(){
   $("s_stress").textContent=T("sStress"); $("s_wf").textContent=T("sWf");
   $("s_con").textContent=T("sCon"); $("cmpSec").textContent=T("sCmp"); $("s_tbl").textContent=T("sTbl");
   $("stressNote").textContent=T("stressNote"); $("disc").textContent=T("disc");
+  {const b=id=>{const e=$(id);if(e)e.textContent=T(id.replace("btn","").replace(/^./,c=>c.toLowerCase()));};}
+  if($("btnExport")){$("btnExport").textContent=T("exportJSON");$("btnImport").textContent=T("importJSON");
+    $("btnRestoreDef").textContent=T("restoreDef");$("btnClear").textContent=T("clearData");updateSavedTime();}
   $("lang").value=String(LG);
   ["lump","dca","mix"].forEach((m,j)=>{const b=document.querySelector(`#segMode [data-m="${m}"]`);
     b.textContent=T(["mLump","mDca","mMix"][j]); b.classList.toggle("on",S.mode===m);});
@@ -1206,9 +1246,11 @@ function logHistory(){clearTimeout(histTimer);histTimer=setTimeout(()=>{
   HIST.unshift({name,meta,time:new Date().toLocaleTimeString(["zh-TW","en-US","ja-JP","ko-KR"][LG],{hour:"2-digit",minute:"2-digit"}),state:clone(S)});
   if(HIST.length>12)HIST.pop();renderHist();},1400);}
 let t1=null;
+let tSave=null;
 function update(re){if(re)renderInputs();clearTimeout(t1);
   document.body.classList.add("busy");
-  t1=setTimeout(()=>{setTimeout(()=>{render();logHistory();document.body.classList.remove("busy");},0);},SIMS>=5000?380:90);}
+  t1=setTimeout(()=>{setTimeout(()=>{render();logHistory();document.body.classList.remove("busy");},0);},SIMS>=5000?380:90);
+  clearTimeout(tSave);tSave=setTimeout(persist,800);}
 
 document.addEventListener("input",e=>{const t=e.target;
   if(t.dataset.k&&t.dataset.d===undefined){const k=t.dataset.k;
@@ -1250,6 +1292,17 @@ document.addEventListener("change",e=>{const t=e.target;if(t.tagName!=="SELECT")
       S.debts[i]={type:t.value,amount:S.debts[i].amount,rate:Ty.rate,years:Ty.years,method:Ty.method,
         grace:0,invest:Ty.invest,call:Ty.call||0,sell:Ty.sell||0,fee:Ty.fee||0};}
     else S.debts[i][p]=t.value;update(true);}});
+document.addEventListener("change",e=>{if(e.target.id!=="fileImport")return;
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{try{const d=JSON.parse(rd.result);
+    if(d.app&&d.app!=="levercalc"){alert("File does not match this tool.");return;}
+    if(d.S)S=d.S;if(d.PLANS)PLANS=d.PLANS;if(d.PID)PID=d.PID;
+    if(typeof d.LG==="number")LG=d.LG;
+    update(true);persist();
+  }catch(err){alert("Import failed: invalid file.");}
+  e.target.value="";};
+  rd.readAsText(f);});
 document.addEventListener("click",e=>{const t=e.target;
   if(t.classList.contains("info")){const x=$("x_"+t.dataset.x);if(x)x.classList.toggle("on");return;}
   if(t.dataset.adv!==undefined){const a=ADV[+t.dataset.adv];if(a&&a.f){a.f();update(true);}return;}
@@ -1282,6 +1335,19 @@ document.addEventListener("click",e=>{const t=e.target;
     S.debts.forEach(d=>{d.rate=Math.max(d.rate,DEBT_TYPES[d.type].rate+0.5);});update(true);
     alert(T("consMsg"));return;}
   if(t.id==="reset"){if(!confirm(T("resetMsg")))return;S=DEF();update(true);return;}
+  if(t.id==="btnRestoreDef"){if(!confirm(T("restoreConfirm")))return;S=DEF();update(true);persist();return;}
+  if(t.id==="btnClear"){if(!confirm(T("clearConfirm")))return;
+    try{if(window.storage)window.storage.delete("levercalc").catch(()=>{});}catch(e){}
+    S=DEF();PLANS=[];HIST=[];SEL=[];PID=1;lastSaved=0;
+    const el=$("savedTime");if(el)el.textContent="";update(true);return;}
+  if(t.id==="btnExport"){
+    const data=JSON.stringify({S,PLANS,PID,LG,ts:Date.now(),app:"levercalc",ver:1},null,2);
+    const blob=new Blob([data],{type:"application/json"});
+    const url=URL.createObjectURL(blob);const a=document.createElement("a");
+    const d=new Date(),pad=n=>String(n).padStart(2,"0");
+    a.href=url;a.download=`compound-backup-${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;
+    a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}
+  if(t.id==="btnImport"){$("fileImport").click();return;}
   if(t.id==="mode"){document.body.classList.toggle("dark");
     document.documentElement.classList.toggle("dark");
     t.textContent=document.body.classList.contains("dark")?T("light"):T("dark");render();return;}});
