@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ETF 定期定額真實試算</title>
+<meta name="theme-color" content="#0A7C74">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ETF試算">
+<link rel="apple-touch-icon" href="../../assets/icon-180.png">
+<link rel="manifest" href="./manifest.json">
+<meta name="description" content="ETF 投資組合真實試算：自訂標的與比例、定期定額／單筆／混合、權重優化（積極/穩健/保守/完美）、估值位階、蒙地卡羅存活率，並算內扣費用、股利稅、二代健保、匯率、美國遺產稅後你真正拿到多少。全部本地計算，不上傳任何財務資料。">
+<link rel="canonical" href="https://money.space653000.workers.dev/tools/etf/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ETF 投資組合真實試算｜別人算會賺多少，我們算稅費匯扣完真正拿到多少">
+<meta property="og:url" content="https://money.space653000.workers.dev/tools/etf/">
+<meta property="og:locale" content="zh_TW">
+<style>
+:root{
+  --tint:#0A7C74; --amber:#B87410; --danger:#B93A25; --ok:#1F7A46;
+  --bg:#F2F2F7; --card:#FFF;
+  --label:#000; --label2:rgba(60,60,67,.82); --label3:rgba(60,60,67,.4);
+  --sep:rgba(60,60,67,.2); --fill:rgba(120,120,128,.13); --fill2:rgba(120,120,128,.2);
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 6px 18px rgba(0,0,0,.05); --barbg:rgba(247,247,250,.96);
+}
+body.dark{
+  --tint:#3FA7A0; --amber:#E8A33D; --danger:#E2705A; --ok:#30D158;
+  --bg:#000; --card:#1C1C1E;
+  --label:#FFF; --label2:rgba(235,235,245,.68); --label3:rgba(235,235,245,.4);
+  --sep:rgba(84,84,88,.6); --fill:rgba(120,120,128,.24); --fill2:rgba(120,120,128,.34);
+  --shadow:0 1px 3px rgba(0,0,0,.4); --barbg:rgba(20,20,22,.96);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;min-width:0}
+html,body{max-width:100%;overflow-x:hidden}
+html{background:#F2F2F7;color-scheme:light}html.dark{background:#000;color-scheme:dark}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI","PingFang TC","Heiti TC","Microsoft JhengHei","Hiragino Sans","Yu Gothic","Meiryo","Apple SD Gothic Neo","Malgun Gothic","Noto Sans CJK TC",sans-serif;
+  background:var(--bg);color:var(--label);font-size:16px;line-height:1.5;font-feature-settings:"tnum" 1;padding-bottom:calc(28px + env(safe-area-inset-bottom));overflow-wrap:break-word;}
+button,input,select{font:inherit;color:inherit;font-feature-settings:"tnum" 1;max-width:100%}
+header{position:sticky;top:0;z-index:50;background:var(--barbg);backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep)}
+.hrow{max-width:1360px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top)) 14px 9px;display:flex;align-items:center;gap:7px}
+.htxt{flex:1;min-width:0}
+.htxt b{display:block;font-size:19px;font-weight:700;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.htxt span{display:block;font-size:12.5px;color:var(--label2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:560px){.htxt span{display:none}}
+.tbtn{background:var(--fill);border:none;border-radius:980px;padding:8px 12px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.tbtn.pri{background:var(--tint);color:#fff}
+select.lang{background:var(--fill);border:none;border-radius:980px;padding:8px 10px;font-size:13.5px;font-weight:600;cursor:pointer;flex:none;color:var(--label)}
+select option,select optgroup{background:var(--card);color:var(--label)}
+.keyin{max-width:1360px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;padding:0 14px 10px;gap:12px}
+.key{min-width:0}.key + .key{border-left:.5px solid var(--sep);padding-left:12px}
+.key .l{font-size:12.5px;color:var(--label2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.key .n{font-size:30px;font-weight:700;letter-spacing:-1px;line-height:1.12;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.key .s{font-size:12px;color:var(--label2);margin-top:2px}
+@media(max-width:520px){.key .n{font-size:23px}}
+main{max-width:1360px;margin:0 auto;padding:14px;display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:980px){main{grid-template-columns:minmax(0,1fr);padding:12px}}
+.col{display:grid;gap:13px;min-width:0}
+.sec{font-size:14px;font-weight:700;color:var(--label);padding:4px 4px 0;display:flex;align-items:center;gap:10px}
+.card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;min-width:0}
+.f{padding:12px 14px}.f + .f{border-top:.5px solid var(--sep)}
+.ftop{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.ftop label{font-size:15px;flex:1;min-width:0;line-height:1.35}
+.num{width:120px;text-align:right;background:var(--fill);border:none;border-radius:8px;padding:8px 10px;font-size:16px;font-weight:600;-moz-appearance:textfield;flex:none}
+.num::-webkit-outer-spin-button,.num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.num.sm{width:78px}
+.num:focus{outline:2px solid var(--tint)}
+.wfull{width:100%;background:var(--fill);border:none;border-radius:8px;padding:10px 11px;font-size:16px;font-weight:600}
+.u{font-size:14px;color:var(--label2);flex:none}
+select.sel{background:var(--fill);border:none;border-radius:8px;padding:10px 11px;font-size:15.5px;font-weight:600;cursor:pointer;width:100%}
+select.sel.sm{width:118px;padding:8px 9px}
+.go{appearance:none;border:none;background:var(--tint);color:#fff;font-size:17px;font-weight:700;padding:14px;border-radius:12px;width:100%;cursor:pointer;margin-top:4px}
+.go:disabled{opacity:.5}
+.warn{margin:10px 14px 0;padding:10px 11px;border-radius:9px;font-size:13px;line-height:1.6;background:rgba(184,116,16,.14);color:var(--amber);font-weight:500}
+body.dark .warn{background:rgba(232,163,61,.16)}
+.hero{padding:16px 16px 6px}
+.conc{font-size:22px;font-weight:700;letter-spacing:-.5px;line-height:1.34}
+.concs{font-size:14px;color:var(--label2);margin-top:8px;line-height:1.6}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:.5px solid var(--sep);margin-top:14px}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stats > div{padding:13px 6px;text-align:center;border-left:.5px solid var(--sep)}
+.stats > div:first-child{border-left:none}
+@media(max-width:640px){.stats > div:nth-child(3){border-left:none}.stats > div:nth-child(n+3){border-top:.5px solid var(--sep)}}
+.stats .n{font-size:21px;font-weight:700;letter-spacing:-.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats .l{font-size:12px;color:var(--label2);margin-top:3px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:9px 8px;font-size:14.5px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:13px;font-weight:600;color:var(--label2);border-bottom:.5px solid var(--sep)}
+tbody tr + tr{border-top:.5px solid var(--sep)}
+td.v{font-weight:700}
+.note{padding:12px 14px;font-size:13.5px;line-height:1.66;color:var(--label2);border-top:.5px solid var(--sep)}
+.note b{color:var(--label);font-weight:600}
+.pos{color:var(--ok)} .neg{color:var(--danger)}
+.datamgmt{margin:14px 0 6px;padding:14px;background:var(--card);border-radius:14px;box-shadow:var(--shadow)}
+.dm-time{font-size:13px;color:var(--label2);margin-bottom:10px;min-height:16px;line-height:1.5}
+.dm-btns{display:flex;flex-wrap:wrap;gap:8px}
+.dm-btn{flex:1;min-width:120px;padding:11px 12px;border:none;border-radius:10px;background:var(--fill);color:var(--label);font-size:14px;font-weight:600;cursor:pointer}
+.dm-btn.danger{color:var(--danger)}
+.adslot{min-height:0}.adslot:not(:empty){min-height:90px;margin:14px 0;display:flex;align-items:center;justify-content:center;background:var(--fill);border-radius:12px;color:var(--label3);font-size:13px}
+.disc{font-size:13px;line-height:1.7;color:var(--label2);padding:12px 6px 0}
+.prow{display:flex;align-items:center;gap:8px;padding:9px 14px}
+.prow + .prow{border-top:.5px solid var(--sep)}
+.prow input.ps{flex:1;background:var(--fill);border:none;border-radius:8px;padding:9px 10px;font-size:15px;font-weight:600}
+.prow input.pw{width:84px;text-align:right;background:var(--fill);border:none;border-radius:8px;padding:9px 8px;font-size:15px;font-weight:600}
+.prow .dl{background:none;border:none;color:var(--danger);font-size:22px;cursor:pointer;flex:none;line-height:1}
+.addbtn{margin:8px 14px 12px;background:var(--fill);border:none;border-radius:9px;padding:11px;width:calc(100% - 28px);font-size:14.5px;font-weight:600;color:var(--tint);cursor:pointer}
+.mini{background:var(--fill);border:none;border-radius:8px;padding:7px 11px;font-size:13.5px;font-weight:600;color:var(--tint);cursor:pointer;flex:none}
+#portCard{overflow:visible}
+.searchbox{position:relative;padding:12px 14px}
+.searchbox input{width:100%;background:var(--fill);border:none;border-radius:10px;padding:12px 12px;font-size:16px;font-weight:600}
+.drop{position:absolute;left:14px;right:14px;top:calc(100% - 4px);z-index:40;background:var(--card);border:.5px solid var(--sep);border-radius:12px;box-shadow:var(--shadow);max-height:300px;overflow:auto}
+.dropit{padding:12px 14px;cursor:pointer;font-size:15.5px;border-top:.5px solid var(--sep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dropit:first-child{border-top:none}
+.dropit:hover,.dropit.on{background:var(--fill)}
+.dropit b{font-weight:700}.dropit span{color:var(--label2);font-size:14px;margin-left:8px}
+.psum{font-size:13px;color:var(--label2);padding:0 14px 10px}
+.reco{padding:12px 14px}.reco + .reco{border-top:.5px solid var(--sep)}
+.reco .rh{display:flex;align-items:center;gap:8px}
+.reco .rt{font-size:16px;font-weight:700}
+.reco .rw{font-size:13.5px;color:var(--label2);margin-top:4px;line-height:1.55}
+.reco .rm{font-size:13px;color:var(--label2);margin-top:3px}
+.badge{font-size:12px;font-weight:700;color:#fff;padding:3px 9px;border-radius:980px}
+.spec-verdict{font-size:24px;font-weight:800;padding:16px 16px 2px}
+.spec-wrap{padding:8px 16px 4px}
+.spec-bar{position:relative;height:18px;border-radius:10px;background:linear-gradient(90deg,#1F7A46 0%,#7FB24A 28%,#E7C24A 50%,#D98A2B 72%,#B93A25 100%)}
+.spec-dot{position:absolute;top:-5px;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid var(--label);transform:translateX(-14px);box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.spec-scale{display:flex;justify-content:space-between;font-size:13px;color:var(--label2);margin-top:8px}
+.advice{margin:10px 16px 0;padding:12px 13px;border-radius:10px;background:var(--fill);font-size:14.5px;line-height:1.6}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<datalist id="etfList">
+  <option value="0050.TW">0050 元大台灣50</option><option value="006208.TW">006208 富邦台灣采吉50</option>
+  <option value="0056.TW">0056 元大高股息</option><option value="00878.TW">00878 國泰永續高股息</option>
+  <option value="00919.TW">00919 群益台灣精選高息</option><option value="00713.TW">00713 元大台灣高息低波</option>
+  <option value="00646.TW">00646 元大S&P500</option><option value="00662.TW">00662 富邦NASDAQ</option>
+  <option value="00679B.TW">00679B 元大美債20年</option><option value="00697B.TW">00697B 元大美債7-10</option>
+  <option value="SPY">SPY S&P500</option><option value="VT">VT 全球</option><option value="VWRA.L">VWRA 全球(愛爾蘭)</option>
+</datalist>
+<header>
+  <div class="hrow">
+    <div class="htxt"><b id="hTitle">ETF 投資組合真實試算</b><span id="hSub"></span></div>
+    <select class="lang" id="lang" aria-label="Language">
+      <option value="0">繁體中文</option><option value="1">English</option><option value="2">日本語</option><option value="3">한국어</option>
+    </select>
+    <button class="tbtn pri" id="save"></button><button class="tbtn" id="theme"></button><button class="tbtn" id="reset"></button>
+  </div>
+  <div class="keyin">
+    <div class="key"><div class="l" id="k1l"></div><div class="n" id="k1n">—</div><div class="s" id="k1s"></div></div>
+    <div class="key"><div class="l" id="k2l"></div><div class="n" id="k2n">—</div><div class="s" id="k2s"></div></div>
+  </div>
+</header>
+
+<main>
+  <div class="col left">
+    <div class="sec" id="secPlans" style="display:none"></div>
+    <div class="card" id="plansCard" style="display:none"><div id="plansBody"></div></div>
+
+    <div class="sec" id="secPort"></div>
+    <div class="card" id="portCard">
+      <div class="searchbox"><input id="symSearch" autocomplete="off" autocapitalize="characters" spellcheck="false"><div id="symDrop" class="drop" style="display:none"></div></div>
+      <div id="portList"></div>
+      <div class="psum" id="portSum"></div>
+      <div class="note" id="portNote"></div>
+    </div>
+
+    <div class="sec" id="secInput"></div>
+    <div class="card">
+      <div class="f">
+        <div class="ftop"><label id="lbMonthly"></label><input class="num" id="amt" type="number" value="10000" min="0" step="1000"><span class="u" id="uMonthly"></span></div>
+        <div class="ftop"><label id="lbFee"></label><input class="num sm" id="fee" type="number" value="0.1425" min="0" step="0.01"><span class="u">%</span></div>
+        <div class="ftop"><label id="lbStart"></label>
+          <input class="num sm" id="startY" type="number" min="1990" max="2100" step="1" style="width:80px"><span class="u" id="uYr"></span>
+          <input class="num sm" id="startM" type="number" min="1" max="12" step="1" style="width:64px"><span class="u" id="uMo"></span></div>
+        <div class="ftop"><label id="lbEnd"></label>
+          <input class="num sm" id="endY" type="number" min="1990" max="2100" step="1" style="width:80px"><span class="u" id="uYr2"></span>
+          <input class="num sm" id="endM" type="number" min="1" max="12" step="1" style="width:64px"><span class="u" id="uMo2"></span></div>
+      </div>
+    </div>
+
+    <div class="sec" id="secLump"></div>
+    <div class="card">
+      <div id="lumpList"></div>
+      <button class="addbtn" id="addLump"></button>
+      <div class="note" id="lumpNote"></div>
+    </div>
+
+    <div class="sec" id="secTax"></div>
+    <div class="card">
+      <div class="f">
+        <div class="ftop"><label id="lbMarginal"></label>
+          <select class="sel sm" id="marginal"><option value="0.05">5%</option><option value="0.12">12%</option><option value="0.20">20%</option><option value="0.30">30%</option><option value="0.40">40%</option></select></div>
+        <div class="ftop"><label id="lbC54"></label><input class="num sm" id="c54" type="number" value="100" min="0" max="100" step="1"><span class="u">%</span></div>
+        <div class="ftop"><label id="lbFx"></label><input class="num sm" id="fx" type="number" value="32" min="1" step="0.1"></div>
+        <div class="ftop"><label id="lbNhi"></label>
+          <select class="sel sm" id="nhi"><option value="0" id="nhiN"></option><option value="1" id="nhiY"></option></select></div>
+        <div class="ftop"><label id="lbReinv"></label>
+          <select class="sel sm" id="reinv"><option value="1" id="rvY"></option><option value="0" id="rvN"></option></select></div>
+      </div>
+      <div class="note" id="taxNote"></div>
+    </div>
+
+    <div class="sec" id="secGoal"></div>
+    <div class="card">
+      <div class="f">
+        <div class="ftop"><label id="lbNow"></label><input class="num sm" id="nowAge" type="number" value="35" min="1" max="120" step="1"></div>
+        <div class="ftop"><label id="lbRetire"></label><input class="num sm" id="retAge" type="number" value="65" min="1" max="120" step="1"></div>
+        <div class="ftop"><label id="lbGoal"></label><input class="num" id="goal" type="number" value="10000000" min="0" step="100000"></div>
+        <div class="ftop"><label id="lbHaircut"></label><input class="num sm" id="haircut" type="number" value="0" min="0" max="90" step="5"><span class="u">%</span></div>
+      </div>
+      <div class="note" id="goalNote"></div>
+    </div>
+
+    <button class="go" id="run"></button>
+    <div class="warn" id="preWarn"></div>
+    <div class="disc" id="disc"></div>
+  </div>
+
+  <div class="col right" id="out" style="display:none">
+    <div class="warn" id="offlineWarn" style="display:none"></div>
+    <div class="warn" id="futureWarn" style="display:none"></div>
+
+    <div class="sec" id="secOpt"></div>
+    <div class="card">
+      <div class="hero" style="padding-bottom:2px"><div class="conc" id="optConc">—</div><div class="concs" id="optConcs"></div></div>
+      <div id="recoList"></div>
+      <div class="note" id="optNote"></div>
+    </div>
+
+    <div class="sec" id="secVal"></div>
+    <div class="card">
+      <div class="spec-verdict" id="specVerdict">—</div>
+      <div class="spec-wrap"><div class="spec-bar"><div class="spec-dot" id="specDot" style="left:50%"></div></div>
+        <div class="spec-scale"><span id="scCheap"></span><span id="scFair"></span><span id="scRich"></span></div></div>
+      <div class="advice" id="specAdvice"></div>
+      <div class="note" id="valNote"></div>
+    </div>
+
+    <div class="sec" id="secCmp"></div>
+    <div class="card">
+      <div class="hero"><div class="conc" id="cmpConc">—</div><div class="concs" id="cmpConcs"></div>
+        <div class="stats"><div><div class="n" id="s1"></div><div class="l" id="s1l"></div></div>
+          <div><div class="n" id="s2"></div><div class="l" id="s2l"></div></div>
+          <div><div class="n" id="s3"></div><div class="l" id="s3l"></div></div>
+          <div><div class="n" id="s4"></div><div class="l" id="s4l"></div></div></div></div>
+      <canvas id="chart" width="820" height="230" style="width:100%;height:230px;padding:8px 12px"></canvas>
+      <div style="padding:0 14px 8px"><table id="cmpTbl"><thead><tr><th id="cmpH0"></th><th id="cmpH1"></th><th id="cmpH2"></th><th id="cmpH3"></th></tr></thead><tbody></tbody></table></div>
+      <div class="note" id="cmpNote"></div>
+    </div>
+
+    <div class="sec" id="secNet"></div>
+    <div class="card">
+      <div class="hero"><div class="conc" id="netConc">—</div><div class="concs" id="netConcs"></div></div>
+      <table style="margin:0 14px;width:calc(100% - 28px)"><tbody id="netRows"></tbody></table>
+      <div class="stats"><div><div class="n" id="npCap"></div><div class="l" id="npCapL"></div></div>
+        <div><div class="n" id="npDiv"></div><div class="l" id="npDivL"></div></div>
+        <div><div class="n neg" id="npDrag"></div><div class="l" id="npDragL"></div></div>
+        <div><div class="n" id="npEff"></div><div class="l" id="npEffL"></div></div></div>
+      <div class="note" id="netNote"></div>
+    </div>
+
+    <div class="sec" id="secCash"></div>
+    <div class="card"><div class="hero"><div class="conc" id="cashConc">—</div><div class="concs" id="cashConcs"></div></div><div class="note" id="cashNote"></div></div>
+
+    <div class="sec" id="secRisk"></div>
+    <div class="card">
+      <div class="stats" style="border-top:none"><div><div class="n" id="rCagr"></div><div class="l" id="rCagrL"></div></div>
+        <div><div class="n neg" id="rMdd"></div><div class="l" id="rMddL"></div></div>
+        <div><div class="n" id="rVol"></div><div class="l" id="rVolL"></div></div>
+        <div><div class="n" id="rShp"></div><div class="l" id="rShpL"></div></div></div>
+      <div class="note" id="riskNote"></div>
+    </div>
+
+    <div class="sec" id="secMc"></div>
+    <div class="card">
+      <div class="hero"><div class="conc" id="mcConc">—</div><div class="concs" id="mcConcs"></div>
+        <div class="stats"><div><div class="n neg" id="mcP5"></div><div class="l" id="mcP5L"></div></div>
+          <div><div class="n" id="mcP50"></div><div class="l" id="mcP50L"></div></div>
+          <div><div class="n pos" id="mcP95"></div><div class="l" id="mcP95L"></div></div>
+          <div><div class="n" id="mcSucc"></div><div class="l" id="mcSuccL"></div></div></div></div>
+      <canvas id="projChart" width="820" height="240" style="width:100%;height:240px;padding:8px 12px"></canvas>
+      <div class="muted" id="projLeg" style="padding:0 14px 6px"></div>
+      <div class="note" id="mcNote"></div>
+    </div>
+
+    <div class="sec" id="secPath"></div>
+    <div class="card">
+      <div style="padding:8px 14px"><table id="pathTbl"><thead><tr><th id="pH0"></th><th id="pH1"></th><th id="pH2"></th><th id="pH3"></th></tr></thead><tbody></tbody></table></div>
+      <div class="note" id="pathNote"></div>
+    </div>
+
+    <div class="datamgmt">
+      <div class="dm-time" id="savedTime"></div>
+      <div class="dm-btns"><button class="dm-btn" id="btnExport"></button><button class="dm-btn" id="btnImport"></button><button class="dm-btn" id="btnRestoreDef"></button><button class="dm-btn danger" id="btnClear"></button></div>
+      <input type="file" id="fileImport" accept="application/json" style="display:none">
+    </div>
+    <div class="adslot" id="adslot" aria-hidden="true"></div>
+  </div>
+</main>
+
+<script src="engine.js"></script>
+<script>
+const PROXY="https://etf-proxy.space653000.workers.dev",STORE_KEY="etfcalc";
+const $=id=>document.getElementById(id);
+let LG=0,LUMPS=[],PORT=[],DATA=null;
+
+/* ================= i18n ================= */
+const D={
+ hSub:["別人算你會賺多少，我們算稅費匯扣完真正拿到多少","Not just returns — what you truly keep after tax, fees and FX","儲けだけでなく、税・手数料・為替後に手元に残る額","수익뿐 아니라 세금·수수료·환율 후 실수령액"],
+ save:["儲存方案","Save plan","プラン保存","플랜 저장"],dark:["深色","Dark","ダーク","다크"],light:["淺色","Light","ライト","라이트"],reset:["重設","Reset","リセット","초기화"],
+ k1l:["稅費匯後真正拿到","After tax / fee / FX","税・手数料・為替後","세금·수수료·환율 후"],k2l:["年化報酬 (XIRR)","Annualized (XIRR)","年率 (XIRR)","연율 (XIRR)"],
+ secPlans:["已存方案（可比較）","Saved plans (compare)","保存プラン（比較）","저장 플랜 (비교)"],
+ secPort:["投資組合（自訂標的與比例）","Portfolio (your ETFs & weights)","ポートフォリオ（銘柄と比率）","포트폴리오 (종목·비율)"],
+ secInput:["投入設定","Contribution","積立設定","적립 설정"],secLump:["單筆加碼（可多筆）","One-time top-ups","一括追加投資","일시 추가매수"],
+ secTax:["稅務設定","Tax settings","税設定","세금 설정"],secGoal:["目標與生命週期","Goal & lifecycle","目標・ライフサイクル","목표·라이프사이클"],
+ secOpt:["最佳比例推薦","Best allocation","最適配分","최적 배분"],secVal:["估值位階：現在貴不貴","Valuation: cheap or rich?","バリュエーション：割安か割高か","밸류에이션: 저평가/고평가"],
+ secCmp:["投入方式比較","Plan comparison","積立方法の比較","적립 방식 비교"],secNet:["稅費匯後真正拿到 ★","What you truly keep ★","手元に残る額 ★","실수령액 ★"],
+ secCash:["現金流 / 股息","Cash flow / dividends","キャッシュフロー / 配当","현금흐름 / 배당"],secRisk:["風險","Risk","リスク","리스크"],
+ secMc:["目標與生命週期預估（用過去推未來）","Goal & lifecycle projection","目標・ライフサイクル予測","목표·라이프사이클 예측"],secPath:["三路徑稅務比較","Three vehicles compared","3ルート税務比較","3경로 세무 비교"],
+ lbMonthly:["每月定期定額","Monthly amount","毎月の積立額","매월 적립액"],uMonthly:["元","","円","원"],lbFee:["手續費率","Fee rate","手数料率","수수료율"],
+ lbStart:["回測起始","Backtest start","検証開始","백테스트 시작"],lbEnd:["回測結束","Backtest end","検証終了","백테스트 종료"],uYr:["年","yr","年","년"],uMo:["月","mo","月","월"],
+ lbMarginal:["綜所稅邊際稅率","Marginal income tax","限界所得税率","한계소득세율"],lbC54:["配息應稅比例 (54C)","Taxable dividend ratio (54C)","課税配当割合 (54C)","과세배당비율 (54C)"],
+ lbFx:["匯率 USD→TWD","FX USD→TWD","為替 USD→TWD","환율 USD→TWD"],lbNhi:["二代健保 2.11%","NHI surcharge 2.11%","二代健保 2.11%","건보료 2.11%"],lbReinv:["股利再投入","Reinvest dividends","配当再投資","배당 재투자"],
+ lbNow:["目前年齡","Current age","現在の年齢","현재 나이"],lbRetire:["退休年齡","Retirement age","退職年齢","은퇴 연령"],lbGoal:["目標金額","Goal amount","目標額","목표액"],
+ lbHaircut:["保守打折報酬率","Conservative haircut","保守的ディスカウント","보수적 할인율"],
+ mDom:["境內 ETF（台幣）","Domestic (TWD)","国内 (TWD)","국내 (TWD)"],mUS:["複委託美股（預扣 30%）","US via broker (30%)","米国 (30%源泉)","미국 (30%)"],mIE:["愛爾蘭註冊（預扣 15%）","Ireland-domiciled (15%)","アイルランド籍 (15%)","아일랜드 (15%)"],
+ nhiN:["不計","No","なし","미포함"],nhiY:["計入","Yes","あり","포함"],rvY:["是（再投入）","Yes","再投資","예"],rvN:["否（領現金）","No (cash)","現金","현금"],
+ addSym:["＋ 新增標的","+ Add ETF","＋ 銘柄追加","＋ 종목 추가"],addLump:["＋ 新增一筆單筆加碼","+ Add a top-up","＋ 一括追加","＋ 일시 추가"],
+ run:["開始試算","Calculate","計算する","계산하기"],
+ preWarn:["採還原權息歷史數據回測，顯示稅前與稅後。過去績效不代表未來，未來部分皆以過去統計推估。","Backtested on total-return history; past ≠ future. Any future figures are projected from past statistics.","過去のトータルリターンで検証。将来は過去統計からの推計。","토탈리턴 과거 데이터 기반. 미래는 과거 통계로 추정."],
+ futureWarn:["結束日期在未來：回測只用到目前為止的實際數據，未來部分以「過去平均報酬與波動」推估，非實際發生。","End date is in the future: backtest uses data up to now; the future part is projected from past mean/volatility.","終了日が未来：現在までの実データで検証し、将来は過去平均で推計。","종료일이 미래: 현재까지 실데이터로 검증, 미래는 과거 평균으로 추정."],
+ disc:["本工具僅依你輸入的假設做數學運算，不提供任何預測、投資建議、標的推薦或方案排名。「最佳比例」僅是依歷史數據對你所選標的做的客觀計算結果，不代表未來會最好，也不是推薦。內扣費用、稅率、匯率、遺產稅門檻均為市場常見值與現行法規整理，實際請以官方公告與你的稅務狀況為準。ETF 投資有風險，價格會波動，可能損失本金。全部計算在你的瀏覽器本地完成，不上傳任何財務資料。","This tool only does math on your inputs. No forecasts, advice, or recommendations. 'Best allocation' is an objective calculation over the ETFs you chose using past data — not a prediction or recommendation. Fees, tax rates, FX and estate-tax thresholds are common market/legal values; verify against official sources and your own tax situation. ETFs carry risk; you may lose principal. Everything is computed locally in your browser; nothing is uploaded.","本ツールは入力値の計算のみ。予測・助言・推奨はありません。「最適配分」は選択銘柄の過去データに基づく客観計算で、推奨ではありません。ローカル計算、アップロードなし。","본 도구는 입력값 계산만 수행하며 예측·조언·추천을 하지 않습니다. '최적 배분'은 선택 종목의 과거 데이터 기반 객관적 계산일 뿐 추천이 아닙니다. 브라우저에서 로컬 계산."],
+ scCheap:["便宜","Cheap","割安","저평가"],scFair:["合理","Fair","適正","적정"],scRich:["昂貴","Rich","割高","고평가"],
+ exportJSON:["儲存檔案(全部)","Save file (all)","ファイル保存","파일 저장"],importJSON:["讀取檔案","Load file","ファイル読込","파일 열기"],restoreDef:["恢復預設","Defaults","初期値","기본값"],clearData:["清除資料","Clear","消去","삭제"],
+ savedTip:["自動儲存於瀏覽器本機，換裝置或清資料會消失；換機請用「匯出備份」。","Auto-saved locally in your browser only; use Export to move devices.","ブラウザにローカル保存。機種変更はエクスポートを。","브라우저 로컬 저장. 기기 변경 시 내보내기."],
+ aggr:["積極","Aggressive","積極型","적극형"],stead:["穩健","Balanced","バランス型","안정형"],cons:["保守","Conservative","保守型","보수형"],perf:["完美","Optimal","最適","최적"],
+ colMix:["混合(定期+單筆)","Mixed (DCA+lump)","混合","혼합"],colDca:["純定期定額","Pure DCA","純DCA","순수 DCA"],colLump:["一次單筆","Lump sum","一括","일괄"],
+ mFinal:["最終資產","Final","最終","최종"],mCost:["總投入","Invested","投入","투입"],mRet:["總報酬","Return","リターン","수익"],mXirr:["年化","Annual","年率","연율"],
+ rCagrL:["組合年化","Portfolio CAGR","年率","연율"],rMddL:["最大回撤","Max drawdown","最大下落","최대낙폭"],rVolL:["年化波動","Volatility","変動率","변동성"],rShpL:["夏普值","Sharpe","シャープ","샤프"],
+ mcP5L:["悲觀 (前5%)","Pessimistic 5%","悲観 5%","비관 5%"],mcP50L:["中位數","Median","中央値","중앙값"],mcP95L:["樂觀 (前5%)","Optimistic 5%","楽観 5%","낙관 5%"],mcSuccL:["達標成功率","Success rate","成功率","성공률"],
+ weight:["權重","Weight","比率","비중"],retL:["年化報酬","Return","年率","연율"],volL:["波動","Vol","変動","변동"],shpL:["夏普","Sharpe","シャープ","샤프"],
+ none:["無","None","なし","없음"],
+};
+function T(k){const a=D[k];return a?(a[LG]||a[0]):"";}
+function L4(zh,en,ja,ko){return [zh,en,ja,ko][LG];}
+
+/* ================= 格式（在地化，無中文外洩） ================= */
+function fmt(n){return Math.round(n).toLocaleString("en-US");}
+function fmtT(n){const a=Math.abs(n);
+ if(LG===1){if(a>=1e9)return(n/1e9).toFixed(2)+"B";if(a>=1e6)return(n/1e6).toFixed(2)+"M";if(a>=1e3)return(n/1e3).toFixed(1)+"K";return fmt(n);}
+ if(LG===2){if(a>=1e8)return(n/1e8).toFixed(2)+"億";if(a>=1e4)return(n/1e4).toFixed(1)+"万";return fmt(n);}
+ if(LG===3){if(a>=1e8)return(n/1e8).toFixed(2)+"억";if(a>=1e4)return(n/1e4).toFixed(1)+"만";return fmt(n);}
+ if(a>=1e8)return(n/1e8).toFixed(2)+"億";if(a>=1e4)return(n/1e4).toFixed(1)+"萬";return fmt(n);}
+function pct(n){return(n*100).toFixed(2)+"%";}
+function normSym(s){s=(s||"").trim().toUpperCase();if(!s)return"";if(s.includes("."))return s;if(/^\d{4,6}[A-Z]?$/.test(s))return s+".TW";return s;}
+function normalizePort(){PORT.forEach(p=>{p.sym=normSym(p.sym);});}
+function detectMarket(s){s=normSym(s);if(/\.TWO?$/i.test(s))return"domestic";if(/\.L$/i.test(s)||/VWRA/i.test(s))return"foreign_ie";return"foreign_us";}
+function mkName(m){return m==="domestic"?T("mDom"):m==="foreign_us"?T("mUS"):T("mIE");}
+
+/* ================= 狀態 ================= */
+function nowYM(){const d=new Date();return {y:d.getFullYear(),m:d.getMonth()+1};}
+function DEF(){const n=nowYM();return {port:[{sym:"0050.TW",w:100}],amt:10000,fee:0.1425,
+ startY:n.y-10,startM:n.m,endY:n.y,endM:n.m,marginal:"0.05",c54:100,fx:32,nhi:"0",reinv:"1",
+ nowAge:35,retAge:65,goal:10000000,haircut:0,lumps:[]};}
+function readS(){return {port:PORT,amt:+$("amt").value||0,fee:+$("fee").value||0,
+ startY:+$("startY").value||2016,startM:+$("startM").value||1,endY:+$("endY").value||2026,endM:+$("endM").value||1,
+ marginal:$("marginal").value,c54:+$("c54").value||0,fx:+$("fx").value||1,nhi:$("nhi").value,reinv:$("reinv").value,
+ nowAge:+$("nowAge").value||35,retAge:+$("retAge").value||65,goal:+$("goal").value||0,haircut:+$("haircut").value||0,lumps:LUMPS};}
+function applyS(S){PORT=Array.isArray(S.port)&&S.port.length?S.port.map(p=>({sym:p.sym,w:p.w})):[{sym:"0050.TW",w:100}];
+ LUMPS=Array.isArray(S.lumps)?S.lumps.slice():[];
+ $("amt").value=S.amt??10000;$("fee").value=S.fee??0.1425;const d=DEF();
+ $("startY").value=S.startY||d.startY;$("startM").value=S.startM||d.startM;$("endY").value=S.endY||d.endY;$("endM").value=S.endM||d.endM;
+ $("marginal").value=S.marginal||"0.05";$("c54").value=S.c54??100;$("fx").value=S.fx??32;$("nhi").value=S.nhi||"0";$("reinv").value=S.reinv||"1";
+ $("nowAge").value=S.nowAge??35;$("retAge").value=S.retAge??65;$("goal").value=S.goal??10000000;$("haircut").value=S.haircut??0;
+ renderPort();renderLumps();}
+
+/* ================= 語言 / 主題 ================= */
+function applyLang(){document.documentElement.lang=["zh-Hant","en","ja","ko"][LG];
+ ["hSub","secPort","secInput","secLump","secTax","secGoal","secOpt","secVal","secCmp","secNet","secCash","secRisk","secMc","secPath",
+  "lbMonthly","uMonthly","lbFee","lbStart","lbEnd","lbMarginal","lbC54","lbFx","lbNhi","lbReinv","lbNow","lbRetire","lbGoal","lbHaircut",
+  "nhiN","nhiY","rvY","rvN","addSym","addLump","run","preWarn","disc","scCheap","scFair","scRich","k1l","k2l"].forEach(id=>{const el=$(id);if(el)el.textContent=T(id);});
+ $("uYr").textContent=T("uYr");$("uMo").textContent=T("uMo");$("uYr2").textContent=T("uYr");$("uMo2").textContent=T("uMo");
+ $("save").textContent=T("save");$("reset").textContent=T("reset");$("theme").textContent=document.body.classList.contains("dark")?T("light"):T("dark");
+ $("btnExport").textContent=T("exportJSON");$("btnImport").textContent=T("importJSON");$("btnRestoreDef").textContent=T("restoreDef");$("btnClear").textContent=T("clearData");
+ $("lang").value=String(LG);
+ $("symSearch").placeholder=L4("🔍 輸入代號或名稱搜尋，例：0050、台灣50、SPY、VT","🔍 Search code or name, e.g. 0050, SPY, VT","🔍 コード/名称で検索 例：0050、SPY","🔍 코드/이름 검색 예: 0050, SPY");
+ $("lumpNote").innerHTML=L4("在指定年月一次投入一筆（例如年終獎金、或估值便宜時多買），疊加在每月定期定額之上。","One-off injections on chosen months, stacked on the monthly plan.","毎月積立に上乗せする一括投資。","매월 적립에 더해지는 일시 투자.");
+ $("portNote").innerHTML=L4("可加多檔並自訂比例（不必剛好 100%，會自動正規化）。回測會用「權重加權的月報酬」組成投資組合。","Add multiple ETFs with weights (auto-normalized). The backtest builds a weighted portfolio.","複数銘柄と比率を設定（自動正規化）。","여러 종목·비중 설정 (자동 정규화).");
+ $("taxNote").innerHTML=L4("境內配息只對「54C 股利/盈餘」課稅；資本利得與收益平準金免稅（但賣出仍有證交稅 0.1%＋手續費）。境外身分依各標的自動判定。","Domestic tax applies only to the 54C portion of dividends; capital gains are tax-free. Foreign residency auto-detected per ETF.","国内は54C配当のみ課税。","국내는 54C 배당만 과세.");
+ $("goalNote").innerHTML=L4("「保守打折報酬率」：把歷史平均報酬打折後再做蒙地卡羅，越保守越能看清最壞情況。目前年齡到退休年齡的月數＝未來模擬期間。","Haircut discounts the historical mean return before Monte Carlo, for a more conservative view.","ヘアカットは過去平均を割引いて保守的に試算。","할인율은 과거 평균을 낮춰 보수적으로 시뮬레이션.");
+ updateSavedTime();renderPort();renderLumps();renderPlans();
+ if(DATA)compute();
+}
+
+/* ================= 組合 / 加碼 列表 ================= */
+function renderPort(){const box=$("portList");box.innerHTML="";
+ PORT.forEach((p,i)=>{const r=document.createElement("div");r.className="prow";
+  r.innerHTML=`<input class="ps" value="${p.sym||""}" data-i="${i}" data-k="sym" placeholder="0050.TW / SPY" autocapitalize="characters" spellcheck="false">
+   <input class="pw" type="number" value="${p.w??0}" data-i="${i}" data-k="w" min="0" step="5"><span class="u">%</span>
+   <button class="dl" data-del="${i}">×</button>`;box.appendChild(r);});
+ const sum=PORT.reduce((a,b)=>a+(+b.w||0),0);
+ $("portSum").textContent=L4(`目前權重合計 ${sum}%（將自動正規化為 100%）`,`Total weight ${sum}% (auto-normalized)`,`合計 ${sum}%（自動正規化）`,`합계 ${sum}% (자동 정규화)`);
+ if($("lumpList"))renderLumps();}
+$("portList").addEventListener("input",e=>{const t=e.target;if(t.dataset.k){PORT[+t.dataset.i][t.dataset.k]=t.dataset.k==="w"?(+t.value||0):t.value.trim().toUpperCase();if(t.dataset.k==="w"){$("portSum").textContent=L4(`目前權重合計 ${PORT.reduce((a,b)=>a+(+b.w||0),0)}%（將自動正規化為 100%）`,`Total weight ${PORT.reduce((a,b)=>a+(+b.w||0),0)}%`,`合計`,`합계`);recomputeD();}persistD();}});
+$("portList").addEventListener("click",e=>{const b=e.target.closest("[data-del]");if(b&&PORT.length>1){PORT.splice(+b.dataset.del,1);renderPort();persistD();}});
+/* 股票搜尋：打字即時建議（代號或名稱），點選加入組合 */
+const CAT=[["0050.TW","元大台灣50 Taiwan 50"],["006208.TW","富邦台灣采吉50"],["0056.TW","元大高股息 High Dividend"],
+ ["00878.TW","國泰永續高股息 ESG"],["00919.TW","群益台灣精選高息"],["00713.TW","元大台灣高息低波 Low Vol"],
+ ["00646.TW","元大S&P500"],["00662.TW","富邦NASDAQ"],["00929.TW","復華台灣科技優息"],["00940.TW","元大台灣價值高息"],
+ ["0052.TW","富邦科技 Tech"],["00679B.TW","元大美債20年 US Treasury 20Y"],["00697B.TW","元大美債7-10 US Treasury 7-10"],
+ ["SPY","SPDR S&P 500"],["VOO","Vanguard S&P 500"],["VTI","Vanguard Total US"],["QQQ","Invesco NASDAQ-100"],
+ ["VT","Vanguard Total World"],["VWRA.L","Vanguard All-World 愛爾蘭累積 Ireland"],["VXUS","Vanguard ex-US"],
+ ["BND","Vanguard US Bond"],["TLT","iShares 20Y Treasury"],["GLD","SPDR Gold 黃金"]];
+function catalogAll(){const m=new Map();CAT.forEach(([s,n])=>m.set(s.toUpperCase(),{sym:s,name:n}));
+ SEEN.forEach(s=>{const k=(s||"").toUpperCase();if(k&&!m.has(k))m.set(k,{sym:s,name:L4("(查過)","(seen)","(履歴)","(기록)")});});return[...m.values()];}
+function renderDrop(){const drop=$("symDrop"),raw=$("symSearch").value.trim();const q=raw.toUpperCase();
+ if(!q){drop.style.display="none";return;}
+ let items=catalogAll().filter(it=>it.sym.toUpperCase().includes(q)||(it.name&&it.name.toUpperCase().includes(q))).slice(0,12);
+ if(!items.some(it=>it.sym.toUpperCase()===q))items.unshift({sym:raw.toUpperCase(),name:L4("自訂代號 加入","Add custom","カスタム追加","직접 추가")});
+ drop.innerHTML=items.map(it=>`<div class="dropit" data-sym="${esc(it.sym)}"><b>${esc(it.sym)}</b><span>${esc(it.name)}</span></div>`).join("");
+ drop.style.display="";}
+function addSymToPort(sym){sym=normSym(sym);if(!sym)return;
+ if(!PORT.some(p=>(p.sym||"").toUpperCase()===sym)){if(PORT.length===1&&!PORT[0].sym)PORT[0]={sym,w:100};else PORT.push({sym,w:0});}
+ renderPort();persistD();$("symSearch").value="";$("symDrop").style.display="none";}
+$("symSearch").addEventListener("input",renderDrop);
+$("symSearch").addEventListener("focus",renderDrop);
+$("symSearch").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();const first=$("symDrop").querySelector(".dropit");if(first)addSymToPort(first.dataset.sym);else addSymToPort($("symSearch").value);}
+ else if(e.key==="Escape"){$("symDrop").style.display="none";}});
+$("symSearch").addEventListener("blur",()=>{setTimeout(()=>{$("symDrop").style.display="none";},180);});
+$("symDrop").addEventListener("mousedown",e=>{const it=e.target.closest(".dropit");if(it){e.preventDefault();addSymToPort(it.dataset.sym);}});
+
+function renderLumps(){const box=$("lumpList");box.innerHTML="";
+ LUMPS.forEach((lp,i)=>{const r=document.createElement("div");r.className="prow";r.style.flexWrap="wrap";
+  const opts=`<option value="" ${!lp.sym?"selected":""}>${L4("整個組合(依比例)","Whole portfolio","組合全体","전체")}</option>`+
+   PORT.filter(p=>p.sym).map(p=>{const s=normSym(p.sym);return `<option value="${esc(s)}" ${normSym(lp.sym||"")===s?"selected":""}>${esc(p.sym)}</option>`;}).join("");
+  r.innerHTML=`<input class="pw" type="number" value="${lp.y||nowYM().y}" data-i="${i}" data-k="y" min="1990" max="2100" style="width:78px"><span class="u">${T("uYr")}</span>
+   <input class="pw" type="number" value="${lp.m||1}" data-i="${i}" data-k="m" min="1" max="12" style="width:56px"><span class="u">${T("uMo")}</span>
+   <input class="pw" type="number" value="${lp.amt||0}" data-i="${i}" data-k="amt" step="10000" style="flex:1;text-align:right">
+   <button class="dl" data-del="${i}">×</button>
+   <div style="width:100%;margin-top:7px;display:flex;align-items:center;gap:8px">
+     <span class="u">${L4("加碼標的","Add to","対象","대상")}</span>
+     <select class="sel" data-i="${i}" data-k="sym" style="flex:1">${opts}</select></div>`;box.appendChild(r);});}
+function lumpChange(e){const t=e.target;if(!t.dataset.k)return;const i=+t.dataset.i,k=t.dataset.k;LUMPS[i][k]=(k==="sym")?t.value:(+t.value||0);persistD();recomputeD();}
+$("lumpList").addEventListener("input",lumpChange);
+$("lumpList").addEventListener("change",lumpChange);
+$("lumpList").addEventListener("click",e=>{const b=e.target.closest("[data-del]");if(b){LUMPS.splice(+b.dataset.del,1);renderLumps();persistD();recomputeD();}});
+$("addLump").addEventListener("click",()=>{const n=nowYM();LUMPS.push({y:n.y,m:n.m,amt:100000,sym:""});renderLumps();persistD();recomputeD();});
+
+/* ================= 儲存（window.storage 優先，localStorage 後備） ================= */
+const STORAGE=(typeof window!=="undefined"&&window.storage)?window.storage:{
+ set:(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}return Promise.resolve();},
+ get:(k)=>{try{return Promise.resolve(localStorage.getItem(k));}catch(e){return Promise.resolve(null);}},
+ delete:(k)=>{try{localStorage.removeItem(k);}catch(e){}return Promise.resolve();}};
+let lastSaved=0,tSave=0,PLANS=[],LASTR=null;
+function esc(s){return String(s).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));}
+function persist(){lastSaved=Date.now();STORAGE.set(STORE_KEY,JSON.stringify({S:readS(),LG,ts:lastSaved})).catch(()=>{});updateSavedTime();}
+function persistD(){clearTimeout(tSave);tSave=setTimeout(persist,800);}
+function updateSavedTime(){const el=$("savedTime");if(!el)return;if(!lastSaved){el.textContent=T("savedTip");return;}
+ const d=new Date(lastSaved),p=n=>String(n).padStart(2,"0");
+ el.textContent=L4("上次自動儲存","Saved","保存","저장")+`：${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}　·　`+T("savedTip");}
+async function restore(){try{const r=await STORAGE.get(STORE_KEY);if(r){const d=JSON.parse(r);if(typeof d.LG==="number")LG=d.LG;if(d.S)applyS(d.S);if(d.ts)lastSaved=d.ts;}
+ const pr=await STORAGE.get(STORE_KEY+"_plans");if(pr)PLANS=JSON.parse(pr)||[];
+ const sn=await STORAGE.get(STORE_KEY+"_seen");if(sn)SEEN=JSON.parse(sn)||[];}catch(e){}renderPlans();rebuildDatalist();}
+function savePlans(){STORAGE.set(STORE_KEY+"_plans",JSON.stringify(PLANS)).catch(()=>{});}
+/* 存股清單：查過的標的自動存起來、持續擴充 */
+let SEEN=[];
+function rebuildDatalist(){const dl=$("etfList");if(!dl)return;
+ [...dl.querySelectorAll("option[data-seen]")].forEach(o=>o.remove());
+ const have=new Set([...dl.querySelectorAll("option")].map(o=>o.value.toUpperCase()));
+ SEEN.forEach(s=>{if(s&&!have.has(s.toUpperCase())){const o=document.createElement("option");o.value=s;o.setAttribute("data-seen","1");dl.appendChild(o);}});}
+function addSeen(syms){let ch=false;syms.forEach(s=>{s=normSym(s);if(s&&!SEEN.some(x=>x.toUpperCase()===s)){SEEN.push(s);ch=true;}});
+ if(ch){STORAGE.set(STORE_KEY+"_seen",JSON.stringify(SEEN)).catch(()=>{});rebuildDatalist();}}
+function saveCurrentPlan(){
+ const def=L4("方案","Plan","プラン","플랜")+" "+(PLANS.length+1);
+ const name=prompt(L4("為這個方案命名（例：0050全押、股債60/40）","Name this plan","プラン名を入力","플랜 이름"),def);
+ if(name===null)return;
+ PLANS.push({name:(name||def).slice(0,40),ts:Date.now(),S:readS(),r:LASTR});
+ savePlans();persist();renderPlans();
+ alert(L4("已存為方案：","Saved plan: ","保存：","저장: ")+(name||def));
+}
+function renderPlans(){
+ const card=$("plansCard"),body=$("plansBody"),sec=$("secPlans");if(!card||!body)return;
+ sec.textContent=T("secPlans");
+ if(!PLANS.length){card.style.display="none";sec.style.display="none";return;}
+ card.style.display="";sec.style.display="";
+ let h=PLANS.map((p,i)=>`<div class="prow"><div style="flex:1;min-width:0">
+   <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</div>
+   <div style="font-size:13px;color:var(--label2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.r?(T("k1l")+" "+fmtT(p.r.net)+" · "+T("mXirr")+" "+pct(p.r.xirr)):esc((p.S&&p.S.port||[]).map(x=>x.sym).filter(Boolean).join("/"))}</div></div>
+   <button class="mini" data-load="${i}">${L4("載入","Load","読込","불러오기")}</button>
+   <button class="dl" data-delp="${i}">×</button></div>`).join("");
+ if(PLANS.length>=2){
+  const rows=[[T("k1l"),p=>p.r?fmtT(p.r.net):"—"],[T("mXirr"),p=>p.r?pct(p.r.xirr):"—"],[T("mFinal"),p=>p.r?fmtT(p.r.final):"—"],[T("mCost"),p=>p.r?fmtT(p.r.cost):"—"]];
+  h+=`<div style="overflow:auto;padding:4px 14px 6px"><table><thead><tr><th></th>${PLANS.map(p=>`<th>${esc(p.name)}</th>`).join("")}</tr></thead><tbody>`+
+     rows.map(([k,f])=>`<tr><td>${k}</td>${PLANS.map(p=>`<td>${f(p)}</td>`).join("")}</tr>`).join("")+`</tbody></table></div>`;
+ }
+ h+=`<div class="note">${L4("每個方案完整保存所有欄位（組合、加碼、稅務、目標、語言）。載入後會自動重算。按頂欄「存檔」新增方案，即可並列比較。","Each plan stores every field; loading re-runs it. Use ‘Save’ in the header to add plans and compare.","全項目を保存。上部『保存』で追加。","모든 필드 저장. 상단 ‘저장’으로 추가.")}</div>`;
+ body.innerHTML=h;
+}
+
+/* ================= 抓資料 ================= */
+function proxied(u){return PROXY+"/?url="+encodeURIComponent(u);}
+function ymStr(y,m){return `${y}-${String(m).padStart(2,"0")}`;}
+async function tryFetch(u){try{const r=await fetch(proxied(u));if(!r.ok)return{ok:false,st:r.status};return{ok:true,j:await r.json()};}catch(e){return{ok:false,st:0};}}
+async function fetchOne(sym){
+ const E=encodeURIComponent(sym),bust="&_="+Date.now(),p2=Math.floor(Date.now()/1000);
+ const cands=[
+   `https://query1.finance.yahoo.com/v8/finance/chart/${E}?range=max&interval=1mo&events=div,split`,
+   `https://query2.finance.yahoo.com/v8/finance/chart/${E}?range=max&interval=1mo&events=div,split`+bust,
+   `https://query1.finance.yahoo.com/v8/finance/chart/${E}?range=max&interval=1mo`+bust,
+   `https://query2.finance.yahoo.com/v8/finance/chart/${E}?period1=0&period2=${p2}&interval=1mo&events=div,split`+bust,
+ ];
+ let last=0,j=null;
+ for(const u of cands){const r=await tryFetch(u);if(r.ok){j=r.j;break;}last=r.st;}
+ if(!j)throw new Error(sym+" HTTP "+(last||"?"));
+ const res=j?.chart?.result?.[0];if(!res)throw new Error(sym+" "+L4("查無資料","not found","データなし","없음"));
+ const ts=res.timestamp||[],aA=res.indicators?.adjclose?.[0]?.adjclose||[],cA=res.indicators?.quote?.[0]?.close||[];
+ const m={};for(let i=0;i<ts.length;i++){const a=aA[i],c=cA[i];if(a==null&&c==null)continue;const d=new Date(ts[i]*1000);
+  m[ymStr(d.getFullYear(),d.getMonth()+1)]={adj:a==null?c:a,raw:c==null?a:c,ts:ts[i],div:0};}
+ const dd=res.events?.dividends;if(dd)for(const k in dd){const ev=dd[k];const d=new Date((ev.date||0)*1000);const key=ymStr(d.getFullYear(),d.getMonth()+1);if(m[key])m[key].div+=ev.amount||0;}
+ return m;
+}
+// 從各標的的月份 map 挑出「使用區間」：先全歷史交集，再用使用者期間篩，不足則退回全交集
+function pickMonths(mapsKeys,startKey,endKey){
+ let full=mapsKeys[0].slice();for(let i=1;i<mapsKeys.length;i++){const set=new Set(mapsKeys[i]);full=full.filter(k=>set.has(k));}
+ full.sort();
+ if(full.length<6)return {keys:[],full,fallback:false,tooFew:true};
+ let keys=full.filter(k=>k>=startKey&&k<=endKey);
+ let fallback=false;
+ if(keys.length<6){keys=full;fallback=true;}
+ return {keys,full,fallback,tooFew:false};
+}
+async function fetchPortfolio(S){
+ const syms=PORT.map(p=>normSym(p.sym)).filter(Boolean);if(!syms.length)throw new Error("no symbol");
+ const maps=await Promise.all(syms.map(s=>fetchOne(s)));
+ const startKey=ymStr(S.startY,S.startM),endKey=ymStr(S.endY,S.endM);
+ const pick=pickMonths(maps.map(m=>Object.keys(m)),startKey,endKey);
+ if(pick.tooFew)throw new Error(L4("這些標的的共同交易月份太少（可能其中一檔太新，和其他標的沒有足夠重疊）","These ETFs share too few overlapping months (one may be too new)","共通月数が不足","공통 개월 부족"));
+ const keys=pick.keys;
+ const now=new Date();const nowKey=ymStr(now.getFullYear(),now.getMonth()+1);
+ const dates=keys.map(k=>maps[0][k].ts),days=dates.map(t=>(t-dates[0])/86400);
+ const assets=syms.map((s,ai)=>({sym:s,adj:keys.map(k=>maps[ai][k].adj),raw:keys.map(k=>maps[ai][k].raw),divs:keys.map(k=>maps[ai][k].div),market:detectMarket(s)}));
+ return {ym:keys,dates,days,assets,isFuture:endKey>nowKey,windowFallback:pick.fallback,usedFrom:keys[0],usedTo:keys[keys.length-1]};
+}
+
+/* ================= 組合合成 ================= */
+function weightsNorm(){const w=PORT.map(p=>+p.w||0);let s=w.reduce((a,b)=>a+b,0);if(s<=0){return PORT.map(()=>1/PORT.length);}return w.map(x=>x/s);}
+function assetMonthlyRets(a){const r=[];for(let i=1;i<a.adj.length;i++)r.push(a.adj[i]/a.adj[i-1]-1);return r;}
+function synthIndex(D,wN){const n=D.ym.length;const idx=[100];
+ for(let i=1;i<n;i++){let rp=0;D.assets.forEach((a,ai)=>{rp+=wN[ai]*(a.adj[i]/a.adj[i-1]-1);});idx.push(idx[i-1]*(1+rp));}return idx;}
+/* 逐標的投入陣列：每月定期定額(權重分配) + 單筆加碼(可指定標的或整個組合) */
+function buildContribs(D,wN,monthly){
+ const n=D.ym.length,A=D.assets.length;
+ const plan=D.assets.map(()=>new Array(n).fill(0));
+ for(let ai=0;ai<A;ai++)for(let i=0;i<n;i++)plan[ai][i]=wN[ai]*monthly;
+ for(const lp of LUMPS){const key=ymStr(lp.y,lp.m);let i=D.ym.indexOf(key);
+  if(i<0){if(key<D.ym[0])i=0;else if(key>D.ym[n-1])i=n-1;else continue;} // 落在資料範圍外→夾到最近月份，確保計入
+  const amt=+lp.amt||0;if(amt<=0)continue;
+  const tsym=normSym(lp.sym||"");let ti=tsym?D.assets.findIndex(a=>a.sym.toUpperCase()===tsym.toUpperCase()):-1;
+  if(ti>=0)plan[ti][i]+=amt; else for(let ai=0;ai<A;ai++)plan[ai][i]+=wN[ai]*amt;}
+ const dca=D.assets.map((_,ai)=>new Array(n).fill(wN[ai]*monthly));
+ const total=plan.reduce((s,arr)=>s+arr.reduce((a,b)=>a+b,0),0);
+ const lump=D.assets.map((_,ai)=>{const a=new Array(n).fill(0);a[0]=wN[ai]*total;return a;});
+ return {plan,dca,lump};
+}
+/* 逐標的買進、加總為組合價值（買進持有，不月月再平衡，較貼近真實定期定額） */
+function metricsMulti(D,perAsset){
+ const n=D.ym.length;let value=0,cost=0;const cfByDay={},val=new Array(n).fill(0),cst=new Array(n).fill(0);
+ D.assets.forEach((a,ai)=>{let sh=0,co=0;for(let i=0;i<n;i++){const c=perAsset[ai][i];if(c>0){sh+=c/a.adj[i];co+=c;cost+=c;cfByDay[D.days[i]]=(cfByDay[D.days[i]]||0)-c;}val[i]+=sh*a.adj[i];cst[i]+=co;}value+=sh*a.adj[n-1];});
+ cfByDay[D.days[n-1]]=(cfByDay[D.days[n-1]]||0)+value;
+ const cfs=Object.keys(cfByDay).map(d=>({day:+d,amt:cfByDay[d]}));
+ return {value,cost,totalReturn:cost>0?value/cost-1:0,xirr:ETFEngine.xirr(cfs),val,cst};
+}
+async function fetchFx(){try{const r=await fetch(proxied("https://query1.finance.yahoo.com/v8/finance/chart/TWD=X?range=5d&interval=1d&_="+Date.now()));if(!r.ok)return null;
+ const j=await r.json();const q=j?.chart?.result?.[0]?.indicators?.quote?.[0]?.close||[];const v=q.filter(x=>x!=null).slice(-1)[0];return v||null;}catch(e){return null;}}
+
+/* ================= 計畫 ================= */
+function planContribs(len,monthly,ymArr){const c=new Array(len).fill(monthly);
+ for(const lp of LUMPS){if(!lp.y)continue;const key=ymStr(lp.y,lp.m);const i=ymArr.indexOf(key);if(i>=0)c[i]+=(+lp.amt||0);}return c;}
+
+/* ================= 主計算 ================= */
+async function compute(){
+ const D=DATA;if(!D)return;const wN=weightsNorm();const monthly=+$("amt").value||0;const days=D.days;
+ const idx=synthIndex(D,wN);
+ const C=buildContribs(D,wN,monthly);
+ const mp=metricsMulti(D,C.plan),md=metricsMulti(D,C.dca),ml=metricsMulti(D,C.lump);
+ const met=ETFEngine.metrics(idx,days,12,0.015);
+ const zz=ETFEngine.regressionZScores(idx).slice(-1)[0];
+
+ // 稅務設定
+ const opts0={feeRate:(+$("fee").value||0)/100,marginalRate:+$("marginal").value,c54ratio:(+$("c54").value||0)/100,nhiEnabled:$("nhi").value==="1",reinvest:$("reinv").value==="1"};
+ const fx=+$("fx").value||32;
+ // 稅費匯後：逐資產加總
+ function netForMarkets(forceMarket){let g=0,net=0,tax=0,cap=0,div=0;
+  D.assets.forEach((a,ai)=>{const mk=forceMarket||a.market;const isF=mk!=="domestic";const o={...opts0,market:mk,fxEnd:isF?fx:1,fxAvg:isF?fx:1};
+   const nr=ETFEngine.netReturnRun(a.raw,days,a.divs,C.plan[ai],o);
+   g+=nr.valueGross;net+=nr.valueNet;tax+=nr.taxTotal;cap+=nr.capitalGain;div+=nr.divGross;});
+  return {valueGross:g,valueNet:net,taxTotal:tax,capitalGain:cap,divGross:div,taxDrag:g-net};}
+ const nr=netForMarkets(null);
+ LASTR={net:nr.valueNet,xirr:mp.xirr,cost:mp.cost,final:mp.value};
+
+ // key stats
+ $("k1n").textContent=fmtT(nr.valueNet);$("k1s").textContent=`${T("mCost")} ${fmtT(mp.cost)}`;
+ $("k2n").textContent=pct(mp.xirr);$("k2n").className="n "+(mp.xirr>=0?"pos":"neg");$("k2s").textContent=PORT.map(p=>p.sym).filter(Boolean).join(" · ");
+
+ paintOpt(D,wN);
+ paintVal(idx,zz);
+ paintCmp(D,{plan:mp,dca:md,lump:ml});
+ paintNet(nr,opts0);
+ paintCash(D,C,days,opts0,fx);
+ paintRisk(met);
+ paintMc(idx,mp,monthly);
+ paintPath(netForMarkets,fx);
+ {let msg="";
+  if(D.windowFallback)msg=L4(`所選期間資料不足或在未來，已自動改用全部可用的重疊歷史：${D.usedFrom} ～ ${D.usedTo}。`,`Requested range too short or in the future; using full overlapping history ${D.usedFrom}–${D.usedTo}.`,`期間不足のため全重複期間 ${D.usedFrom}〜${D.usedTo} を使用。`,`기간 부족: 전체 중복 구간 ${D.usedFrom}~${D.usedTo} 사용.`);
+  else if(D.isFuture)msg=T("futureWarn");
+  $("futureWarn").style.display=msg?"":"none";$("futureWarn").textContent=msg;}
+ $("out").style.display="";
+}
+function markets(){return PORT.map(p=>detectMarket(p.sym));}
+
+/* ---------- 各區塊 ---------- */
+function paintOpt(D,wN){
+ const rets=D.assets.map(a=>assetMonthlyRets(a));const A=D.assets.length;
+ if(A<2){$("optConc").textContent=L4("單一標的（加第二檔才有最佳比例）","Single ETF — add another for allocation","単一銘柄","단일 종목");
+  const s=ETFEngine.portfolioStats(rets,[1],0.015);
+  $("optConcs").textContent=`${T("retL")} ${pct(s.annRet)} · ${T("volL")} ${pct(s.vol)} · ${T("shpL")} ${s.sharpe.toFixed(2)}`;
+  $("recoList").innerHTML="";$("optNote").innerHTML="";return;}
+ const sw=ETFEngine.portfolioSweep(rets,0.015,5);
+ $("optConc").textContent=L4("依過去數據，四種風格的最佳比例","Best mix for four risk styles (from past data)","過去データによる4スタイルの最適配分","과거 데이터 기반 4스타일 최적 배분");
+ $("optConcs").textContent=L4(`掃描 ${sw.count} 組（每 5% 一階）`,`Scanned ${sw.count} combos (5% steps)`,`${sw.count}通り走査`,`${sw.count}개 조합 탐색`);
+ const syms=D.assets.map(a=>a.sym);
+ const colors={aggressive:"var(--danger)",balanced:"var(--tint)",conservative:"var(--ok)",optimal:"var(--amber)"};
+ const rows=[["aggressive","aggr"],["balanced","stead"],["conservative","cons"],["optimal","perf"]];
+ $("recoList").innerHTML=rows.map(([k,lab])=>{const r=sw[k];
+  const wtxt=r.w.map((x,i)=>x>0?`${syms[i]} ${Math.round(x*100)}%`:null).filter(Boolean).join("　");
+  return `<div class="reco"><div class="rh"><span class="badge" style="background:${colors[k]}">${T(lab)}</span>
+    <span class="rt">${T("retL")} ${pct(r.annRet)}</span></div>
+    <div class="rw">${wtxt}</div>
+    <div class="rm">${T("volL")} ${pct(r.vol)}　·　${T("shpL")} ${r.sharpe.toFixed(2)}</div></div>`;}).join("");
+ $("optNote").innerHTML=L4(`怎麼算的：對你選的 ${A} 檔，取各自<b>歷史月報酬</b>，把權重從 0% 到 100%<b>每 5% 一階</b>窮舉所有組合（共 ${sw.count} 組），每組算年化報酬、波動、夏普。<b>積極</b>＝報酬最高；<b>保守</b>＝波動最低；<b>穩健</b>＝夏普最高（每單位風險報酬最好）；<b>完美</b>＝報酬40%＋夏普40%＋低波動20%的綜合分數最高。這是對過去的客觀計算，不是預測或推薦。`,
+  `Method: for your ${A} ETFs, enumerate every weight combo in 5% steps (${sw.count} total) from monthly returns; each gets return/vol/Sharpe. Aggressive=max return, Conservative=min vol, Balanced=max Sharpe, Optimal=blended score. Objective, not a recommendation.`,
+  `過去月次リターンから5%刻みで全${sw.count}組を評価。推奨ではありません。`,
+  `과거 월수익으로 5% 단위 전 조합(${sw.count}) 평가. 추천 아님.`);
+}
+function paintVal(idx,zz){
+ const pos=Math.max(0,Math.min(1,(zz+3)/6))*100;$("specDot").style.left=pos+"%";
+ let key,adv,col;
+ if(zz<=-2){key="scCheap";adv=L4("現價明顯低於長期趨勢，可考慮這個月多扣 2–3 倍。","Well below trend; consider adding 2–3×.","トレンドを大きく下回る。2〜3倍も。","추세보다 크게 낮음. 2~3배 고려.");col="var(--ok)";}
+ else if(zz<=-1){key="scCheap";adv=L4("低於趨勢，可考慮加碼 1.5–2 倍。","Below trend; consider 1.5–2×.","1.5〜2倍の買い増しも。","1.5~2배 고려.");col="var(--ok)";}
+ else if(zz<=0){key="scFair";adv=L4("略低於趨勢，照常扣款、小幅加碼皆可。","Slightly below trend.","やや下。","약간 낮음.");col="var(--label)";}
+ else if(zz<=1){key="scFair";adv=L4("略高於趨勢，照常定期定額即可。","Slightly above trend; keep DCA.","やや上。積立継続。","약간 높음. 적립 유지.");col="var(--label)";}
+ else if(zz<=2){key="scRich";adv=L4("高於趨勢，可考慮減半扣款、把資金留到便宜時。","Above trend; consider halving.","減額も。","절반 고려.");col="var(--amber)";}
+ else{key="scRich";adv=L4("明顯高於趨勢，可考慮暫停加碼、持有現金等待。","Well above; consider pausing.","停止も。","중단 고려.");col="var(--danger)";}
+ $("specVerdict").textContent=`${T(key)}（z=${zz.toFixed(2)}）`;$("specVerdict").style.color=col;$("specAdvice").textContent=adv;
+ const P=idx[idx.length-1];
+ $("valNote").innerHTML=L4(`怎麼判斷的：取近 3.5 年<b>組合淨值</b>做「時間 vs 淨值」線性回歸得<b>趨勢線</b>，算殘差<b>標準差 σ</b>。現在淨值落在趨勢線 <b>${zz.toFixed(2)} 個 σ</b> 的位置（樂活五線譜原理）。z 越負＝越便宜。這是客觀位置，不是預測、不是買賣建議。`,
+  `Method: regress the portfolio's total-return index over the last 3.5y to get the trend line and residual σ. It now sits <b>${zz.toFixed(2)}σ</b> from trend. Objective position, not advice.`,
+  `直近3.5年の指数を回帰し <b>${zz.toFixed(2)}σ</b>。助言ではありません。`,
+  `최근 3.5년 지수 회귀, 현재 <b>${zz.toFixed(2)}σ</b>. 조언 아님.`);
+}
+function paintCmp(D,m){
+ const yrs=((D.dates[D.dates.length-1]-D.dates[0])/86400/365).toFixed(1);
+ $("cmpConc").textContent=`${T("colMix")}：${fmtT(m.plan.value)}`;
+ $("cmpConcs").textContent=L4(`投入 ${fmtT(m.plan.cost)}，${yrs} 年，含息稅前（組合淨值）。`,`Invested ${fmtT(m.plan.cost)} over ${yrs}y, pre-tax.`,`${yrs}年、税引前。`,`${yrs}년, 세전.`);
+ $("s1").textContent=fmtT(m.plan.value);$("s1l").textContent=T("colMix");
+ $("s2").textContent=fmtT(m.dca.value);$("s2l").textContent=T("colDca");
+ $("s3").textContent=fmtT(m.lump.value);$("s3l").textContent=T("colLump");
+ $("s4").textContent=pct(m.plan.xirr);$("s4l").textContent=T("mXirr");
+ $("cmpH0").textContent="";$("cmpH1").textContent=T("colMix");$("cmpH2").textContent=T("colDca");$("cmpH3").textContent=T("colLump");
+ const rows=[[T("mFinal"),x=>fmtT(x.value)],[T("mCost"),x=>fmtT(x.cost)],[T("mRet"),x=>pct(x.totalReturn)],[T("mXirr"),x=>pct(x.xirr)]];
+ $("cmpTbl").querySelector("tbody").innerHTML=rows.map(([k,f])=>`<tr><td>${k}</td><td class="v">${f(m.plan)}</td><td>${f(m.dca)}</td><td>${f(m.lump)}</td></tr>`).join("");
+ drawChart(D.dates,m.plan.val,m.plan.cst);
+ $("cmpNote").innerHTML=L4(`<b>混合</b>＝每月定期定額＋你設的單筆加碼；<b>純定期定額</b>＝只每月扣同額；<b>一次單筆</b>＝把總投入在第一個月一次投入。<b>年化(XIRR)</b>考慮每筆投入的時間；<b>總報酬</b>＝(最終−投入)/投入。以「權重加權的組合淨值」計算，配息已還原再投入。`,
+  `Mixed = monthly DCA + your top-ups; XIRR is money-weighted; total return = (final−invested)/invested. Computed on the weighted portfolio total-return index.`,
+  `混合＝毎月積立＋一括。XIRRは時間加重。`,`혼합＝매월 적립＋일시. XIRR 시간가중.`);
+}
+function paintNet(nr,opts0){
+ $("netConc").textContent=fmtT(nr.valueNet);
+ $("netConcs").textContent=L4(`稅費匯全部扣完，你真正拿到（依各標的的課稅身分分別計算後加總）。`,`What you keep after tax/fee/FX (summed per ETF by its tax residency).`,`税・手数料・為替後の合計。`,`세금·수수료·환율 후 합계.`);
+ const rows=[[L4("含息總資產（稅前）","Pre-tax total","税引前","세전"),fmtT(nr.valueGross),""],
+  [L4("─ 股利稅／二代健保等","− dividend tax / NHI","− 配当税等","− 배당세 등"),"−"+fmtT(nr.taxDrag),"neg"],
+  [L4("稅費匯後真正拿到","You keep","手元に残る","실수령"),fmtT(nr.valueNet),"v"]];
+ $("netRows").innerHTML=rows.map(([k,v,c])=>`<tr><td>${k}</td><td class="${c}" style="text-align:right;font-weight:${c==='v'?800:600}">${v}</td></tr>`).join("");
+ $("npCap").textContent=fmtT(nr.capitalGain);$("npCapL").textContent=L4("資本利得(免稅*)","Cap. gain*","譲渡益*","양도차익*");
+ $("npDiv").textContent=fmtT(nr.divGross);$("npDivL").textContent=L4("配息(毛額)","Dividends","配当","배당");
+ $("npDrag").textContent="−"+fmtT(nr.taxDrag);$("npDragL").textContent=L4("稅費侵蝕","Tax drag","税負担","세부담");
+ const eff=nr.divGross>0?nr.taxTotal/nr.divGross:0;$("npEff").textContent=pct(eff);$("npEffL").textContent=L4("配息有效稅率","Eff. div tax","実効税率","실효세율");
+ $("netNote").innerHTML=L4(`怎麼算的：每檔用<b>未還原價</b>買進、把每次<b>配息</b>拿出來課稅——境內只對「54C 股利/盈餘」課（你設 ${$("c54").value}%），合併計稅(邊際 ${(+$("marginal").value*100)}%、股利 8.5% 抵減上限 8 萬)與分離 28% 取低，二代健保 ${opts0.nhiEnabled?"計入 2.11%":"不計"}；境外預扣 30%/15%（依標的）。<b>資本利得</b>＝投入本金買到的股數×期末價−成本（境內免綜所稅；賣出仍有證交稅 0.1%＋手續費，未計入此格）。歷史還原價已含內扣費用，未重複扣。跨年彙總為簡化，實際以你的稅務狀況為準。`,
+  `Method: buy at raw price, tax each dividend (domestic 54C only, combined vs 28% separate → lower; NHI 2.11% optional; foreign withholding 30%/15%). Capital gain tax-free domestically. Simplified; verify with your tax situation.`,
+  `未調整株価で購入し配当ごとに課税。簡略化。`,`미조정 주가로 매수, 배당마다 과세. 단순화.`);
+}
+function paintCash(D,C,days,opts0,fx){
+ let annGross=0,annNet=0,valNet=0;
+ D.assets.forEach((a,ai)=>{let ttm=0;for(let i=Math.max(0,a.divs.length-12);i<a.divs.length;i++)ttm+=a.divs[i];
+  const mk=a.market,isF=mk!=="domestic",o={...opts0,market:mk,fxEnd:isF?fx:1,fxAvg:isF?fx:1};
+  const nr=ETFEngine.netReturnRun(a.raw,days,a.divs,C.plan[ai],o);
+  const gross=ttm*nr.sharesGross*(isF?fx:1);const tax=ETFEngine.dividendTax(ttm*nr.sharesGross,o)*(isF?fx:1);
+  annGross+=gross;annNet+=gross-tax;valNet+=nr.valueNet;});
+ const y=valNet>0?annNet/valNet:0;
+ $("cashConc").textContent=L4(`預估年配息(稅後)：${fmtT(annNet)}`,`Est. annual dividend (net): ${fmtT(annNet)}`,`年間配当(税後)：${fmtT(annNet)}`,`연 배당(세후): ${fmtT(annNet)}`);
+ $("cashConcs").textContent=L4(`稅後現金殖利率約 ${pct(y)}。`,`Net yield ≈ ${pct(y)}.`,`税後利回り ${pct(y)}。`,`세후 수익률 ${pct(y)}.`);
+ $("cashNote").innerHTML=L4(`怎麼算的：每檔取<b>近 12 個月</b>每股配息合計 × 期末持有股數 ＝ 年配息毛額，扣股利稅後加總。<b>累積型 ETF（如 VWRA）不配息</b>，此處為 0，報酬已內含在價格。實際配息逐年變動。`,
+  `Method: per ETF, trailing-12m dividend/share × final shares, minus tax, summed. Accumulating ETFs pay 0.`,`直近12ヶ月配当×株数−税。累積型は0。`,`최근 12개월 배당×주식수−세금.`);
+}
+function paintRisk(met){
+ $("rCagr").textContent=pct(met.priceCAGR);$("rCagrL").textContent=T("rCagrL");
+ $("rMdd").textContent=pct(met.mdd);$("rMddL").textContent=T("rMddL");
+ $("rVol").textContent=pct(met.vol);$("rVolL").textContent=T("rVolL");
+ $("rShp").textContent=met.sharpe.toFixed(2);$("rShpL").textContent=T("rShpL");
+ $("riskNote").innerHTML=L4(`怎麼算的：<b>組合年化(CAGR)</b>＝(期末淨值/期初淨值)^(1/年)−1；<b>最大回撤</b>＝期間內從高點到低點的最大跌幅（撐不撐得住的關鍵）；<b>年化波動</b>＝月報酬標準差×√12；<b>夏普</b>＝(CAGR−無風險1.5%)/波動，越高代表每單位風險報酬越好。`,
+  `CAGR=(end/start)^(1/yrs)−1; Max drawdown=largest peak-to-trough drop; Vol=monthly σ×√12; Sharpe=(CAGR−1.5%)/Vol.`,`CAGR・最大下落・変動率・シャープの定義。`,`CAGR·최대낙폭·변동성·샤프 정의.`);
+}
+function paintMc(idx,mp,monthly){
+ const rets=[];for(let i=1;i<idx.length;i++)rets.push(idx[i]/idx[i-1]-1);
+ let mm=rets.reduce((a,b)=>a+b,0)/rets.length;const mv=Math.sqrt(rets.reduce((a,b)=>a+(b-mm)*(b-mm),0)/(rets.length-1));
+ const hair=(+$("haircut").value||0)/100;mm=mm*(1-hair);
+ const months=Math.max(1,((+$("retAge").value||65)-(+$("nowAge").value||35))*12);const goal=+$("goal").value||0;
+ const mc=ETFEngine.monteCarlo({monthlyMean:mm,monthlyVol:mv,months,contrib:monthly,lump0:mp.value,N:10000,seed:20260804,target:goal});
+ const startYear=new Date().getFullYear(),endYear=startYear+Math.round(months/12);
+ const bands=ETFEngine.monteCarloBands({monthlyMean:mm,monthlyVol:mv,months,contrib:monthly,lump0:mp.value,N:2000,seed:20260804});
+ drawProjection(bands,startYear);
+ $("projLeg").innerHTML=L4(`未來預估圖：從今年 ${startYear} 用<b>過去報酬</b>推估到 ${endYear} 年（${Math.round(months/12)} 年，＝目前年齡到退休年齡）。中線＝<b style="color:var(--tint)">中位數</b>，色帶＝<b>悲觀(5%)～樂觀(95%)</b>。X 每年、Y 百萬。`,`Projection ${startYear}→${endYear} (${Math.round(months/12)}y) from past returns. Line=median, band=5%–95%. X in years, Y in millions.`,`${startYear}→${endYear}の予測。中央値と5〜95%帯。`,`${startYear}→${endYear} 예측. 중앙값과 5~95% 구간.`);
+ $("mcConc").textContent=L4(`到退休（${Math.round(months/12)} 年後）中位數：${fmtT(mc.p50)}`,`Median at retirement (${Math.round(months/12)}y): ${fmtT(mc.p50)}`,`退職時中央値：${fmtT(mc.p50)}`,`은퇴 시 중앙값: ${fmtT(mc.p50)}`);
+ $("mcConcs").textContent=L4(`從現有 ${fmtT(mp.value)} 起，每月續扣 ${fmtT(monthly)}，跑 10,000 條路徑${hair>0?`（報酬已打折 ${(hair*100)}%）`:""}。`,`10,000 paths from ${fmtT(mp.value)}, +${fmtT(monthly)}/mo${hair>0?`, return haircut ${(hair*100)}%`:""}.`,`1万経路。`,`1만 경로.`);
+ $("mcP5").textContent=fmtT(mc.p5);$("mcP5L").textContent=T("mcP5L");
+ $("mcP50").textContent=fmtT(mc.p50);$("mcP50L").textContent=T("mcP50L");
+ $("mcP95").textContent=fmtT(mc.p95);$("mcP95L").textContent=T("mcP95L");
+ $("mcSucc").textContent=pct(mc.successRate);$("mcSuccL").textContent=T("mcSuccL");
+ $("mcNote").innerHTML=L4(`怎麼算的：用組合的<b>歷史月報酬</b>平均 <b>${((mm/(1-hair||1))*100).toFixed(2)}%</b>（打折後 <b>${(mm*100).toFixed(2)}%</b>）與標準差 <b>${(mv*100).toFixed(2)}%</b>，隨機模擬未來每月報酬，跑 <b>10,000 條</b>可能人生。<b>悲觀(前5%)</b>是最差 5% 情境——就是「撐不撐得住」；<b>達標成功率</b>＝多少比例路徑最後 ≥ 目標 ${fmtT(goal)}。這是機率分布不是預測；未來全部以過去統計推估；序列報酬風險（前期大跌）已隱含在模擬中。`,
+  `Uses portfolio's historical monthly mean <b>${(mm*100).toFixed(2)}%</b> (after haircut) and σ <b>${(mv*100).toFixed(2)}%</b> to simulate 10,000 futures. p5 = worst 5% ("survival"); success = share of paths ≥ goal ${fmtT(goal)}. Projected from the past, not a forecast.`,
+  `月次平均${(mm*100).toFixed(2)}%・σ${(mv*100).toFixed(2)}%で1万回。予測ではなく分布。`,
+  `월평균${(mm*100).toFixed(2)}%·σ${(mv*100).toFixed(2)}%로 1만 회.`);
+}
+function paintPath(netForMarkets,fx){
+ $("pH0").textContent="";$("pH1").textContent=L4("稅後資產","After-tax","税後","세후");$("pH2").textContent=L4("配息稅","Div tax","配当税","배당세");$("pH3").textContent=L4("美國遺產稅","US estate","米遺産税","미상속세");
+ const list=[["domestic",T("mDom"),L4("54C 兩制","54C rules","54C","54C")],["foreign_us",T("mUS"),"30%"],["foreign_ie",T("mIE"),"15%"]];
+ $("pathTbl").querySelector("tbody").innerHTML=list.map(([mk,label,dt])=>{
+  const nr=netForMarkets(mk);let estate;
+  if(mk==="foreign_us"){const usd=nr.valueNet/fx;estate="−"+fmtT(Math.max(0,usd-60000)*0.40*fx);}else estate=T("none");
+  return `<tr><td>${label}</td><td class="v">${fmtT(nr.valueNet)}</td><td>${dt}</td><td class="neg">${estate}</td></tr>`;}).join("");
+ $("pathNote").innerHTML=L4(`同一筆全球股市曝險，走三條路的稅務命運不同：<b>境內台掛</b>（如 00646）無美國遺產稅、走境內股利制；<b>複委託美股</b>（SPY/VT）配息預扣 30%，且<b>美國遺產稅</b>非居民免稅額僅 6 萬美元、最高 40%（複委託也逃不掉）；<b>愛爾蘭註冊</b>（VWRA）預扣 15%、不屬美國境內財產<b>免美國遺產稅</b>。遺產稅以(資產−6萬美元)×40% 簡化估算。此為把你的組合套三種稅制的示意。`,
+  `Same exposure, three tax fates: domestic-listed (no US estate tax); US broker (30% + US estate tax, $60k exemption, up to 40%); Ireland-domiciled (15%, no US estate tax). Estate simplified as (assets−$60k)×40%.`,
+  `同じ配当を3税制で試算。米国上場は遺産税あり、アイルランドはなし。`,`3세제 예시. 미국 상장은 상속세 있음.`);
+}
+function yAxisUnit(){return L4("百萬","M","百万","백만");}
+function drawChart(dates,val,cst){const c=$("chart"),ctx=c.getContext("2d");const W=c.width,H=c.height,padL=56,padB=22,padT=12;ctx.clearRect(0,0,W,H);
+ const n=val.length;const max=Math.max(...val,...cst,1)*1.08;
+ const X=i=>padL+(W-padL-12)*i/(n-1);const Y=v=>H-padB-(H-padB-padT)*v/max;
+ const cs=getComputedStyle(document.documentElement);const tint=cs.getPropertyValue("--tint").trim(),sub=cs.getPropertyValue("--label2").trim(),grid=cs.getPropertyValue("--sep").trim();
+ ctx.font="11px -apple-system,sans-serif";const unit=yAxisUnit();
+ for(let g=0;g<=4;g++){const v=max*g/4,y=Y(v);ctx.strokeStyle=grid;ctx.lineWidth=.5;ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-10,y);ctx.stroke();ctx.fillStyle=sub;ctx.textAlign="right";ctx.fillText((v/1e6).toFixed(1)+unit,padL-4,y+3);}
+ ctx.textAlign="center";const ticks=Math.min(6,n);for(let t=0;t<ticks;t++){const i=Math.round((n-1)*t/(ticks-1));ctx.fillStyle=sub;ctx.fillText(String(new Date(dates[i]*1000).getFullYear()),X(i),H-6);}
+ ctx.strokeStyle=sub;ctx.lineWidth=1.4;ctx.beginPath();cst.forEach((v,i)=>{i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v));});ctx.stroke();
+ ctx.strokeStyle=tint;ctx.lineWidth=2.6;ctx.beginPath();val.forEach((v,i)=>{i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v));});ctx.stroke();}
+function drawProjection(bands,startYear){const c=$("projChart");if(!c)return;const ctx=c.getContext("2d");const W=c.width,H=c.height,padL=56,padB=22,padT=12;ctx.clearRect(0,0,W,H);
+ const n=bands.p95.length;const max=Math.max(...bands.p95,1)*1.08;
+ const X=i=>padL+(W-padL-12)*i/(n-1);const Y=v=>H-padB-(H-padB-padT)*v/max;
+ const cs=getComputedStyle(document.documentElement);const tint=cs.getPropertyValue("--tint").trim(),sub=cs.getPropertyValue("--label2").trim(),grid=cs.getPropertyValue("--sep").trim();
+ ctx.font="11px -apple-system,sans-serif";const unit=yAxisUnit();
+ for(let g=0;g<=4;g++){const v=max*g/4,y=Y(v);ctx.strokeStyle=grid;ctx.lineWidth=.5;ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-10,y);ctx.stroke();ctx.fillStyle=sub;ctx.textAlign="right";ctx.fillText((v/1e6).toFixed(1)+unit,padL-4,y+3);}
+ ctx.textAlign="center";const ticks=Math.min(8,n);for(let t=0;t<ticks;t++){const i=Math.round((n-1)*t/(ticks-1));ctx.fillStyle=sub;ctx.fillText(String(startYear+i),X(i),H-6);}
+ ctx.globalAlpha=.24;ctx.fillStyle=tint;ctx.beginPath();bands.p95.forEach((v,i)=>{i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v));});for(let i=n-1;i>=0;i--)ctx.lineTo(X(i),Y(bands.p5[i]));ctx.closePath();ctx.fill();ctx.globalAlpha=1;
+ ctx.strokeStyle=tint;ctx.lineWidth=2.6;ctx.beginPath();bands.p50.forEach((v,i)=>{i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v));});ctx.stroke();}
+
+/* ================= 事件 ================= */
+/* 即時重算：任何計算欄位一改就用快取資料重算(不重新連網)。標的/日期改動才需要重新「開始試算」。 */
+let tCalc=0;
+function recompute(){try{if(DATA)compute();}catch(e){}}
+function recomputeD(){clearTimeout(tCalc);tCalc=setTimeout(recompute,200);}
+function liveUpdate(){persistD();recomputeD();}
+["amt","fee","c54","fx","nowAge","retAge","goal","haircut"].forEach(id=>$(id).addEventListener("input",liveUpdate));
+["startY","startM","endY","endM"].forEach(id=>$(id).addEventListener("input",persistD)); // 改期間需重新開始試算
+["marginal","nhi","reinv"].forEach(id=>$(id).addEventListener("change",liveUpdate));
+$("lang").addEventListener("change",e=>{LG=+e.target.value;applyLang();persistD();});
+$("theme").addEventListener("click",()=>{document.body.classList.toggle("dark");document.documentElement.classList.toggle("dark");$("theme").textContent=document.body.classList.contains("dark")?T("light"):T("dark");if(DATA)compute();});
+$("save").addEventListener("click",saveCurrentPlan);
+$("plansBody").addEventListener("click",e=>{const l=e.target.closest("[data-load]");
+ if(l){applyS(PLANS[+l.dataset.load].S);persist();$("run").click();return;}
+ const d=e.target.closest("[data-delp]");if(d){PLANS.splice(+d.dataset.delp,1);savePlans();renderPlans();}});
+$("reset").addEventListener("click",()=>{if(!confirm(L4("恢復所有欄位為預設值？","Reset all fields?","初期値に戻す？","기본값으로?")))return;applyS(DEF());persist();});
+$("btnRestoreDef").addEventListener("click",()=>{if(!confirm(L4("恢復預設值？","Restore defaults?","初期値に？","기본값?")))return;applyS(DEF());persist();});
+$("btnClear").addEventListener("click",()=>{if(!confirm(L4("確定清除本機儲存資料？無法復原。","Clear saved data?","消去しますか？","삭제?")))return;try{if(window.storage)window.storage.delete(STORE_KEY).catch(()=>{});}catch(e){}applyS(DEF());lastSaved=0;updateSavedTime();});
+$("btnExport").addEventListener("click",()=>{const d=new Date(),p=n=>String(n).padStart(2,"0");
+ const data=JSON.stringify({S:readS(),LG,plans:PLANS,seen:SEEN,ts:Date.now(),app:"etfcalc",ver:2},null,2);
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type:"application/json"}));a.download=`etf-all-${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}.json`;a.click();URL.revokeObjectURL(a.href);
+ alert(L4("已把「所有方案＋所有設定」存成檔案。","Saved all plans + settings to a file.","全プラン＋設定を保存。","모든 플랜+설정 저장."));});
+$("btnImport").addEventListener("click",()=>$("fileImport").click());
+$("fileImport").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+ rd.onload=()=>{try{const d=JSON.parse(rd.result);if(d.app&&d.app!=="etfcalc"){alert("Not this tool's file");return;}
+  if(typeof d.LG==="number")LG=d.LG;if(d.S)applyS(d.S);
+  if(Array.isArray(d.plans)){PLANS=d.plans;savePlans();}if(Array.isArray(d.seen)){SEEN=d.seen;}
+  applyLang();persist();renderPlans();rebuildDatalist();}catch(err){alert("Load failed");}};rd.readAsText(f);e.target.value="";});
+$("run").addEventListener("click",async()=>{const btn=$("run");
+ if(!PORT.some(p=>p.sym)){alert(L4("請至少輸入一個標的代號","Enter at least one ETF","銘柄を入力","종목 입력"));return;}
+ normalizePort();renderPort();const S=readS();
+ btn.disabled=true;const old=btn.textContent;btn.textContent=L4("讀取還原權息數據中…","Loading…","読込中…","로딩…");
+ const sig=PORT.map(p=>normSym(p.sym)).filter(Boolean).join(",")+"|"+S.startY+"-"+S.startM;
+ try{
+   DATA=await fetchPortfolio(S);
+   const live=await fetchFx();if(live)$("fx").value=Math.round(live*1000)/1000;
+   STORAGE.set(STORE_KEY+"_data",JSON.stringify({sig,data:DATA,ts:Date.now()})).catch(()=>{});
+   addSeen(PORT.map(p=>p.sym));
+   $("offlineWarn").style.display="none";
+   await compute();persist();
+ }catch(e){
+   let used=false;
+   try{const c=await STORAGE.get(STORE_KEY+"_data");if(c){const o=JSON.parse(c);if(o&&o.data&&o.sig===sig){DATA=o.data;await compute();
+     $("offlineWarn").style.display="";$("offlineWarn").textContent=L4("目前無法連線更新，顯示的是上次成功抓取的資料（"+new Date(o.ts).toLocaleString()+"）。有網路時會自動更新到最新。","Offline: showing last cached data ("+new Date(o.ts).toLocaleString()+"). Updates automatically when online.","オフライン：前回のデータを表示（"+new Date(o.ts).toLocaleString()+"）。","오프라인: 이전 데이터 표시.");used=true;}}}catch(_){}
+   if(!used)alert(L4("讀取失敗：","Failed: ","失敗：","실패: ")+(e.message||e));
+ }
+ finally{btn.disabled=false;btn.textContent=old;}});
+
+/* ================= 啟動 ================= */
+(function(){const l=(navigator.language||"zh").toLowerCase();LG=l.startsWith("ja")?2:l.startsWith("ko")?3:(l.startsWith("zh")?0:1);})();
+if(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches){document.body.classList.add("dark");document.documentElement.classList.add("dark");}
+applyS(DEF());
+restore().then(()=>{applyLang();});
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
+</script>
+</body>
+</html>

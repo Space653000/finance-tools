@@ -1,0 +1,18 @@
+{
+  "name": "ETF 定期定額真實試算",
+  "short_name": "ETF試算",
+  "description": "ETF 投資組合真實試算：定期定額×單筆×加碼、估值位階、最佳配置與蒙地卡羅，含內扣費用、股利稅、匯率與美國遺產稅。全部本地計算，不上傳任何財務資料。",
+  "lang": "zh-Hant",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F2F2F7",
+  "theme_color": "#0A7C74",
+  "icons": [
+    { "src": "../../assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "../../assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "../../assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
