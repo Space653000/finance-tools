@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>房貸試算</title>
+<meta name="description" content="房貸試算：本息／本金／寬限期／多段利率、實質 APR、升息壓力測試、提前還款、轉貸回本、買vs租、房地合一稅、指數型利率蒙地卡羅。四語系、深淺色、本地運算不外傳。">
+<meta name="theme-color" content="#0A7C74">
+<link rel="manifest" href="manifest.json">
+<style>
+:root{
+  --tint:#0A7C74; --amber:#B87410; --danger:#B93A25; --ok:#1F7A46;
+  --bg:#F2F2F7; --card:#FFF;
+  --label:#000; --label2:rgba(60,60,67,.78); --label3:rgba(60,60,67,.34);
+  --sep:rgba(60,60,67,.2); --fill:rgba(120,120,128,.11); --fill2:rgba(120,120,128,.18);
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 6px 18px rgba(0,0,0,.05);
+  --barbg:rgba(247,247,250,.96); --hh:112px;
+}
+body.dark{
+  --tint:#3FA7A0; --amber:#E8A33D; --danger:#E2705A; --ok:#30D158;
+  --bg:#000; --card:#1C1C1E;
+  --label:#FFF; --label2:rgba(235,235,245,.62); --label3:rgba(235,235,245,.32);
+  --sep:rgba(84,84,88,.6); --fill:rgba(120,120,128,.22); --fill2:rgba(120,120,128,.32);
+  --shadow:0 1px 3px rgba(0,0,0,.4); --barbg:rgba(20,20,22,.96);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;min-width:0}
+html,body{max-width:100%;overflow-x:hidden}
+html{background:#F2F2F7;color-scheme:light}
+html.dark{background:#000;color-scheme:dark}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",
+    "PingFang TC","Heiti TC","Microsoft JhengHei","Hiragino Sans","Yu Gothic","Meiryo",
+    "Apple SD Gothic Neo","Malgun Gothic","Noto Sans CJK TC",sans-serif;
+  background:var(--bg);color:var(--label);font-size:15px;line-height:1.5;
+  font-feature-settings:"tnum" 1;padding-bottom:56px;overflow-wrap:break-word;
+}
+button,input,select{font:inherit;color:inherit;font-feature-settings:"tnum" 1;max-width:100%}
+select option{background:var(--card);color:var(--label)}
+svg{display:block;max-width:100%}
+header{position:sticky;top:0;z-index:50;background:var(--barbg);
+  backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep)}
+.hrow{max-width:1360px;margin:0 auto;padding:9px 14px 8px;display:flex;align-items:center;gap:6px}
+.htxt{flex:1;min-width:0}
+.htxt b{display:block;font-size:17px;font-weight:700;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.htxt span{display:block;font-size:11px;color:var(--label2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.scrolled .htxt span{display:none}
+@media(max-width:520px){.htxt span{display:none}}
+.tbtn{background:var(--fill);border:none;border-radius:980px;padding:6px 10px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.tbtn:hover{background:var(--fill2)}
+.tbtn.pri{background:var(--tint);color:#fff}
+.tbtn:focus-visible{outline:2px solid var(--tint);outline-offset:2px}
+select.lang{background:var(--fill);border:none;border-radius:980px;padding:6px 8px;font-size:12.5px;font-weight:600;cursor:pointer;flex:none}
+.keyin{max-width:1360px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;padding:0 14px 9px;gap:12px}
+.key{min-width:0}
+.key + .key{border-left:.5px solid var(--sep);padding-left:12px}
+.key .l{font-size:11px;color:var(--label2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.key .n{font-size:30px;font-weight:700;letter-spacing:-1px;line-height:1.12;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.key .s{font-size:10.5px;color:var(--label2);margin-top:2px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media(max-width:520px){.key .n{font-size:23px}}
+main{max-width:1360px;margin:0 auto;padding:14px;display:grid;grid-template-columns:minmax(0,392px) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:980px){main{grid-template-columns:minmax(0,1fr);padding:12px}}
+.col{display:grid;gap:13px;min-width:0}
+@media(min-width:981px){.left{position:sticky;top:calc(var(--hh) + 12px);max-height:calc(100vh - var(--hh) - 26px);overflow-y:auto;overflow-x:hidden;padding-right:4px}}
+.left::-webkit-scrollbar{width:6px}
+.left::-webkit-scrollbar-thumb{background:var(--sep);border-radius:6px}
+.sec{font-size:12.5px;font-weight:600;color:var(--label2);padding:2px 4px 0;display:flex;align-items:center;gap:10px;min-width:0}
+.sec button{background:none;border:none;color:var(--tint);font-size:13px;font-weight:600;cursor:pointer;padding:2px 0;flex:none}
+.sec .sp{margin-left:auto}
+.grp{margin:12px 2px 2px;padding:10px 12px;border-radius:12px;background:linear-gradient(180deg,var(--fill),transparent);border:.5px solid var(--sep)}
+.grp:first-child{margin-top:0}
+.grp b{display:block;font-size:14px;font-weight:800;letter-spacing:-.3px;color:var(--label)}
+.grp span{display:block;font-size:11.5px;color:var(--label2);margin-top:3px;line-height:1.5}
+.grp.opt{background:linear-gradient(180deg,rgba(10,124,116,.10),transparent)}
+body.dark .grp.opt{background:linear-gradient(180deg,rgba(63,167,160,.14),transparent)}
+.grp.opt b::before{content:"⌥ ";color:var(--tint)}
+.optcard{position:relative}
+.optcard.off{opacity:.72}
+.optbadge{display:inline-block;font-size:10.5px;font-weight:700;color:var(--tint);background:var(--fill);border-radius:980px;padding:2px 8px;margin-left:6px;vertical-align:1px}
+.card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;min-width:0}
+.f{padding:10px 14px}
+.f + .f{border-top:.5px solid var(--sep)}
+.ftop{display:flex;align-items:center;gap:7px;margin-bottom:6px;min-width:0}
+.ftop label{font-size:13.5px;flex:1;min-width:0;line-height:1.3}
+.info{width:19px;height:19px;border-radius:50%;background:var(--fill);border:none;color:var(--label2);font-size:11px;font-weight:700;cursor:pointer;flex:none;line-height:19px;text-align:center}
+.num{width:104px;text-align:right;background:var(--fill);border:none;border-radius:8px;padding:5px 8px;font-size:15px;font-weight:600;-moz-appearance:textfield;flex:none}
+.num::-webkit-outer-spin-button,.num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.num:focus{outline:2px solid var(--tint)}
+.u{font-size:12.5px;color:var(--label2);width:26px;text-align:left;flex:none}
+.chip{background:var(--fill);color:var(--label2);font-size:11px;font-weight:600;padding:3px 7px;border-radius:980px;white-space:nowrap;flex:none}
+input[type=range]{width:100%;-webkit-appearance:none;background:transparent;height:22px;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:var(--fill2)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35);margin-top:-8px}
+body.dark input[type=range]::-webkit-slider-thumb{background:#F2F2F7}
+input[type=range]::-moz-range-track{height:4px;border-radius:4px;background:var(--fill2)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border:none;border-radius:50%;background:#fff}
+.expl{font-size:12.5px;line-height:1.62;color:var(--label2);background:var(--fill);border-radius:9px;padding:9px 10px;margin-top:8px;display:none}
+.expl.on{display:block}
+.seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;margin:0 14px;min-width:0;flex-wrap:wrap}
+.seg button{flex:1;min-width:0;border:none;background:none;font-size:12.5px;font-weight:500;padding:7px 2px;border-radius:7px;cursor:pointer;color:var(--label);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg button.on{background:var(--card);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.16)}
+body.dark .seg button.on{background:#48484A}
+select.sel{background:var(--fill);border:none;border-radius:8px;padding:5px 7px;font-size:13px;font-weight:600;cursor:pointer;min-width:0;text-overflow:ellipsis}
+.row{display:flex;align-items:center;gap:8px;padding:9px 14px;min-height:44px;min-width:0}
+.row + .row{border-top:.5px solid var(--sep)}
+.row .k{font-size:13.5px;flex:1;min-width:0}
+.sw{width:46px;height:28px;border-radius:980px;background:var(--fill2);border:none;position:relative;cursor:pointer;flex:none;transition:background .18s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .18s}
+.sw.on{background:var(--ok)}
+.sw.on::after{transform:translateX(18px)}
+.layer{border-top:.5px solid var(--sep)}
+.layer:first-child{border-top:none}
+.lhead{display:flex;align-items:center;gap:7px;padding:10px 14px 4px;min-width:0}
+.lhead .lt{flex:1;min-width:0;font-size:13px;font-weight:600}
+.del{background:none;border:none;color:var(--danger);font-size:19px;cursor:pointer;padding:0 2px;line-height:1;flex:none}
+.empty{padding:18px 14px;text-align:center;font-size:13px;color:var(--label2);line-height:1.65}
+.warn{margin:0 14px 11px;padding:9px 10px;border-radius:9px;font-size:11.8px;line-height:1.6;background:rgba(184,116,16,.13);color:var(--amber);font-weight:500}
+body.dark .warn{background:rgba(232,163,61,.14)}
+.hero{padding:16px 16px 4px}
+.conc{font-size:21px;font-weight:700;letter-spacing:-.5px;line-height:1.36}
+.concs{font-size:13px;color:var(--label2);margin-top:7px;line-height:1.6}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:.5px solid var(--sep);margin-top:14px}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stats > div{padding:12px 6px;text-align:center;border-left:.5px solid var(--sep);min-width:0}
+.stats > div:first-child{border-left:none}
+@media(max-width:640px){.stats > div:nth-child(3){border-left:none}.stats > div:nth-child(n+3){border-top:.5px solid var(--sep)}}
+.stats .n{font-size:20px;font-weight:700;letter-spacing:-.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats .l{font-size:10.5px;color:var(--label2);margin-top:3px}
+.reads{display:grid;grid-template-columns:repeat(4,1fr)}
+@media(max-width:640px){.reads{grid-template-columns:repeat(2,1fr)}}
+.reads > div{padding:13px 4px;text-align:center;border-left:.5px solid var(--sep);min-width:0}
+.reads > div:first-child{border-left:none}
+@media(max-width:640px){.reads > div:nth-child(3){border-left:none}.reads > div:nth-child(n+3){border-top:.5px solid var(--sep)}}
+.reads .n{font-size:22px;font-weight:700;letter-spacing:-.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reads .l{font-size:10.5px;color:var(--label2);margin-top:3px}
+.tw{overflow:auto;-webkit-overflow-scrolling:touch}
+.tw::-webkit-scrollbar{width:6px;height:6px}
+.tw::-webkit-scrollbar-thumb{background:var(--sep);border-radius:6px}
+.tw.full{max-height:340px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px;font-size:13px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:11.5px;font-weight:600;color:var(--label2);border-bottom:.5px solid var(--sep);position:sticky;top:0;background:var(--card);z-index:1}
+tbody tr + tr{border-top:.5px solid var(--sep)}
+tr.gap td{color:var(--label2);font-size:12px;text-align:center;padding:6px}
+td.v{font-weight:600}
+.note{padding:10px 14px;font-size:12.3px;line-height:1.62;color:var(--label2);border-top:.5px solid var(--sep)}
+.disc{font-size:11.8px;line-height:1.68;color:var(--label2);padding:6px 6px 0}
+details > summary{list-style:none;cursor:pointer;padding:12px 14px;font-size:13.5px;font-weight:600;display:flex;align-items:center}
+details > summary::-webkit-details-marker{display:none}
+details > summary::after{content:"›";margin-left:auto;color:var(--label3);font-size:18px;transform:rotate(90deg)}
+details[open] > summary::after{transform:rotate(-90deg)}
+.adv{padding:12px 14px;display:flex;gap:10px;align-items:flex-start;min-width:0}
+.adv + .adv{border-top:.5px solid var(--sep)}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;margin-top:6px}
+.adv .ac{flex:1;min-width:0}
+.adv .at{font-size:13.5px;font-weight:600;line-height:1.42}
+.adv .ad{font-size:12.3px;color:var(--label2);line-height:1.62;margin-top:4px}
+.jur{margin:0 0 4px;padding:10px 12px;border-radius:10px;background:var(--fill);font-size:12px;line-height:1.6;color:var(--label2)}
+.tag{display:inline-block;padding:2px 8px;border-radius:980px;font-size:11.5px;font-weight:700;color:#fff;flex:none}
+.mini{background:var(--fill);border:none;border-radius:7px;padding:5px 9px;font-size:12px;font-weight:600;cursor:pointer;flex:none}
+.mini:hover{background:var(--fill2)}
+.dm{padding:10px 14px;display:flex;align-items:center;gap:8px}
+.dm + .dm{border-top:.5px solid var(--sep)}
+.dm .dk{font-size:13px;flex:1}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <div class="htxt"><b id="hTitle">房貸試算</b><span id="hSub"></span></div>
+    <select class="lang" id="lang" aria-label="Language">
+      <option value="0">繁體中文</option><option value="1">English</option>
+      <option value="2">日本語</option><option value="3">한국어</option>
+    </select>
+    <button class="tbtn pri" id="save">＋存方案</button>
+    <button class="tbtn" id="savefile">存檔</button>
+    <button class="tbtn" id="mode">深色</button>
+    <button class="tbtn" id="reset">重設</button>
+  </div>
+  <div class="keyin">
+    <div class="key"><div class="l" id="k1l">—</div><div class="n" id="k1n" style="color:var(--tint)">—</div><div class="s" id="k1s">—</div></div>
+    <div class="key"><div class="l" id="k2l">—</div><div class="n" id="k2n">—</div><div class="s" id="k2s">—</div></div>
+  </div>
+</header>
+
+<main>
+  <div class="col left">
+    <div class="jur" id="jur"></div>
+
+    <div class="grp" id="grpMain"></div>
+
+    <div class="sec" id="s_basic"></div>
+    <div class="card" id="basic"></div>
+
+    <div class="sec" id="s_rate"><button class="sp" id="addSeg"></button></div>
+    <div class="card" id="rateCard"></div>
+
+    <div class="sec" id="s_method"></div>
+    <div class="card" id="methodCard"></div>
+
+    <div class="sec" id="s_extra"></div>
+    <div class="card" id="extraCard"></div>
+
+    <div class="sec" id="s_you"></div>
+    <div class="card" id="youCard"></div>
+
+    <div class="grp opt" id="grpOpt"></div>
+
+    <div class="sec" id="s_refi"></div>
+    <div class="card optcard" id="refiCard"></div>
+    <div class="sec" id="s_rvb"></div>
+    <div class="card optcard" id="rvbCard"></div>
+    <div class="sec" id="s_sell"></div>
+    <div class="card optcard" id="sellCard"></div>
+    <div class="sec" id="s_mc"></div>
+    <div class="card optcard" id="mcInputs"></div>
+  </div>
+
+  <div class="col">
+    <div class="card">
+      <div class="hero"><div class="conc" id="conc">—</div><div class="concs" id="concs">—</div></div>
+      <div class="stats" id="stats"></div>
+    </div>
+
+    <div class="sec" id="s_grace" style="display:none"></div>
+    <div class="card" id="graceCard" style="display:none"></div>
+
+    <div class="sec" id="s_plans"><button class="sp" id="clearPlans"></button></div>
+    <div class="card" id="plansCard"></div>
+
+    <div class="sec" id="s_advisor"><span class="sp" style="font-weight:400;font-size:11px" id="advCount"></span></div>
+    <div class="card" id="advisor"></div>
+
+    <div class="sec" id="s_cond"><span class="sp" style="font-weight:400;font-size:11px" id="condCount"></span></div>
+    <div class="card" id="condCard"></div>
+
+    <div class="sec" id="s_chart"></div>
+    <div class="card">
+      <div style="padding:13px 4px 2px"><svg id="chAmort" width="100%" height="220" viewBox="0 0 700 220" preserveAspectRatio="none"></svg></div>
+      <div class="note" id="chartNote">—</div>
+    </div>
+
+    <div class="sec" id="s_cost"></div>
+    <div class="card">
+      <div style="padding:13px 4px 4px"><svg id="chWf" width="100%" height="200" viewBox="0 0 700 200" preserveAspectRatio="none"></svg></div>
+      <div class="reads" id="costReads"></div>
+      <div class="note" id="costNote">—</div>
+    </div>
+
+    <div class="sec" id="s_compare"></div>
+    <div class="card"><div class="tw"><table id="cmpTbl"></table></div><div class="note" id="cmpNote"></div></div>
+
+    <div class="sec" id="s_stress"></div>
+    <div class="card"><div class="tw"><table id="stressTbl"></table></div><div class="note" id="stressNote"></div></div>
+
+    <div class="sec" id="s_prepay"></div>
+    <div class="card"><div class="reads" id="prepayReads"></div><div class="note" id="prepayNote"></div></div>
+
+    <div class="sec" id="s_refiOut" style="display:none"></div>
+    <div class="card" id="refiOutCard" style="display:none"><div class="reads" id="refiReads"></div><div class="note" id="refiNote"></div></div>
+
+    <div class="sec" id="s_rvbOut" style="display:none"></div>
+    <div class="card" id="rvbOutCard" style="display:none">
+      <div style="padding:13px 4px 2px"><svg id="chRvb" width="100%" height="200" viewBox="0 0 700 200" preserveAspectRatio="none"></svg></div>
+      <div class="reads" id="rvbReads"></div><div class="note" id="rvbNote"></div>
+    </div>
+
+    <div class="sec" id="s_sellOut" style="display:none"></div>
+    <div class="card" id="sellOutCard" style="display:none"><div class="reads" id="sellReads"></div><div class="note" id="sellNote"></div></div>
+
+    <div class="sec" id="s_mcOut"></div>
+    <div class="card">
+      <div style="padding:2px 0 6px"><div class="seg" id="segSims">
+        <button data-s="1000">1,000</button><button data-s="10000" class="on">10,000</button><button data-s="100000">100,000</button>
+      </div></div>
+      <div class="reads" id="mcReads"></div><div class="note" id="mcNote">—</div>
+    </div>
+
+    <div class="sec" id="s_reg"></div>
+    <div class="card"><div class="tw"><table id="regTbl"></table></div><div class="note" id="regNote"></div></div>
+
+    <div class="sec" id="s_tbl"></div>
+    <div class="card">
+      <div style="padding:10px 0"><div class="seg" id="segTbl">
+        <button data-v="hide"></button><button data-v="brief" class="on"></button><button data-v="full"></button>
+      </div></div>
+      <div id="tblWrap"></div>
+    </div>
+
+    <div class="sec" id="s_data"></div>
+    <div class="card" id="dataCard"></div>
+
+    <p class="disc" id="disc"></p>
+  </div>
+</main>
+
+<script src="engine.js"></script>
+<script>
+"use strict";
+const E = window.MortgageEngine;
+const LANG_CODES=["zh","en","ja","ko"]; let LG=0;
+
+/* ==================== 多語系 ==================== */
+const D={
+hSub:["本息／本金／寬限／多段利率・實質APR・壓力測試・提前還款・轉貸・買vs租・房地合一稅",
+ "Amortization · real APR · stress test · prepay · refinance · rent-vs-buy · capital-gains tax",
+ "元利／元金／据置／多段金利・実質APR・ストレステスト・繰上・借換・購入vs賃貸・譲渡税",
+ "원리금/원금/거치/다단금리·실질APR·스트레스·중도상환·대환·매수vs임대·양도세"],
+save:["＋存方案","+Save plan","＋案を保存","＋방안 저장"],saved:["已加入","Added","追加済","추가됨"],
+grpMain:["房貸試算設定","Mortgage inputs","住宅ローン設定","대출 입력"],
+grpMainSub:["設定你的貸款條件，右側即時算出月付、總利息、實質利率與逐期攤還。","Set your loan terms; the right side computes payment, interest, real rate and schedule live.","ローン条件を設定すると、右側で返済額・利息・実質金利・明細を即時計算。","대출 조건 설정 시 우측에서 상환·이자·실질금리·명세 즉시 계산."],
+grpOpt:["延伸分析工具（可選）","Extended analyses (optional)","拡張分析ツール（任意）","확장 분석(선택)"],
+grpOptSub:["以下每個工具各自獨立、可分別開關，不必全部填寫。想比較哪一項就打開哪一項。","Each tool below is independent — toggle only what you need; you don't have to fill them all.","以下は各々独立、必要なものだけオン。すべて入力する必要はありません。","아래 도구는 각각 독립·필요한 것만 켜세요. 모두 채울 필요 없습니다."],
+optBadge:["可選","optional","任意","선택"],
+fPen1:["綁約第1年違約金","Penalty yr 1","拘束1年目 違約金","약정 1년차 위약금"],
+fPen2:["第2年違約金","Penalty yr 2","2年目 違約金","2년차 위약금"],
+fPen3:["第3年違約金","Penalty yr 3","3年目 違約金","3년차 위약금"],
+penNote:["提前清償違約金為階段式（綁約多為 3 年）：常見第1年約 1%、第2年 0.75%、第3年 0.5%，之後不收。各行條款與計算基礎（清償本金或餘額）不一，實際以合約為準。",
+ "Prepayment penalty is staged (usually a 3-yr lock-in): commonly ~1% (yr 1), 0.75% (yr 2), 0.5% (yr 3), then none. Terms and the basis (principal repaid vs balance) vary by bank — see your contract.",
+ "繰上違約金は段階式（拘束は概ね3年）：概ね1年目約1%・2年目0.75%・3年目0.5%、以降なし。条項と算定基礎は各行で異なり、契約書が優先。",
+ "중도상환 위약금은 단계식(약정 대개 3년): 통상 1년차 약 1%·2년차 0.75%·3년차 0.5%, 이후 없음. 조항·기준은 은행별 상이, 계약서 우선."],
+sPlans:["方案比較（存檔並列）","Plan comparison (saved side by side)","案の比較（保存して並列）","방안 비교(저장 병렬)"],
+planName:["方案","Plan","案","방안"],
+planCurrent:["目前","Current","現在","현재"],
+planItem:["項目","Item","項目","항목"],
+planAction:["操作","Action","操作","작업"],
+planLoad:["載入","Load","読込","불러오기"],
+planClear:["清除全部","Clear all","全消去","전체 삭제"],
+planEmpty:["按右上「＋存方案」把目前這組條件存成一個方案，可存多組（不同銀行、利率、年限、還款方式）並在此並列比較月付、總利息、總成本與實質利率。",
+ "Tap “+Save plan” (top right) to save the current settings as a plan. Save several (different banks, rates, terms, methods) and compare payment, interest, total cost and real rate side by side here.",
+ "右上の「＋案を保存」で現在の設定を案として保存。複数保存し、返済・利息・総コスト・実質金利を並べて比較できます。",
+ "우측 상단 「＋방안 저장」으로 현재 설정을 저장. 여러 개 저장해 상환·이자·총비용·실질금리를 나란히 비교."],
+planNote:["「載入」把該方案帶回試算、「×」刪除。方案存於本機（部署後生效，file:// 本機開啟不儲存）。",
+ "“Load” brings a plan back into the calculator; “×” deletes it. Plans are stored locally (works when deployed; not saved when opened as file://).",
+ "「読込」で案を再現、「×」で削除。案は端末に保存（デプロイ後に有効、file:// では保存されません）。",
+ "「불러오기」로 방안 복원, 「×」로 삭제. 방안은 로컬 저장(배포 후 작동, file://에서는 저장 안 됨)."],
+dark:["深色","Dark","ダーク","다크"],light:["淺色","Light","ライト","라이트"],reset:["重設","Reset","リセット","초기화"],
+jur:["本工具依台灣市場規則計算：還款方式、利率結構、房地合一稅、央行成數與新青安條件均為台灣法規與銀行實務。切換語言只改變介面文字，計算規則不變。所有費率、稅率、法規門檻請以官方公告為準。",
+ "This tool models Taiwan mortgage rules. Repayment types, rate structures, capital-gains tax, central-bank LTV caps and the youth-loan terms follow Taiwan regulation and banking practice. Changing language changes only interface text, not the calculation. Verify all rates, taxes and thresholds against official sources.",
+ "本ツールは台湾の住宅ローン規則で計算します。返済方式・金利構造・不動産譲渡所得税・中央銀行の掛目・青安ローン条件はいずれも台湾の法令と実務によります。言語を変えても計算は変わりません。料率・税率・基準は公式発表でご確認ください。",
+ "본 도구는 대만 주택담보대출 규칙으로 계산합니다. 상환방식·금리구조·부동산양도소득세·중앙은행 담보인정비율·청안대출 조건은 모두 대만 법규와 실무를 따릅니다. 언어를 바꿔도 계산은 변하지 않습니다. 요율·세율·기준은 공식 발표로 확인하세요."],
+/* 區塊 */
+sBasic:["基本設定","Loan basics","基本設定","기본 설정"],
+sRate:["利率結構","Interest rate","金利構造","금리 구조"],
+sMethod:["還款方式","Repayment type","返済方式","상환 방식"],
+sExtra:["提前還款","Extra repayment","繰上返済","중도상환"],
+sYou:["你的條件","Your finances","あなたの状況","재무 상황"],
+sRefi:["轉貸試算","Refinance","借換の試算","대환 시뮬레이션"],
+sRvb:["買房 vs 租房","Buy vs rent","購入 vs 賃貸","매수 vs 임대"],
+sSell:["賣房落袋（房地合一稅）","Sell & capital-gains tax","売却手取り（譲渡税）","매도·양도세"],
+sMc:["指數型利率蒙地卡羅","Floating-rate Monte Carlo","変動金利モンテカルロ","변동금리 몬테카를로"],
+sAdvisor:["檢視提醒","Review notices","チェック項目","점검 알림"],
+sChart:["本金・利息・餘額","Principal, interest, balance","元金・利息・残高","원금·이자·잔액"],
+sCost:["全成本與實質 APR","Total cost & real APR","総コストと実質APR","총비용·실질APR"],
+sCompare:["四種還款方式比較","Four repayment types","4返済方式の比較","4가지 상환 비교"],
+sStress:["升息壓力測試","Rate-hike stress test","利上げストレステスト","금리인상 스트레스"],
+sPrepay:["提前還款省息","Prepayment savings","繰上で節約","중도상환 절감"],
+sReg:["法規檢查","Regulatory check","法規チェック","법규 점검"],
+sCond:["審核條件與警示","Eligibility conditions & warnings","審査条件と警告","심사 조건·경고"],
+condNote:["以上為各貸款方式的審核條件與注意事項整理，用於自我檢核。新青安分不同版本、各行條件不一，實際額度、利率、資格與審核結果以內政部、財政部、中央銀行及各承貸銀行最新公告為準。",
+ "The above summarizes eligibility conditions and cautions per loan type for self-check. The youth loan has multiple versions and banks differ; actual limits, rates, eligibility and approval follow the latest official and lender announcements.",
+ "以上は各ローンの審査条件と注意点の整理で、自己確認用です。青安ローンは版により異なり各行でも差があります。実際の限度・金利・資格・審査結果は内政部・財政部・中央銀行および各銀行の最新公告に従います。",
+ "위는 대출별 심사조건·주의사항 정리로 자가점검용입니다. 청안대출은 버전·은행별로 다릅니다. 실제 한도·금리·자격·승인은 내정부·재정부·중앙은행 및 취급은행 최신 공고를 따릅니다."],
+sTbl:["逐期攤還明細","Amortization schedule","返済明細","상환 명세"],
+sData:["存檔案／讀檔案（全部設定與方案）","Save / Load file (all settings & plans)","ファイル保存／読込（全設定・案）","파일 저장/불러오기(전체 설정·방안)"],
+add:["＋ 新增一段","+ Add segment","＋ 段を追加","＋ 구간 추가"],
+/* 欄位 */
+fPrice:["房屋總價","Property price","物件価格","주택 총가"],
+fLtv:["貸款成數","Loan-to-value","掛目","담보인정비율"],
+fLoan:["貸款金額","Loan amount","借入額","대출 금액"],
+fYears:["貸款年限","Loan term","借入期間","대출 기간"],
+fType:["貸款類型","Loan program","ローン種別","대출 종류"],
+fGrace:["寬限期","Grace period","据置期間","거치 기간"],
+fOpen:["開辦費／手續費","Origination fee","事務手数料","취급수수료"],
+fMgmt:["每月帳管費","Monthly service fee","月次管理費","월 관리비"],
+fIns:["年火險＋地震險","Annual insurance","年間火災・地震保険","연 화재·지진보험"],
+fIncome:["月收入（稅前）","Monthly income","月収（税引前）","월 소득(세전)"],
+fRate:["年利率","Annual rate","年利率","연이율"],
+fSegMonths:["期間","Months","期間","기간"],
+fExtraMonthly:["每月額外還本","Extra monthly principal","毎月の追加元金","월 추가 원금"],
+fPrepayMode:["額外還款後","After extra payment","追加返済後","추가상환 후"],
+fPenalty:["提前清償違約金率","Prepayment penalty","繰上違約金率","중도상환 위약금률"],
+fPropOrder:["購屋順位","Property order","購入順位","구매 순위"],
+/* 選項 */
+optType:[["一般房貸","新青安","組合貸"],["Standard","Youth loan","Combined"],["一般","青安","組合"],["일반","청안","조합"]],
+optMethod:[["本息平均攤還","本金平均攤還","利息到期一次還本","寬限期"],
+ ["Equal payment","Equal principal","Interest-only","Grace period"],
+ ["元利均等","元金均等","利息のみ・満期一括","据置期間"],
+ ["원리금균등","원금균등","이자만·만기일시","거치기간"]],
+optPrepay:[["縮短年限","降低月付"],["Shorten term","Lower payment"],["期間短縮","返済額軽減"],["기간단축","월부담경감"]],
+optOrder:[["首購/自住","第2戶","第3戶以上/高價宅"],["First home","Second","Third+/luxury"],["初回/自住","2戸目","3戸目以上/高額"],["첫구매","2주택","3주택+/고가"]],
+optRateType:[["單一利率","多段式","指數型"],["Single","Multi-stage","Index-linked"],["単一","多段","指数連動"],["단일","다단","지수연동"]],
+optGrace:[["本息","本金"],["Equal payment","Equal principal"],["元利","元金"],["원리금","원금"]],
+/* 關鍵 */
+kPmt:["每月月付金","Monthly payment","毎月返済額","월 상환액"],
+kInt:["貸款期間總利息","Total interest","総利息","총 이자"],
+kPmtS:["首期還款金額","first-period payment","初回返済額","첫 회 상환"],
+kIntS:["利息佔本金","of principal","元金に対する利息","원금 대비"],
+/* stats */
+stTotal:["總還款","Total repaid","総返済","총 상환"],
+stCost:["總持有成本","Total cost","総コスト","총 비용"],
+stApr:["實質年利率","Real APR","実質APR","실질 APR"],
+stJump:["寬限後跳增","Post-grace jump","据置後の増額","거치후 증가"],
+/* 圖 */
+lgPrin:["本金","Principal","元金","원금"],lgInt:["利息","Interest","利息","이자"],lgBal:["餘額","Balance","残高","잔액"],
+/* 成本 */
+wf:[["本金","利息","開辦費","帳管費","保險","違約金","總成本"],
+ ["Principal","Interest","Fee","Service","Insurance","Penalty","Total"],
+ ["元金","利息","手数料","管理費","保険","違約金","総額"],
+ ["원금","이자","수수료","관리비","보험","위약금","합계"]],
+costNominal:["名目","Nominal","名目","명목"],costReal:["實質APR","Real APR","実質APR","실질APR"],
+costTotalInt:["總利息","Total interest","総利息","총이자"],costTotalCost:["總成本","Total cost","総コスト","총비용"],
+/* 比較 */
+cmpH:[["還款方式","月付(首期)","總利息","總還款"],["Type","Payment","Interest","Total"],["方式","返済","利息","総額"],["방식","상환","이자","총액"]],
+/* 壓力 */
+stH:[["升息","尖峰月付","較現在","佔收入","判定"],["Rate +","Peak pmt","vs now","% income","Flag"],["利上げ","ピーク","現在比","収入比","判定"],["인상","최고","현재대비","소득비","판정"]],
+pass:["通過","OK","適合","통과"],over:["超標","Over","超過","초과"],
+stressN:["升息情境為固定加碼，機動利率借款會隨央行政策變動；銀行實務多以月付佔收入 40% 為警戒。僅供情境模擬，非預測。",
+ "Rate scenarios add a fixed bump; floating-rate loans move with central-bank policy. Lenders commonly warn at 40% payment-to-income. Scenario only, not a forecast.",
+ "利上げは固定加算です。変動金利は中央銀行の政策で変動します。実務では返済比率40%を警戒水準とします。シナリオであり予測ではありません。",
+ "금리인상은 고정 가산입니다. 변동금리는 정책에 따라 변합니다. 실무상 상환비율 40%를 경계로 봅니다. 시나리오일 뿐 예측이 아닙니다."],
+/* 提前 */
+ppSaved:["省下利息","Interest saved","節約利息","절감 이자"],ppYears:["縮短","Shorten","短縮","단축"],
+ppPenalty:["違約金","Penalty","違約金","위약금"],ppNet:["淨省","Net saved","純節約","순절감"],
+yrU:["年","yr","年","년"],moU:["個月","mo","か月","개월"],
+ppN:["以「每月額外還本」試算，選「縮短年限」省息最多。違約金依綁約期與清償比例，實際條款以貸款合約為準。",
+ "Computed from extra monthly principal; 'shorten term' saves the most interest. Penalties depend on lock-in and repaid amount — see your contract.",
+ "毎月の追加元金で試算。「期間短縮」が最も節約。違約金は拘束期間と返済額により、契約書が優先します。",
+ "매월 추가 원금 기준. '기간단축'이 가장 절감. 위약금은 약정기간·상환액에 따르며 계약서가 우선합니다."],
+/* 轉貸 */
+rfSave:["每月省","Monthly save","月額節約","월 절감"],rfBreak:["回本","Break-even","損益分岐","손익분기"],rfNet:["剩餘期間淨省","Net save","純節約","순절감"],rfCost:["一次性成本","One-off cost","一時費用","일회성비용"],
+rfN:["回本月數 = 一次性成本 ÷ 每月省下。轉貸須計入舊貸違約金、塗銷費與新貸開辦、設定費。",
+ "Break-even = one-off cost ÷ monthly saving. Include the old-loan penalty, discharge fee and new-loan origination and registration costs.",
+ "損益分岐 = 一時費用 ÷ 月額節約。旧ローン違約金・抹消費・新規事務手数料・設定費を含めます。",
+ "손익분기 = 일회성비용 ÷ 월 절감. 기존 위약금·말소비·신규 취급·설정비를 포함합니다."],
+/* 買租 */
+rvbBuy:["買房淨值","Buy net worth","購入純資産","매수 순자산"],rvbRent:["租房淨值","Rent net worth","賃貸純資産","임대 순자산"],
+rvbGap:["差距","Gap","差","차이"],rvbYears:["幾年後買較優","Buy wins after","購入有利年数","매수 유리 시점"],
+rvbBuyWin:["買房較優","Buying wins","購入有利","매수 유리"],rvbRentWin:["租房較優","Renting wins","賃貸有利","임대 유리"],
+rvbN:["買房淨值＝期末房價−剩餘貸款−賣出稅費；租房淨值＝把自備款與每月買租價差投入市場的複利終值。房價/租金成長與投資報酬皆為假設，非預測。",
+ "Buy net worth = end home value − remaining loan − selling costs. Rent net worth = down payment plus monthly buy-rent gap invested and compounded. Growth and return are assumptions, not forecasts.",
+ "購入純資産＝期末物件価格−残債−売却費用。賃貸純資産＝頭金と毎月の差額を市場に投資した複利終価。成長率・利回りは仮定で予測ではありません。",
+ "매수 순자산＝기말 주택가−잔액−매도비용. 임대 순자산＝계약금과 매월 차액을 시장에 투자한 복리 종가. 성장률·수익률은 가정입니다."],
+/* 賣房 */
+sellGain:["課稅所得","Taxable gain","課税所得","과세소득"],sellTax:["房地合一稅","Capital-gains tax","譲渡所得税","양도세"],sellNet:["真正落袋","Net proceeds","手取り","순수취"],sellRate:["適用稅率","Tax rate","税率","세율"],
+fSale:["預估售價","Sale price","予想売却額","예상 매도가"],fAcq:["取得成本","Acquisition cost","取得原価","취득원가"],fDeduct:["可減費用","Deductible costs","控除費用","공제비용"],fHold:["持有年數","Hold years","保有年数","보유연수"],fSelfUse:["自住滿6年優惠","Self-use 6yr relief","自住6年優遇","자가 6년 감면"],fRepurchase:["重購退稅","Repurchase refund","買替還付","재매입 환급"],fRemainLoan:["賣出時剩餘貸款","Loan at sale","売却時残債","매도시 잔액"],
+sellN:["房地合一稅2.0：持有≤2年45%、2–5年35%、5–10年20%、>10年15%；自住滿6年400萬免稅、超額10%（6年一次）。重購退稅需2年內換屋且5年內不移轉。稅率與免稅額以財政部公告為準。",
+ "House-land tax 2.0: ≤2yr 45%, 2–5yr 35%, 5–10yr 20%, >10yr 15%. Self-use ≥6yr: NT$4M exempt then 10% (once per 6yr). Repurchase refund needs a swap within 2yr and no transfer for 5yr. Verify rates with the Ministry of Finance.",
+ "不動産譲渡所得税2.0：2年以下45%・2〜5年35%・5〜10年20%・10年超15%。自住6年は400万非課税・超過10%。買替還付は2年内・5年内非移転。税率は財政部の公告に従います。",
+ "부동산양도세 2.0: 2년이하 45%·2~5년 35%·5~10년 20%·10년초과 15%. 자가 6년 400만 면세·초과 10%. 재매입 환급은 2년내 교체·5년내 미이전. 세율은 재정부 공고 기준."],
+/* MC */
+mcInt:["總利息 (中位)","Total interest (median)","総利息(中央値)","총이자(중앙)"],
+mcRange:["總利息 p10–p90","Interest p10–p90","利息 p10–p90","이자 p10–p90"],
+mcPeak:["尖峰月付 (中位)","Peak payment (median)","ピーク返済(中央値)","최고상환(중앙)"],
+mcProb:["月付曾超收入40%機率","Prob. payment > 40% income","返済>収入40%の確率","상환>소득40% 확률"],
+fR0:["起始利率","Starting rate","開始金利","시작금리"],fRmean:["長期均值","Long-run mean","長期平均","장기평균"],fRvol:["年利率波動","Rate volatility","金利ボラ","금리변동성"],
+mcN:["利率以均值回歸隨機路徑模擬，每年重估月付。固定種子可重現。這是機率分布，不是預測。",
+ "Rates follow a mean-reverting random path; payment re-estimated yearly. Fixed seed is reproducible. This is a probability distribution, not a forecast.",
+ "金利は平均回帰のランダム経路で、毎年返済を再計算します。固定シードで再現可能。これは確率分布であり予測ではありません。",
+ "금리는 평균회귀 확률경로로, 매년 상환을 재계산합니다. 고정 시드로 재현 가능. 예측이 아니라 확률분포입니다."],
+/* 法規 */
+regH:[["項目","目前值","上限/門檻","判定"],["Item","Value","Limit","Flag"],["項目","現在値","上限","判定"],["항목","현재값","상한","판정"]],
+regLtv:["貸款成數","Loan-to-value","掛目","담보인정비율"],regPay:["月付/收入","Payment/income","返済/収入","상환/소득"],
+regN:["央行成數上限與 40% 警戒為銀行實務參考值（第七波信用管制+2026-03鬆綁），各行從嚴不一，僅供對照不代表核貸結果。實際以銀行審核為準。",
+ "LTV caps and the 40% warning are practice references (7th credit-control wave + March-2026 easing); banks vary. For reference only, not an approval result.",
+ "掛目上限と40%警戒は実務の参考値（第7波+2026-03緩和）で、銀行により異なります。参考のみで審査結果ではありません。",
+ "담보비율 상한과 40% 경계는 실무 참고치(7차+2026-03 완화)로 은행마다 다릅니다. 참고용이며 승인결과가 아닙니다."],
+/* 明細 */
+tblH:[["期","月付","本金","利息","餘額"],["#","Payment","Principal","Interest","Balance"],["回","返済","元金","利息","残高"],["회","상환","원금","이자","잔액"]],
+vHide:["隱藏","Hide","非表示","숨김"],vBrief:["每年","Yearly","毎年","매년"],vFull:["每期","Monthly","毎月","매월"],
+yr:["第 {y} 年","Year {y}","{y}年目","{y}년차"],
+/* 資料 */
+dmSave:["自動存檔","Auto-save","自動保存","자동저장"],
+dmExport:["存檔案（全部設定＋方案）","Save file (all settings + plans)","ファイル保存（全設定＋案）","파일 저장(전체 설정+방안)"],
+dmExportBtn:["存成檔案 ↓","Save file ↓","保存 ↓","저장 ↓"],
+dmImport:["讀檔案（還原全部）","Load file (restore all)","ファイル読込（全復元）","파일 불러오기(전체 복원)"],
+dmImportBtn:["讀取檔案 ↑","Load file ↑","読込 ↑","불러오기 ↑"],
+dmClear:["清除本機存檔","Clear local save","端末保存を消去","로컬 저장 삭제"],
+dmNote:["「存檔案」把目前介面的全部設定與所有已存方案打包成一個 .json 檔下載保存，下次用「讀檔案」即可完整還原（換電腦、備份、分享都適用）。與上方「＋存方案」不同：存方案是加入右側並列比較，存檔案是保存整份工作到檔案。",
+ "“Save file” packs all current settings and every saved plan into one .json for download; “Load file” restores everything (good for switching devices, backup, sharing). Different from “+Save plan”, which adds a scenario to the comparison table.",
+ "「ファイル保存」は現在の全設定と保存済みの全案を1つの.jsonにまとめて保存、「ファイル読込」で完全復元（機種変更・バックアップ・共有に）。「＋案を保存」（比較へ追加）とは別物です。",
+ "「파일 저장」은 현재 전체 설정과 저장된 모든 방안을 하나의 .json으로 저장, 「파일 불러오기」로 완전 복원(기기 변경·백업·공유). 「＋방안 저장」(비교 추가)과 다릅니다."],
+savefile:["存檔","Save file","ファイル保存","파일 저장"],
+sGrace:["寬限期評估","Grace-period assessment","据置期間の評価","거치기간 평가"],
+gDuring:["寬限期內月付","During grace (monthly)","据置中の月額","거치중 월액"],
+gAfter:["期滿後月付","After grace (monthly)","据置後の月額","거치후 월액"],
+gDuringTotal:["寬限期內只繳利息(總)","Interest-only paid in grace","据置中の利息合計","거치중 이자합계"],
+gExtra:["因寬限多付的總利息","Extra interest from grace","据置による追加利息","거치로 추가 이자"],
+graceNote:["寬限期 {g} 年（{gm} 期）內每月只繳利息 {d}、本金完全不減；期滿後以剩餘本金在剩餘年限重算，月付跳增為 {a}（＋{j}）。寬限期沒有讓你少付，反而因本金延後攤還而多付了利息——請務必確認期滿後的收入負擔得起。",
+ "During the {g}-year grace ({gm} months) you pay interest only {d} and the principal does not fall; afterwards it re-amortizes over the remaining term and jumps to {a} (+{j}). Grace does not save money — it adds interest because principal is deferred. Make sure you can afford the post-grace level.",
+ "据置{g}年（{gm}か月）は毎月利息のみ{d}で元金は減りません。終了後は残元金を残期間で再計算し、返済は{a}（＋{j}）に増加。据置は節約ではなく、元金の後ろ倒しで利息が増えます。終了後の負担を必ず確認してください。",
+ "거치 {g}년({gm}개월) 동안 매월 이자만 {d}, 원금은 줄지 않습니다. 종료 후 잔여 원금을 잔여 기간에 재계산해 {a}(+{j})로 증가. 거치는 절약이 아니라 원금 이연으로 이자가 늘어납니다. 종료 후 부담을 반드시 확인하세요."],
+/* concl */
+concBuy:["這筆房貸每月要繳 {p}，{y} 年總共付出 {t}，其中利息 {i}。",
+ "This mortgage costs {p} a month; over {y} years you repay {t}, of which {i} is interest.",
+ "この住宅ローンは毎月 {p}、{y} 年で総額 {t}（うち利息 {i}）を支払います。",
+ "이 대출은 매월 {p}, {y}년간 총 {t}(이자 {i})를 상환합니다."],
+concSub:["把一次性費用攤入後，實質年利率約 {a}（名目 {n}）。往下看升息、提前還款、轉貸、買vs租與賣房落袋。",
+ "With one-off fees amortized, the real APR is about {a} (nominal {n}). Scroll for stress test, prepayment, refinance, rent-vs-buy and sale proceeds.",
+ "一時費用を含めた実質APRは約 {a}（名目 {n}）。以下で利上げ・繰上・借換・購入vs賃貸・売却手取りを確認。",
+ "일회성 비용 포함 실질 APR 약 {a}(명목 {n}). 아래에서 스트레스·중도상환·대환·매수vs임대·매도수취 확인."],
+disc:["本工具僅供教育與試算參考，非貸款要約、財務或稅務建議。所有計算在你的瀏覽器本地完成，資料不外傳。費率、稅率、法規門檻與銀行核貸結果請以官方及各銀行公告為準。",
+ "For education and estimation only — not a loan offer or financial/tax advice. All calculation runs locally in your browser; no data leaves your device. Verify rates, taxes, thresholds and approval outcomes with official and bank sources.",
+ "本ツールは教育・試算目的のみで、融資の申込みや財務・税務助言ではありません。計算はブラウザ内で完結し、データは外部に送信されません。料率・税率・基準・審査結果は公式および各銀行の公告に従ってください。",
+ "본 도구는 교육·시산용이며 대출 제안이나 재무·세무 자문이 아닙니다. 계산은 브라우저에서 처리되며 데이터는 전송되지 않습니다. 요율·세율·기준·승인은 공식 및 은행 공고를 따르세요."],
+};
+function T(k){const v=D[k];return v?(v[LG]||v[0]):k;}
+
+/* ==================== 審核條件與警示（依調查整理，🔴需以官方公告核對） ==================== */
+function L(t){return t[LG]||t[0];}
+function condItems(){
+ const it=[];
+ const P=(lv,t,d)=>it.push({lv,t,d});
+ // A. 貸款類型
+ if(S.type===1){ // 新青安（不同版本都列出）
+   P("tint",
+    ["新青安（2023-08 上路版）主要條件","New Youth Loan (Aug-2023 version) — key terms","新青安（2023年8月版）主な条件","신청안(2023-08판) 주요 조건"],
+    ["額度最高 1,000 萬元、年限最長 40 年（含寬限）、寬限最長 5 年；利率為中華郵政 2 年期定儲機動利率＋0.555%，再減政府補貼 0.375%，補貼後約 1.775%（2024）。借款人本人、配偶及未成年子女均須名下無自有住宅，一生僅能使用一次政策性利息補貼。",
+     "Up to NT$10M, term up to 40 years (incl. grace), grace up to 5 years; rate = Chunghwa Post 2-yr time-deposit floating + 0.555%, minus 0.375% subsidy ≈ 1.775% (2024). Borrower, spouse and minor children must own no home; the interest subsidy can be used only once in a lifetime.",
+     "限度1,000万元、期間最長40年（据置含む）、据置最長5年。金利は郵政2年定期変動＋0.555%、補助0.375%控除で約1.775%（2024）。本人・配偶者・未成年の子に自己所有住宅がないこと、利子補助は生涯1回のみ。",
+     "한도 1,000만원, 기간 최장 40년(거치 포함), 거치 최장 5년. 금리는 우정 2년 정기 변동+0.555%, 보조 0.375% 차감 약 1.775%(2024). 본인·배우자·미성년 자녀 무주택, 이자보조 평생 1회."]);
+   P("amber",
+    ["青安 2.0／3.0（2026-08-01 上路，至 2029-07-31）差異","Youth Loan 2.0/3.0 (from Aug-2026) — changes","青安2.0/3.0（2026年8月〜）変更点","청안 2.0/3.0(2026-08〜) 변경"],
+    ["額度上限提高（婚育家庭最高約 1,500 萬，依條件）、新增排富限制（設所得／資力門檻）、貸款年齡限制、利息補貼逐年退場、資金用途查核趨嚴、仍為一生一次。實際門檻與級距請以內政部公告為準。🔴",
+     "Higher limits (up to ~NT$15M for married/child-raising households, conditional), new means-testing (income/asset thresholds), age limits, subsidy phased out over years, stricter fund-use checks, still once per lifetime. Verify thresholds with the Ministry of the Interior. 🔴",
+     "限度引上げ（婚育世帯 最大約1,500万、条件付）、排富制限（所得・資力基準）、年齢制限、補助の段階的縮小、資金用途審査の厳格化、生涯1回。基準は内政部の公告で確認。🔴",
+     "한도 상향(혼육 가구 최대 약1,500만, 조건부), 소득·자산 심사 신설, 연령 제한, 보조 단계적 축소, 자금용도 심사 강화, 평생 1회. 기준은 내정부 공고 확인. 🔴"]);
+   P("danger",
+    ["新青安撥款後查核，資金不得挪用","Post-disbursement checks — funds must not be diverted","融資後の用途審査、流用禁止","실행 후 용도 심사·전용 금지"],
+    ["2024-08 起加強查核，貸得款項須用於購屋本身，不得轉作投資、還他債或再存回；查獲挪用可能被要求收回優惠或提前清償。",
+     "Since Aug-2024, funds must be used for the home purchase itself — not investing, repaying other debt, or re-depositing. Misuse can trigger loss of the subsidy or early repayment demand.",
+     "2024年8月以降、資金は購入自体に限り、投資・他債返済・再預入は不可。流用は優遇取消や一括返済請求の可能性。",
+     "2024-08부터 자금은 주택 구입 자체에만, 투자·타채무 상환·재예치 불가. 전용 시 우대 취소·조기상환 요구 가능."]);
+ } else if(S.type===2){ // 組合貸
+   P("tint",
+    ["組合貸：政策優惠額度＋一般商業貸款","Combined loan: policy tranche + commercial tranche","組合ローン：政策枠＋一般商業枠","조합대출: 정책+상업"],
+    ["政策優惠部分（如青安）享低利與補貼但有額度上限；超出部分改用銀行一般房貸利率。兩段利率不同，實際月付以兩段合計計算，需分別確認各自條件與成數。",
+     "The policy tranche (e.g. youth loan) is low-rate/subsidized but capped; the excess uses the bank's standard mortgage rate. The two rates differ; total payment sums both — confirm each tranche's terms and LTV.",
+     "政策枠（青安等）は低利・補助だが上限あり、超過分は一般金利。二段の金利は異なり、返済は合算。各枠の条件と掛目を確認。",
+     "정책 구간(청안 등)은 저리·보조이나 한도 있음, 초과분은 일반 금리. 두 금리 상이, 상환은 합산. 각 구간 조건·비율 확인."]);
+ } else {
+   P("info",
+    ["一般房貸：利率與成數依銀行與個人條件","Standard mortgage: rate & LTV depend on bank and profile","一般ローン：金利・掛目は銀行と属性次第","일반대출: 금리·비율은 은행·조건별"],
+    ["首購自住常見利率約 2.1%–2.185%（依信用、擔保品、往來）；成數一般約 7–8 成。多為機動利率，升息時月付增加。實際核貸與利率以銀行審核為準。",
+     "First-home self-use rates are commonly ~2.1%–2.185% (by credit, collateral, relationship); LTV usually ~70–80%. Mostly floating — payments rise with rate hikes. Approval and rate follow the bank's review.",
+     "初回自住は概ね2.1%〜2.185%（信用・担保・取引による）、掛目は7〜8割。多くは変動金利で利上げ時に返済増。審査は銀行による。",
+     "첫구매 자가 금리 약 2.1%~2.185%(신용·담보·거래), 비율 7~8할. 대개 변동금리로 인상 시 상환 증가. 승인은 은행 심사."]);
+ }
+ // B. 還款方式
+ const mb=[
+   ["本息平均攤還：月付固定","Equal payment: level monthly amount","元利均等：毎月一定","원리금균등: 월 일정",
+    "每月金額固定、初期利息占比高、還本慢；適合要固定支出的人。","Fixed monthly amount; early payments are mostly interest, principal repays slowly.","毎月一定、初期は利息中心で元金の減りが遅い。","월 일정, 초기 이자 비중 높아 원금 상환 느림."],
+   ["本金平均攤還：前期月付高","Equal principal: higher early payment","元金均等：前半が高い","원금균등: 초기 부담↑",
+    "每月還本固定、月付由高遞減、總利息最省；需能負擔前期較高月付。","Fixed principal; payments start high and fall; least total interest — needs early affordability.","元金一定、返済は逓減、総利息最少。前半の負担に注意。","원금 일정, 상환 체감, 총이자 최소. 초기 부담 확인."],
+   ["利息到期一次還本（氣球／理財型）","Interest-only, bullet (balloon/revolving)","利息のみ・満期一括","이자만·만기일시",
+    "期間只付息、本金到期一次清償，總利息最高；到期須備足本金，多用於短期或理財型。","Interest-only with a lump principal at maturity; highest total interest — you must have the principal ready at the end.","期間は利息のみ、満期に元金一括。総利息最大、満期資金が必要。","기간 이자만, 만기 원금 일시. 총이자 최대, 만기 자금 필요."],
+   ["寬限期：只付息，期後跳增","Grace period: interest-only then jumps","据置：利息のみ→終了後増額","거치: 이자만→종료후 급증",
+    "寬限期內只付息不還本，結束後以剩餘本金在剩餘年限重算，月付明顯跳增；央行管制下部分族群（第2戶已購清償、繼承取得）不得寬限。","Interest-only during grace; after it ends the payment jumps as principal amortizes over fewer years. Under credit controls some groups (paid-off second buyers, inheritors) cannot take grace.","据置中は利息のみ、終了後は残元金を残期間で再計算し返済が急増。規制下で一部は据置不可。","거치 중 이자만, 종료 후 잔여 원금을 잔여 기간에 재계산해 급증. 규제상 일부는 거치 불가."],
+ ][S.method];
+ P(S.method===2?"danger":(S.method===3?"amber":"info"),[mb[0],mb[1],mb[2],mb[3]],[mb[4],mb[5],mb[6],mb[7]]);
+ // C. 利率結構
+ if(S.rateType===2){
+   P("amber",
+    ["指數型房貸：隨基準利率浮動","Index-linked: floats with the benchmark","指数連動：基準金利に連動","지수연동: 기준금리 연동"],
+    ["利率＝銀行定儲指數（基準）＋固定加碼，隨央行政策每季／半年重定；升息時月付與總利息同步上升，請以升息壓力測試檢視負擔。",
+     "Rate = bank time-deposit index + fixed spread, reset quarterly/semi-annually; hikes raise payment and total interest — use the stress test to check the burden.",
+     "金利＝定期指数＋固定上乗せ、四半期/半年ごとに改定。利上げで返済・総利息増、ストレステストで確認。",
+     "금리＝정기지수＋고정가산, 분기/반기 재설정. 인상 시 상환·총이자 증가, 스트레스로 확인."]);
+ }
+ // D. 提前還款/違約金（綁約期）
+ P("info",
+  ["提前還款與違約金（階段式綁約）","Prepayment & staged penalty (lock-in)","繰上返済と段階式違約金","중도상환·단계식 위약금"],
+  ["房貸綁約多為 3 年，違約金採階段式：以富邦、上海為例第1年 1%、第2年 0.75%、第3年 0.5%，之後不收（永豐則為 1.5%／1%／0.5%）。計算基礎有「提前償還本金」或「貸款餘額」兩種，各行不一；最寬鬆者僅在清償全部並塗銷抵押權時才收。實際以貸款合約為準。",
+   "Lock-in is usually 3 years with a staged penalty: e.g. Fubon/SinoPac 1% (yr 1), 0.75% (yr 2), 0.5% (yr 3), then none (Sinopac Yongfeng: 1.5%/1%/0.5%). The basis is either principal repaid or outstanding balance and varies by bank; the most lenient charge only on full payoff with lien discharge. See your contract.",
+   "拘束は概ね3年、違約金は段階式：富邦・上海の例で1年目1%・2年目0.75%・3年目0.5%、以降なし（永豊は1.5%/1%/0.5%）。算定基礎は返済元金か残高で各行異なり、最も緩い先は全額返済＋抵当抹消時のみ。契約書が優先。",
+   "약정 대개 3년, 위약금 단계식: 푸본·상하이 예 1년차 1%·2년차 0.75%·3년차 0.5%, 이후 없음(용펑 1.5%/1%/0.5%). 기준은 상환원금 또는 잔액으로 은행별 상이, 가장 관대한 곳은 전액상환+말소 시에만. 계약서 우선."]);
+ // E. 央行信用管制成數（依購屋順位）
+ const capTxt=[
+   ["首購自住：一般成數","First home self-use: standard LTV","初回自住：一般掛目","첫구매 자가: 일반 비율",
+    "名下無自用住宅之自住首購按一般承作，成數常見約 7–8 成，且不受第七波無寬限限制（一般情形）。","Self-use first buyers with no home follow standard terms, LTV commonly ~70–80%, generally not subject to the no-grace rule.","無住宅の自住初回は一般扱い、掛目7〜8割、原則据置制限外。","무주택 자가 첫구매는 일반, 비율 7~8할, 원칙적으로 거치 제한 예외."],
+   ["第 2 戶：成數上限六成","Second home: LTV capped at 60%","2戸目：掛目上限6割","2주택: 비율 상한 6할",
+    "第七波信用管制第 2 戶成數上限，2024-09 為 5 成、2026-03 鬆綁調為 6 成，且無寬限期。實際以央行最新規定為準。🔴","Under the 7th credit-control wave the second-home cap was 50% (Sep-2024), eased to 60% (Mar-2026), with no grace period. Verify with the central bank. 🔴","第7波で2戸目は50%（2024-09）→60%（2026-03緩和）、据置なし。中央銀行の最新規定で確認。🔴","7차 규제로 2주택 50%(2024-09)→60%(2026-03 완화), 거치 없음. 중앙은행 최신 규정 확인. 🔴"],
+   ["第 3 戶以上／高價宅：成數三成","Third+/luxury: LTV 30%","3戸目以上/高額：掛目3割","3주택+/고가: 3할",
+    "第 3 戶以上及高價住宅成數上限約 3 成，且無寬限期，全國適用。實際以央行最新規定為準。🔴","Third and further homes and high-value residences are capped near 30% with no grace, nationwide. Verify with the central bank. 🔴","3戸目以上・高額住宅は約3割・据置なし・全国。中央銀行の最新規定で確認。🔴","3주택 이상·고가주택 약 3할·거치 없음·전국. 중앙은행 최신 규정 확인. 🔴"],
+ ][S.propOrder];
+ P(S.propOrder===0?"info":"danger",[capTxt[0],capTxt[1],capTxt[2],capTxt[3]],[capTxt[4],capTxt[5],capTxt[6],capTxt[7]]);
+ return it;
+}
+function renderConditions(){
+ const items=condItems();
+ const col={danger:"var(--danger)",amber:"var(--amber)",tint:"var(--tint)",info:"var(--label3)"};
+ document.getElementById("condCard").innerHTML=
+   items.map(x=>`<div class="adv"><span class="dot" style="background:${col[x.lv]}"></span><div class="ac"><div class="at">${L(x.t)}</div><div class="ad">${L(x.d)}</div></div></div>`).join("")
+  +`<div class="note">${T("condNote")}</div>`;
+ document.getElementById("condCount").textContent=items.length;
+}
+
+/* ==================== 多方案並列比較 ==================== */
+function savePlan(){
+ const letter=String.fromCharCode(65+(PLANS.length%26));
+ PLANS.push({name:T("planName")+" "+letter, snap:JSON.parse(JSON.stringify(S))});
+ persist(); renderPlans();
+}
+function renderPlans(){
+ const card=document.getElementById("plansCard");
+ document.getElementById("clearPlans").textContent=PLANS.length?T("planClear"):"";
+ if(!PLANS.length){ card.innerHTML=`<div class="empty">${T("planEmpty")}</div>`; return; }
+ const cur=metricsFor(S);
+ const cols=[{name:T("planCurrent"),m:cur,idx:-1}].concat(PLANS.map((p,i)=>({name:p.name,m:metricsFor(mergeState(p.snap)),idx:i})));
+ const rows=[
+   [T("kPmt"), c=>fmtNT(c.firstPayment)],
+   [T("costTotalInt"), c=>fmtBig(c.totalInterest)],
+   [T("stCost"), c=>fmtBig(c.totalCost)],
+   [T("stApr"), c=>c.apr?pct(c.apr):"—"],
+   [T("fYears"), (c,s)=>s?(Math.round(s.months/12)+T("yrU")):"—"],
+ ];
+ let html=`<div class="tw"><table><thead><tr><th>${T("planItem")}</th>${cols.map(c=>`<th>${c.name}</th>`).join("")}</tr></thead><tbody>`;
+ rows.forEach(([lb,fn])=>{ html+=`<tr><td>${lb}</td>${cols.map(c=>`<td class="v">${fn(c.m,c.m)}</td>`).join("")}</tr>`; });
+ html+=`<tr><td>${T("planAction")}</td>${cols.map(c=>c.idx<0?`<td>—</td>`:`<td style="white-space:nowrap"><button class="mini" data-load="${c.idx}">${T("planLoad")}</button> <button class="mini" style="color:var(--danger)" data-del="${c.idx}">×</button></td>`).join("")}</tr>`;
+ html+=`</tbody></table></div><div class="note">${T("planNote")}</div>`;
+ card.innerHTML=html;
+ (card.querySelectorAll("[data-load]")||[]).forEach(b=>b.onclick=()=>{S=mergeState(PLANS[+b.dataset.load].snap);renderAll();});
+ (card.querySelectorAll("[data-del]")||[]).forEach(b=>b.onclick=()=>{PLANS.splice(+b.dataset.del,1);persist();renderPlans();});
+}
+
+/* ==================== 寬限期評估（比照 compound：寬限期內→期滿後） ==================== */
+function renderGrace(cost){
+ const gm=Math.round(S.grace*12);
+ const on=(S.method===3)&&(gm>0);
+ document.getElementById("s_grace").style.display=on?"":"none";
+ document.getElementById("graceCard").style.display=on?"":"none";
+ if(!on) return;
+ const during=cost.firstPayment, after=cost.afterGracePayment;
+ const duringTotal=during*gm;                    // 寬限期內只繳利息、本金不減，全數為利息支出
+ const ngArgs=Object.assign({},argsFor(S),{method:["equal_payment","equal_principal"][S.graceMethod],graceMonths:0});
+ const ng=E.amortize(ngArgs);                     // 同條件但「不設寬限」
+ const extraInt=cost.totalInterest-ng.totalInterest;   // 因寬限多付的總利息
+ document.getElementById("graceCard").innerHTML=
+   `<div class="reads">`
+   +read(fmtNT(during),T("gDuring"),"var(--tint)")
+   +read(fmtNT(after),T("gAfter"))
+   +read(fmtBig(duringTotal),T("gDuringTotal"),"var(--amber)")
+   +read(fmtBig(extraInt),T("gExtra"),extraInt>0?"var(--danger)":"var(--ok)")
+   +`</div><div class="note">${fill(T("graceNote"),{g:S.grace,gm:gm,d:fmtNT(during),a:fmtNT(after),j:fmtNT(after-during)})}</div>`;
+}
+
+/* ==================== 狀態 ==================== */
+/* 預設值＝台灣最多人使用的設定：房屋總價 1,000 萬、貸款 8 成、30 年、本息平均攤還、
+   一般房貸利率 2.1%、無寬限、首購自住、月付佔比常用月收入 8 萬。（皆可改） */
+const DEF={
+ price:10000000, ltv:80, loan:8000000, years:30, type:0,
+ rateType:0, rate:2.1, segments:[{months:24,rate:1.775},{months:336,rate:2.1}], base:1.6, spread:0.5,
+ method:0, grace:0, graceMethod:0,
+ openFee:5000, mgmt:0, ins:4000,
+ extraMonthly:0, prepayMode:0,
+ /* 提前清償違約金＝階段式（綁約 3 年，台灣常見）：第1年1%、第2年0.75%、第3年0.5%、之後0 */
+ penaltyStages:[{months:12,rate:1.0},{months:12,rate:0.75},{months:12,rate:0.5}],
+ income:80000, propOrder:0,
+ refi:{on:false, balance:10000000, rate:2.5, remain:300, newRate:2.0, newYears:25, openFee:30000, discharge:5000, setup:8000, penalty:0},
+ rvb:{on:false, rentMonthly:35000, rentGrowth:2, homeGrowth:2, invest:6, ownTax:20000, maintain:30000, sellCost:4},
+ sell:{on:false, sale:20000000, acq:15000000, deduct:600000, hold:7, selfUse:false, repurchase:false, remainLoan:8000000},
+ mc:{on:false, r0:2.1, rMean:2.5, rVol:0.4},
+ sims:10000, tblView:1,
+};
+let S=JSON.parse(JSON.stringify(DEF));
+let PLANS=[];   // 多方案快照，供並列比較
+
+/* ==================== 格式化 ==================== */
+function fmtNT(n){n=Math.round(n);return "NT$"+n.toLocaleString("en-US");}
+function fmtBig(n){ // 在地化大額
+ const a=Math.abs(n);
+ if(LG===1){if(a>=1e9)return "NT$"+(n/1e9).toFixed(2)+"B";if(a>=1e6)return "NT$"+(n/1e6).toFixed(2)+"M";if(a>=1e3)return "NT$"+(n/1e3).toFixed(0)+"K";return "NT$"+Math.round(n).toLocaleString("en-US");}
+ const U=[["億","萬","元"],["","",""],["億","万","円"],["억","만","원"]][LG];
+ if(a>=1e8)return (n/1e8).toFixed(2).replace(/\.?0+$/,"")+" "+U[0];
+ if(a>=1e4)return Math.round(n/1e4).toLocaleString("en-US")+" "+U[1];
+ return Math.round(n).toLocaleString("en-US")+" "+U[2];
+}
+const pct=x=>x.toFixed(2)+"%";
+
+/* ==================== 建構 rateSpec ==================== */
+function buildRateSpecFor(st){
+ if(st.rateType===0) return {type:"single",rate:st.rate};
+ if(st.rateType===1) return {type:"segments",segments:st.segments.map(s=>({months:s.months,rate:s.rate}))};
+ return {type:"index",base:st.base,spread:st.spread};
+}
+function argsFor(st){
+ return {principal:st.loan, months:Math.round(st.years*12), rateSpec:buildRateSpecFor(st),
+  method:["equal_payment","equal_principal","interest_only","grace"][st.method],
+  graceMonths:Math.round(st.grace*12), graceMethod:["equal_payment","equal_principal"][st.graceMethod]};
+}
+function buildRateSpec(){return buildRateSpecFor(S);}
+function baseAmortArgs(){return argsFor(S);}
+function metricsFor(st){return E.costAndAPR(Object.assign({},argsFor(st),{openFee:st.openFee,mgmtFeeMonthly:st.mgmt,insuranceAnnual:st.ins}));}
+
+/* ==================== 左欄 UI ==================== */
+function field(label,id,val,unit,step,min,max){
+ return `<div class="f"><div class="ftop"><label>${label}</label>
+  <input class="num" type="number" id="${id}" value="${val}" step="${step||1}" ${min!=null?`min="${min}"`:""} ${max!=null?`max="${max}"`:""}>
+  <span class="u">${unit||""}</span></div></div>`;
+}
+function selectField(label,id,opts,sel){
+ return `<div class="f"><div class="ftop"><label>${label}</label>
+  <select class="sel" id="${id}">${opts.map((o,i)=>`<option value="${i}" ${i===sel?"selected":""}>${o}</option>`).join("")}</select></div></div>`;
+}
+function renderLeft(){
+ document.getElementById("basic").innerHTML=
+   field(T("fPrice"),"price",S.price,T("fType") && "元")
+  +selectField(T("fType"),"type",T("optType"),S.type)
+  +field(T("fLtv"),"ltv",S.ltv,"%",0.5)
+  +field(T("fLoan"),"loan",S.loan,"元",10000)
+  +field(T("fYears"),"years",S.years,T("yrU"),1);
+ // rate
+ let rateHtml=`<div class="f"><div class="ftop"><label>${T("sRate")}</label>
+   <select class="sel" id="rateType">${T("optRateType").map((o,i)=>`<option value="${i}" ${i===S.rateType?"selected":""}>${o}</option>`).join("")}</select></div></div>`;
+ if(S.rateType===0){
+   rateHtml+=field(T("fRate"),"rate",S.rate,"%",0.01);
+ }else if(S.rateType===1){
+   rateHtml+=S.segments.map((s,i)=>`<div class="f"><div class="lhead"><div class="lt">${i+1}</div>
+     ${S.segments.length>2?`<button class="del" data-seg="${i}">×</button>`:""}</div>
+     <div class="ftop"><label>${T("fSegMonths")}</label><input class="num" type="number" id="segM${i}" value="${s.months}" step="1"><span class="u">${T("moU")}</span></div>
+     <div class="ftop"><label>${T("fRate")}</label><input class="num" type="number" id="segR${i}" value="${s.rate}" step="0.01"><span class="u">%</span></div></div>`).join("");
+ }else{
+   rateHtml+=field(T("fRate")+"（基準）","base",S.base,"%",0.01)+field("＋加碼","spread",S.spread,"%",0.01);
+ }
+ document.getElementById("rateCard").innerHTML=rateHtml;
+ document.getElementById("addSeg").style.display=S.rateType===1?"":"none";
+ document.getElementById("addSeg").textContent=T("add");
+ // method
+ let mHtml=selectField(T("sMethod"),"method",T("optMethod"),S.method);
+ if(S.method===3){ mHtml+=field(T("fGrace"),"grace",S.grace,T("yrU"),1)+selectField(T("fGrace")+"→",'graceMethod',T("optGrace"),S.graceMethod); }
+ mHtml+=field(T("fOpen"),"openFee",S.openFee,"元",100)+field(T("fMgmt"),"mgmt",S.mgmt,"元",10)+field(T("fIns"),"ins",S.ins,"元",100);
+ document.getElementById("methodCard").innerHTML=mHtml;
+ // extra（提前還款 + 階段式違約金：綁約 3 年）
+ document.getElementById("extraCard").innerHTML=
+   field(T("fExtraMonthly"),"extraMonthly",S.extraMonthly,"元",1000)
+  +selectField(T("fPrepayMode"),"prepayMode",T("optPrepay"),S.prepayMode)
+  +field(T("fPen1"),"pen1",S.penaltyStages[0].rate,"%",0.05)
+  +field(T("fPen2"),"pen2",S.penaltyStages[1].rate,"%",0.05)
+  +field(T("fPen3"),"pen3",S.penaltyStages[2].rate,"%",0.05)
+  +`<div class="note" style="border-top:none">${T("penNote")}</div>`;
+ // you
+ document.getElementById("youCard").innerHTML=
+   field(T("fIncome"),"income",S.income,"元",1000)
+  +selectField(T("fPropOrder"),"propOrder",T("optOrder"),S.propOrder);
+ // refinance
+ document.getElementById("refiCard").innerHTML=
+   toggleRow(T("sRefi"),"refiOn",S.refi.on)
+  +field("現有餘額","rf_balance",S.refi.balance,"元",10000)
+  +field("現有利率","rf_rate",S.refi.rate,"%",0.01)
+  +field("剩餘期數","rf_remain",S.refi.remain,T("moU"),1)
+  +field("新貸利率","rf_newRate",S.refi.newRate,"%",0.01)
+  +field("新貸年限","rf_newYears",S.refi.newYears,T("yrU"),1)
+  +field("新貸開辦費","rf_openFee",S.refi.openFee,"元",1000)
+  +field("塗銷費","rf_discharge",S.refi.discharge,"元",500)
+  +field("設定費","rf_setup",S.refi.setup,"元",500)
+  +field("舊貸違約金","rf_penalty",S.refi.penalty,"元",1000);
+ // rvb
+ document.getElementById("rvbCard").innerHTML=
+   toggleRow(T("sRvb"),"rvbOn",S.rvb.on)
+  +field("每月房租","rvb_rent",S.rvb.rentMonthly,"元",1000)
+  +field("租金年成長","rvb_rentG",S.rvb.rentGrowth,"%",0.5)
+  +field("房價年成長","rvb_homeG",S.rvb.homeGrowth,"%",0.5)
+  +field("投資年報酬","rvb_invest",S.rvb.invest,"%",0.5)
+  +field("年自住稅","rvb_ownTax",S.rvb.ownTax,"元",1000)
+  +field("年維護費","rvb_maintain",S.rvb.maintain,"元",1000)
+  +field("賣出費用率","rvb_sellCost",S.rvb.sellCost,"%",0.5);
+ // sell
+ document.getElementById("sellCard").innerHTML=
+   toggleRow(T("sSell"),"sellOn",S.sell.on)
+  +field(T("fSale"),"sell_sale",S.sell.sale,"元",100000)
+  +field(T("fAcq"),"sell_acq",S.sell.acq,"元",100000)
+  +field(T("fDeduct"),"sell_deduct",S.sell.deduct,"元",10000)
+  +field(T("fHold"),"sell_hold",S.sell.hold,T("yrU"),1)
+  +field(T("fRemainLoan"),"sell_remainLoan",S.sell.remainLoan,"元",100000)
+  +toggleRow(T("fSelfUse"),"sell_selfUse",S.sell.selfUse)
+  +toggleRow(T("fRepurchase"),"sell_repurchase",S.sell.repurchase);
+ // mc
+ document.getElementById("mcInputs").innerHTML=
+   toggleRow(T("sMc"),"mcOn",S.mc.on)
+  +field(T("fR0"),"mc_r0",S.mc.r0,"%",0.05)
+  +field(T("fRmean"),"mc_rMean",S.mc.rMean,"%",0.05)
+  +field(T("fRvol"),"mc_rVol",S.mc.rVol,"%",0.05);
+ // 分組大標
+ document.getElementById("grpMain").innerHTML=`<b>${T("grpMain")}</b><span>${T("grpMainSub")}</span>`;
+ document.getElementById("grpOpt").innerHTML=`<b>${T("grpOpt")}</b><span>${T("grpOptSub")}</span>`;
+ // section titles
+ setText("s_basic",T("sBasic"));setText("s_rate",T("sRate"));setText("s_method",T("sMethod"));
+ setText("s_extra",T("sExtra"));setText("s_you",T("sYou"));
+ const optSec=(id,t)=>{document.getElementById(id).innerHTML=`${t} <span class="optbadge">${T("optBadge")}</span>`;};
+ optSec("s_refi",T("sRefi")); optSec("s_rvb",T("sRvb")); optSec("s_sell",T("sSell")); optSec("s_mc",T("sMc"));
+ document.getElementById("refiCard").classList.toggle("off",!S.refi.on);
+ document.getElementById("rvbCard").classList.toggle("off",!S.rvb.on);
+ document.getElementById("sellCard").classList.toggle("off",!S.sell.on);
+ document.getElementById("mcInputs").classList.toggle("off",!S.mc.on);
+ bindLeft();
+}
+function toggleRow(label,id,on){return `<div class="row"><div class="k">${label}</div><button class="sw ${on?"on":""}" id="${id}"></button></div>`;}
+function setText(id,t){const el=document.getElementById(id);if(el){const sp=el.querySelector(".sp");el.textContent=t;if(sp)el.appendChild(sp);}}
+
+function bindLeft(){
+ const bindNum=(id,setter)=>{const el=document.getElementById(id);if(el)el.addEventListener("input",e=>{setter(parseFloat(e.target.value)||0);compute();});};
+ const bindSel=(id,setter,re)=>{const el=document.getElementById(id);if(el)el.addEventListener("change",e=>{setter(parseInt(e.target.value));if(re)renderLeft();compute();});};
+ const bindTog=(id,setter,re)=>{const el=document.getElementById(id);if(el)el.addEventListener("click",()=>{setter();if(re)renderLeft();compute();});};
+ bindNum("price",v=>{S.price=v;S.loan=Math.round(S.price*S.ltv/100);document.getElementById("loan").value=S.loan;});
+ bindNum("ltv",v=>{S.ltv=v;S.loan=Math.round(S.price*S.ltv/100);document.getElementById("loan").value=S.loan;});
+ bindNum("loan",v=>{S.loan=v;if(S.price>0){S.ltv=Math.round(S.loan/S.price*1000)/10;const e=document.getElementById("ltv");if(e)e.value=S.ltv;}});
+ bindNum("years",v=>S.years=v); bindNum("rate",v=>S.rate=v); bindNum("base",v=>S.base=v); bindNum("spread",v=>S.spread=v);
+ bindNum("grace",v=>S.grace=v); bindNum("openFee",v=>S.openFee=v); bindNum("mgmt",v=>S.mgmt=v); bindNum("ins",v=>S.ins=v);
+ bindNum("extraMonthly",v=>S.extraMonthly=v); bindNum("income",v=>S.income=v);
+ bindNum("pen1",v=>S.penaltyStages[0].rate=v); bindNum("pen2",v=>S.penaltyStages[1].rate=v); bindNum("pen3",v=>S.penaltyStages[2].rate=v);
+ bindSel("type",v=>{S.type=v;applyProgram();},true);
+ bindSel("rateType",v=>S.rateType=v,true); bindSel("method",v=>S.method=v,true);
+ bindSel("graceMethod",v=>S.graceMethod=v); bindSel("prepayMode",v=>S.prepayMode=v); bindSel("propOrder",v=>S.propOrder=v);
+ S.segments.forEach((s,i)=>{bindNum("segM"+i,v=>S.segments[i].months=v);bindNum("segR"+i,v=>S.segments[i].rate=v);});
+ document.querySelectorAll("[data-seg]").forEach(b=>b.addEventListener("click",()=>{S.segments.splice(parseInt(b.dataset.seg),1);renderLeft();compute();}));
+ // refi
+ bindTog("refiOn",()=>S.refi.on=!S.refi.on,true);
+ [["rf_balance","balance"],["rf_rate","rate"],["rf_remain","remain"],["rf_newRate","newRate"],["rf_newYears","newYears"],["rf_openFee","openFee"],["rf_discharge","discharge"],["rf_setup","setup"],["rf_penalty","penalty"]].forEach(([id,k])=>bindNum(id,v=>S.refi[k]=v));
+ bindTog("rvbOn",()=>S.rvb.on=!S.rvb.on,true);
+ [["rvb_rent","rentMonthly"],["rvb_rentG","rentGrowth"],["rvb_homeG","homeGrowth"],["rvb_invest","invest"],["rvb_ownTax","ownTax"],["rvb_maintain","maintain"],["rvb_sellCost","sellCost"]].forEach(([id,k])=>bindNum(id,v=>S.rvb[k]=v));
+ bindTog("sellOn",()=>S.sell.on=!S.sell.on,true);
+ [["sell_sale","sale"],["sell_acq","acq"],["sell_deduct","deduct"],["sell_hold","hold"],["sell_remainLoan","remainLoan"]].forEach(([id,k])=>bindNum(id,v=>S.sell[k]=v));
+ bindTog("sell_selfUse",()=>S.sell.selfUse=!S.sell.selfUse,true); bindTog("sell_repurchase",()=>S.sell.repurchase=!S.sell.repurchase,true);
+ bindTog("mcOn",()=>S.mc.on=!S.mc.on,true);
+ [["mc_r0","r0"],["mc_rMean","rMean"],["mc_rVol","rVol"]].forEach(([id,k])=>bindNum(id,v=>S.mc[k]=v));
+}
+function applyProgram(){
+ if(S.type===1){ // 新青安
+   S.rateType=1; S.segments=[{months:24,rate:1.775},{months:Math.max(12,Math.round(S.years*12)-24),rate:2.1}];
+   if(S.years>40)S.years=40; if(S.grace>5)S.grace=5;
+ }
+}
+
+const addSegBtn=document.getElementById("addSeg");
+addSegBtn.addEventListener("click",()=>{S.segments.push({months:12,rate:S.segments.length?S.segments[S.segments.length-1].rate:2.1});renderLeft();compute();});
+
+/* ==================== 主計算 ==================== */
+function compute(){
+ const args=baseAmortArgs();
+ const cost=E.costAndAPR(Object.assign({},args,{openFee:S.openFee,mgmtFeeMonthly:S.mgmt,insuranceAnnual:S.ins}));
+ // 關鍵數據
+ document.getElementById("k1l").textContent=T("kPmt");
+ document.getElementById("k1n").textContent=fmtNT(cost.firstPayment);
+ document.getElementById("k1s").textContent=T("kPmtS");
+ document.getElementById("k2l").textContent=T("kInt");
+ document.getElementById("k2n").textContent=fmtBig(cost.totalInterest);
+ document.getElementById("k2s").textContent=T("kIntS")+" "+(cost.totalInterest/S.loan*100).toFixed(0)+"%";
+ // hero
+ document.getElementById("conc").innerHTML=fill(T("concBuy"),{p:fmtNT(cost.firstPayment),y:S.years,t:fmtBig(cost.totalPayment),i:fmtBig(cost.totalInterest)});
+ document.getElementById("concs").innerHTML=fill(T("concSub"),{a:cost.apr?pct(cost.apr):"—",n:pct(cost.nominalRate)});
+ // stats
+ document.getElementById("stats").innerHTML=
+   stat(fmtBig(cost.totalPayment),T("stTotal"))
+  +stat(fmtBig(cost.totalCost),T("stCost"))
+  +stat(cost.apr?pct(cost.apr):"—",T("stApr"))
+  +stat(S.method===3?fmtNT(cost.graceJump):"—",T("stJump"));
+ renderAdvisor(cost);
+ renderConditions();
+ renderPlans();
+ renderGrace(cost);
+ renderAmortChart(cost);
+ renderCost(cost);
+ renderCompare(args);
+ renderStress(args);
+ renderPrepay(args);
+ renderRefi();
+ renderRvb(args);
+ renderSell();
+ renderMC();
+ renderReg(cost);
+ renderTable(cost);
+ setSectionTitles();
+ persist();
+}
+function fill(t,o){return t.replace(/\{(\w+)\}/g,(m,k)=>o[k]!=null?o[k]:m);}
+function stat(n,l){return `<div><div class="n">${n}</div><div class="l">${l}</div></div>`;}
+function read(n,l,color){return `<div><div class="n" ${color?`style="color:${color}"`:""}>${n}</div><div class="l">${l}</div></div>`;}
+
+function setSectionTitles(){
+ [["s_grace","sGrace"],["s_plans","sPlans"],["s_chart","sChart"],["s_cost","sCost"],["s_compare","sCompare"],["s_stress","sStress"],["s_prepay","sPrepay"],["s_reg","sReg"],["s_tbl","sTbl"],["s_data","sData"],["s_advisor","sAdvisor"],["s_cond","sCond"],["s_mcOut","sMc"],["s_refiOut","sRefi"],["s_rvbOut","sRvb"],["s_sellOut","sSell"]].forEach(([id,k])=>{const el=document.getElementById(id);if(el){const sp=el.querySelector(".sp");el.textContent=T(k);if(sp)el.appendChild(sp);}});
+}
+
+/* ---- 檢視提醒 ---- */
+function renderAdvisor(cost){
+ const items=[];
+ const ratio=S.income>0?cost.firstPayment/S.income*100:0;
+ if(ratio>40) items.push(["danger","月付佔收入偏高",`目前月付佔月收入約 ${ratio.toFixed(0)}%，銀行實務多以 40% 為警戒。升息時將更吃緊。`]);
+ if(S.method===3&&cost.graceJump>0) items.push(["amber","寬限期後月付會跳增",`寬限期結束後月付從 ${fmtNT(cost.firstPayment)} 跳增為 ${fmtNT(cost.afterGracePayment)}（＋${fmtNT(cost.graceJump)}）。務必先確認屆時負擔得起。`]);
+ if(S.method===2) items.push(["amber","利息到期一次還本","此方式期間只付息，本金到期一次清償；總利息最高，且到期需備足本金。"]);
+ if(cost.apr&&cost.apr-cost.nominalRate>0.05) items.push(["tint","實質利率高於名目",`把開辦費等一次性費用攤入後，實質年利率 ${pct(cost.apr)} 高於名目 ${pct(cost.nominalRate)}。比較不同銀行時看實質利率更準。`]);
+ const en={danger:["High payment-to-income",""],amber:["",""],tint:["",""]};
+ const box=document.getElementById("advisor");
+ if(!items.length){box.innerHTML=`<div class="empty">${["目前沒有需要特別注意的提醒。","No notices right now.","特に注意点はありません。","특별한 알림이 없습니다."][LG]}</div>`;document.getElementById("advCount").textContent="";return;}
+ const col={danger:"var(--danger)",amber:"var(--amber)",tint:"var(--tint)"};
+ box.innerHTML=items.map(([c,t,d])=>`<div class="adv"><span class="dot" style="background:${col[c]}"></span><div class="ac"><div class="at">${t}</div><div class="ad">${d}</div></div></div>`).join("");
+ document.getElementById("advCount").textContent=items.length;
+}
+
+/* ---- 攤還堆疊圖 ---- */
+function renderAmortChart(cost){
+ const rows=cost.rows; const W=700,H=220,pad=6;
+ const yearly=[]; for(let i=11;i<rows.length;i+=12) yearly.push(rows[i]); if(rows.length&&(rows.length%12))yearly.push(rows[rows.length-1]);
+ const maxBal=Math.max(...rows.map(r=>r.balance),S.loan);
+ const n=yearly.length; const bw=(W-2*pad)/Math.max(1,n);
+ let bars="",line="M";
+ // 每年：本金累計 vs 利息累計 堆疊 + 餘額線
+ let cumP=0,cumI=0; const totP=cost.totalPrincipal,totI=cost.totalInterest;
+ yearly.forEach((r,k)=>{
+   // 累計到該期
+ });
+ // 簡化：畫每年餘額線 + 該年本金/利息長條
+ const maxPay=Math.max(...yearly.map(r=>r.payment))*12*1.1||1;
+ yearly.forEach((r,k)=>{
+   const x=pad+k*bw;
+   const ph=(r.principal*12/maxPay)*(H-30), ih=(r.interest*12/maxPay)*(H-30);
+   bars+=`<rect x="${x+bw*0.15}" y="${H-20-ph}" width="${bw*0.7}" height="${ph}" fill="var(--tint)" opacity="0.9"/>`;
+   bars+=`<rect x="${x+bw*0.15}" y="${H-20-ph-ih}" width="${bw*0.7}" height="${ih}" fill="var(--amber)" opacity="0.85"/>`;
+   const bx=x+bw/2, by=H-20-(r.balance/maxBal)*(H-30);
+   line+=(k===0?"":"L")+bx.toFixed(1)+" "+by.toFixed(1)+" ";
+ });
+ document.getElementById("chAmort").innerHTML=bars+`<path d="${line}" fill="none" stroke="var(--label)" stroke-width="2" opacity="0.6"/>`;
+ document.getElementById("chartNote").innerHTML=`<span style="color:var(--tint)">■</span> ${T("lgPrin")}　<span style="color:var(--amber)">■</span> ${T("lgInt")}　— ${T("lgBal")}（${["每年","yearly","毎年","매년"][LG]}）`;
+}
+
+/* ---- 全成本瀑布 ---- */
+function renderCost(cost){
+ const wf=cost.waterfall; const labels=T("wf");
+ const parts=[wf.principal,wf.interest,wf.openFee,wf.mgmt,wf.insurance,wf.penalty];
+ const total=parts.reduce((a,b)=>a+b,0);
+ const cols=["var(--label3)","var(--amber)","var(--danger)","var(--tint)","#8E8E93","var(--danger)"];
+ const W=700,H=200,pad=8; let x=pad,run=0,svg="";
+ const maxV=total; const bw=(W-2*pad)/7;
+ parts.forEach((v,i)=>{
+   const h=(v/maxV)*(H-40); const y=H-24-((run+v)/maxV)*(H-40);
+   if(v>0){svg+=`<rect x="${x+bw*0.1}" y="${H-24-((run+v)/maxV)*(H-40)}" width="${bw*0.8}" height="${(v/maxV)*(H-40)}" fill="${cols[i]}"/>`;}
+   svg+=`<text x="${x+bw/2}" y="${H-8}" font-size="10" fill="var(--label2)" text-anchor="middle">${labels[i]}</text>`;
+   run+=v; x+=bw;
+ });
+ // total bar
+ svg+=`<rect x="${x+bw*0.1}" y="${H-24-(total/maxV)*(H-40)}" width="${bw*0.8}" height="${(total/maxV)*(H-40)}" fill="var(--label)"/>`;
+ svg+=`<text x="${x+bw/2}" y="${H-8}" font-size="10" fill="var(--label2)" text-anchor="middle">${labels[6]}</text>`;
+ document.getElementById("chWf").innerHTML=svg;
+ document.getElementById("costReads").innerHTML=
+   read(pct(cost.nominalRate),T("costNominal"))
+  +read(cost.apr?pct(cost.apr):"—",T("costReal"),"var(--tint)")
+  +read(fmtBig(cost.totalInterest),T("costTotalInt"),"var(--amber)")
+  +read(fmtBig(cost.totalCost),T("costTotalCost"));
+ document.getElementById("costNote").textContent=["實質年利率把開辦費、帳管費、火險地震險攤入現金流以 XIRR 求解，代表你真正負擔的年化成本。","The real APR solves the fee-inclusive cash flow via XIRR — your true annualized cost.","実質APRは手数料等を含めXIRRで解いた、真の年率コストです。","실질 APR은 수수료를 포함해 XIRR로 구한 실제 연간 비용입니다."][LG];
+}
+
+/* ---- 四種還款方式比較 ---- */
+function renderCompare(args){
+ const H=T("cmpH"); const methods=T("optMethod");
+ const rows=["equal_payment","equal_principal","interest_only","grace"].map((m,i)=>{
+   const a=E.amortize(Object.assign({},args,{method:m,graceMonths:m==="grace"?Math.max(12,Math.round(S.grace*12)||36):0}));
+   return {name:methods[i],pmt:a.firstPayment,int:a.totalInterest,tot:a.totalPayment,cur:i===S.method};
+ });
+ document.getElementById("cmpTbl").innerHTML=
+  `<thead><tr><th>${H[0]}</th><th>${H[1]}</th><th>${H[2]}</th><th>${H[3]}</th></tr></thead><tbody>`+
+  rows.map(r=>`<tr ${r.cur?'style="background:var(--fill)"':""}><td>${r.name}${r.cur?' ●':''}</td><td class="v">${fmtNT(r.pmt)}</td><td>${fmtBig(r.int)}</td><td>${fmtBig(r.tot)}</td></tr>`).join("")+`</tbody>`;
+ document.getElementById("cmpNote").textContent=["● 為目前選用。本金平均前期月付高、總利息最省；本息平均月付固定；寬限期以 3 年示意。","● current choice. Equal-principal: higher early payment, least interest. Equal-payment: level. Grace shown at 3 years.","●が現在の選択。元金均等は前半高め・利息最少。元利均等は一定。据置は3年で表示。","● 현재 선택. 원금균등: 초기 높음·이자 최소. 원리금균등: 일정. 거치 3년 예시."][LG];
+}
+
+/* ---- 升息壓力 ---- */
+function renderStress(args){
+ const H=T("stH"); const st=E.stressTest(args,[0,1,2,3],S.income);
+ const base=st[0].peakPayment;
+ document.getElementById("stressTbl").innerHTML=
+  `<thead><tr><th>${H[0]}</th><th>${H[1]}</th><th>${H[2]}</th><th>${H[3]}</th><th>${H[4]}</th></tr></thead><tbody>`+
+  st.map(s=>`<tr><td>+${s.bump}%</td><td class="v">${fmtNT(s.peakPayment)}</td><td>${s.bump===0?"—":"+"+fmtNT(s.peakPayment-base)}</td><td>${s.payToIncome!=null?(s.payToIncome*100).toFixed(0)+"%":"—"}</td><td><span class="tag" style="background:${s.over40?"var(--danger)":"var(--ok)"}">${s.over40?T("over"):T("pass")}</span></td></tr>`).join("")+`</tbody>`;
+ document.getElementById("stressNote").textContent=T("stressN");
+}
+
+/* ---- 提前還款 ---- */
+function renderPrepay(args){
+ const plan={extraMonthly:S.extraMonthly||10000,prepayMode:["shorten","lower"][S.prepayMode],penaltyStages:S.penaltyStages};
+ const pp=E.prepaymentCompare(args,plan);
+ document.getElementById("prepayReads").innerHTML=
+   read(fmtBig(pp.interestSaved),T("ppSaved"),"var(--ok)")
+  +read(pp.yearsSaved.toFixed(1)+T("yrU"),T("ppYears"))
+  +read(fmtNT(pp.penalty),T("ppPenalty"),"var(--danger)")
+  +read(fmtBig(pp.netSaved),T("ppNet"),pp.netSaved>0?"var(--ok)":"var(--danger)");
+ const amt=S.extraMonthly||10000;
+ const sr=S.penaltyStages.map(s=>s.rate+"%").join("/");
+ document.getElementById("prepayNote").textContent=(["以每月額外還本 "+fmtNT(amt)+"、綁約 3 年違約金 "+sr+" 試算。","Assuming extra "+fmtNT(amt)+"/mo, 3-yr lock-in penalty "+sr+". ","毎月追加 "+fmtNT(amt)+"、拘束3年違約金 "+sr+" で試算。","매월 추가 "+fmtNT(amt)+", 약정 3년 위약금 "+sr+" 기준. "][LG])+T("ppN");
+}
+
+/* ---- 轉貸 ---- */
+function renderRefi(){
+ const on=S.refi.on;
+ document.getElementById("s_refiOut").style.display=on?"":"none";
+ document.getElementById("refiOutCard").style.display=on?"":"none";
+ if(!on)return;
+ const r=E.refinance({balance:S.refi.balance,rate:S.refi.rate,remainMonths:Math.round(S.refi.remain)},
+   {rate:S.refi.newRate,months:Math.round(S.refi.newYears*12),openFee:S.refi.openFee,dischargeFee:S.refi.discharge,setupFee:S.refi.setup,penalty:S.refi.penalty});
+ document.getElementById("refiReads").innerHTML=
+   read(fmtNT(r.monthlySave),T("rfSave"),r.monthlySave>0?"var(--ok)":"var(--danger)")
+  +read(r.breakEven!=null?r.breakEven+T("moU"):"—",T("rfBreak"))
+  +read(fmtBig(r.oneOff),T("rfCost"),"var(--danger)")
+  +read(fmtBig(r.netSave),T("rfNet"),r.netSave>0?"var(--ok)":"var(--danger)");
+ document.getElementById("refiNote").textContent=T("rfN");
+}
+
+/* ---- 買vs租 ---- */
+function renderRvb(args){
+ const on=S.rvb.on;
+ document.getElementById("s_rvbOut").style.display=on?"":"none";
+ document.getElementById("rvbOutCard").style.display=on?"":"none";
+ if(!on)return;
+ const o={price:S.price,downPayment:Math.max(0,S.price-S.loan),years:S.years,homeGrowth:S.rvb.homeGrowth,
+   rentMonthly:S.rvb.rentMonthly,rentGrowth:S.rvb.rentGrowth,investReturn:S.rvb.invest,
+   ownTaxAnnual:S.rvb.ownTax,maintainAnnual:S.rvb.maintain,sellCostRate:S.rvb.sellCost,loan:args};
+ const rb=E.rentVsBuy(o);
+ // chart: two lines buy equity vs rent invest
+ const W=700,H=200,pad=8; const rows=rb.rows.filter((_,i)=>i%12===0||i===rb.rows.length-1);
+ // buy equity ~ homeValue path approx: interpolate
+ const buyEq=rows.map((r,k)=>{const yr=r.m/12;const hv=S.price*Math.pow(1+S.rvb.homeGrowth/100,yr);return hv-r.balance;});
+ const rentEq=rows.map(r=>r.investRent);
+ const maxV=Math.max(...buyEq,...rentEq,1);
+ const path=(arr)=>{let d="M";arr.forEach((v,k)=>{const x=pad+k/(arr.length-1)*(W-2*pad);const y=H-20-(v/maxV)*(H-40);d+=(k?"L":"")+x.toFixed(1)+" "+y.toFixed(1)+" ";});return d;};
+ document.getElementById("chRvb").innerHTML=
+   `<path d="${path(buyEq)}" fill="none" stroke="var(--tint)" stroke-width="2.2"/>`
+  +`<path d="${path(rentEq)}" fill="none" stroke="var(--amber)" stroke-width="2.2"/>`;
+ document.getElementById("rvbReads").innerHTML=
+   read(fmtBig(rb.buyNetWorth),T("rvbBuy"),"var(--tint)")
+  +read(fmtBig(rb.rentNetWorth),T("rvbRent"),"var(--amber)")
+  +read(fmtBig(Math.abs(rb.gap)),T("rvbGap"))
+  +read(rb.buyBetter?T("rvbBuyWin"):T("rvbRentWin"),"",rb.buyBetter?"var(--tint)":"var(--amber)");
+ document.getElementById("rvbNote").innerHTML=`<span style="color:var(--tint)">—</span> ${T("rvbBuy")}　<span style="color:var(--amber)">—</span> ${T("rvbRent")}<br>`+T("rvbN");
+}
+
+/* ---- 賣房落袋 ---- */
+function renderSell(){
+ const on=S.sell.on;
+ document.getElementById("s_sellOut").style.display=on?"":"none";
+ document.getElementById("sellOutCard").style.display=on?"":"none";
+ if(!on)return;
+ const t=E.capitalGainsTax({salePrice:S.sell.sale,acquireCost:S.sell.acq,deductible:S.sell.deduct,landValueIncrease:0,holdYears:S.sell.hold,selfUse:S.sell.selfUse,repurchase:S.sell.repurchase,remainLoan:S.sell.remainLoan});
+ document.getElementById("sellReads").innerHTML=
+   read(fmtBig(t.gain),T("sellGain"))
+  +read((t.rate*100).toFixed(0)+"%",T("sellRate"))
+  +read(fmtBig(t.tax),T("sellTax"),"var(--danger)")
+  +read(fmtBig(t.netProceeds),T("sellNet"),"var(--ok)");
+ document.getElementById("sellNote").textContent=T("sellN");
+}
+
+/* ---- 蒙地卡羅 ---- */
+function renderMC(){
+ const on=S.mc.on;
+ const reads=document.getElementById("mcReads"),note=document.getElementById("mcNote");
+ if(!on){reads.innerHTML=`<div style="grid-column:1/-1;padding:16px;text-align:center;color:var(--label2);font-size:13px">${["開啟左側「指數型利率蒙地卡羅」以模擬利率隨機路徑下的月付與總利息分布。","Enable floating-rate Monte Carlo on the left to simulate payment and interest distributions under random rate paths.","左の「変動金利モンテカルロ」をオンにすると、金利のランダム経路下の分布を試算します。","좌측 '변동금리 몬테카를로'를 켜면 확률경로 분포를 시뮬레이션합니다."][LG]}</div>`;note.textContent="";return;}
+ const mc=E.monteCarloRates({principal:S.loan,months:Math.round(S.years*12),r0:S.mc.r0,rMean:S.mc.rMean,rVol:S.mc.rVol,kappa:0.5,spread:0,N:S.sims,seed:20260806,income:S.income});
+ reads.innerHTML=
+   read(fmtBig(mc.interest.p50),T("mcInt"),"var(--amber)")
+  +read(fmtBig(mc.interest.p10)+"–"+fmtBig(mc.interest.p90),T("mcRange"))
+  +read(fmtNT(mc.peakPayment.p50),T("mcPeak"))
+  +read(mc.probOver40!=null?(mc.probOver40*100).toFixed(0)+"%":"—",T("mcProb"),"var(--danger)");
+ note.textContent=T("mcN");
+}
+
+/* ---- 法規檢查 ---- */
+function renderReg(cost){
+ const order=["first","second","third"][S.propOrder]||"first";
+ const q=S.type===1?{enable:true,hasOwnHome:false,age:30,everUsed:false,loanAmount:S.loan,years:S.years,graceYears:S.grace}:null;
+ const rc=E.regulationCheck({price:S.price,loan:S.loan,propertyOrder:order,monthlyPayment:cost.firstPayment,income:S.income,qingan:q});
+ const H=T("regH"); const nm={ltv:T("regLtv"),payToIncome:T("regPay"),q_ownHome:"新青安·無自有住宅",q_used:"新青安·一生一次",q_amount:"新青安·額度",q_years:"新青安·年限",q_grace:"新青安·寬限"};
+ document.getElementById("regTbl").innerHTML=
+  `<thead><tr><th>${H[0]}</th><th>${H[1]}</th><th>${H[2]}</th><th>${H[3]}</th></tr></thead><tbody>`+
+  rc.checks.map(c=>{const val=typeof c.value==="number"?(c.key==="ltv"||c.key==="payToIncome"?c.value.toFixed(1)+"%":fmtBig(c.value)):c.value;
+   const lim=typeof c.limit==="number"?(c.key==="ltv"||c.key==="payToIncome"?c.limit+"%":fmtBig(c.limit)):c.limit;
+   return `<tr><td>${nm[c.key]||c.key}</td><td class="v">${val}</td><td>${lim}</td><td><span class="tag" style="background:${c.pass?"var(--ok)":"var(--danger)"}">${c.pass?T("pass"):T("over")}</span></td></tr>`;}).join("")+`</tbody>`;
+ document.getElementById("regNote").textContent=T("regN");
+}
+
+/* ---- 明細表 ---- */
+function renderTable(cost){
+ const H=T("tblH"); const wrap=document.getElementById("tblWrap");
+ // seg labels
+ const segT=document.getElementById("segTbl").children;
+ segT[0].textContent=T("vHide");segT[1].textContent=T("vBrief");segT[2].textContent=T("vFull");
+ Array.from(segT).forEach((b,i)=>b.classList.toggle("on",i===S.tblView));
+ if(S.tblView===0){wrap.innerHTML="";return;}
+ let rows=cost.rows;
+ let display;
+ if(S.tblView===1){display=[];for(let i=11;i<rows.length;i+=12)display.push(rows[i]);if(rows.length&&rows[rows.length-1]!==display[display.length-1])display.push(rows[rows.length-1]);}
+ else display=rows;
+ const cls=S.tblView===2?"tw full":"tw";
+ wrap.innerHTML=`<div class="${cls}"><table><thead><tr><th>${H[0]}</th><th>${H[1]}</th><th>${H[2]}</th><th>${H[3]}</th><th>${H[4]}</th></tr></thead><tbody>`+
+  display.map(r=>{const label=S.tblView===1?fill(T("yr"),{y:Math.ceil(r.m/12)}):r.m;
+   return `<tr><td>${label}</td><td class="v">${fmtNT(r.payment)}</td><td>${fmtNT(r.principal)}</td><td>${fmtNT(r.interest)}</td><td>${fmtNT(r.balance)}</td></tr>`;}).join("")+`</tbody></table></div>`;
+}
+document.getElementById("segTbl").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.tblView=["hide","brief","full"].indexOf(b.dataset.v);compute();});
+document.getElementById("segSims").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.sims=parseInt(b.dataset.s);Array.from(document.getElementById("segSims").children).forEach(x=>x.classList.toggle("on",x===b));renderMC();});
+
+/* ==================== 資料管理 ==================== */
+function renderData(){
+ document.getElementById("dataCard").innerHTML=
+   `<div class="dm"><div class="dk">${T("dmExport")}</div><button class="mini" id="dExport">${T("dmExportBtn")}</button></div>`
+  +`<div class="dm"><div class="dk">${T("dmImport")}</div><button class="mini" id="dImport">${T("dmImportBtn")}</button><input type="file" id="dFile" accept=".json" style="display:none"></div>`
+  +`<div class="dm"><div class="dk">${T("dmClear")}</div><button class="mini" style="color:var(--danger)" id="dClear">×</button></div>`
+  +`<div class="note">${T("dmNote")}</div>`;
+ document.getElementById("dExport").onclick=exportAll;
+ document.getElementById("dImport").onclick=()=>document.getElementById("dFile").click();
+ document.getElementById("dFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>importAllFromText(r.result); r.readAsText(f);};
+ document.getElementById("dClear").onclick=()=>{try{STORAGE.set("mortgagecalc","");}catch(_){}S=JSON.parse(JSON.stringify(DEF));PLANS=[];renderAll();};
+}
+
+/* ==================== V1 STORAGE 抽象（window.storage || localStorage，file:// 也能存） ==================== */
+const STORAGE={
+ set(k,v){try{if(window.storage&&window.storage.set){const p=window.storage.set(k,v);if(p&&p.catch)p.catch(()=>{});return;}}catch(_){}
+   try{localStorage.setItem(k,v);}catch(_){}},
+ async get(k){try{if(window.storage&&window.storage.get){const r=await window.storage.get(k);if(r&&r.value!=null)return r.value;}}catch(_){}
+   try{const v=localStorage.getItem(k);if(v!=null)return v;}catch(_){}return null;},
+};
+/* 深合併：把外部（可能不完整）的狀態疊到 DEF 上，巢狀物件也補齊預設，避免壞檔造成缺欄位 */
+function mergeState(over){
+ const out=JSON.parse(JSON.stringify(DEF));
+ if(!over||typeof over!=="object") return out;
+ for(const k of Object.keys(over)){
+   const v=over[k];
+   if(v&&typeof v==="object"&&!Array.isArray(v)&&out[k]&&typeof out[k]==="object"&&!Array.isArray(out[k]))
+     out[k]=Object.assign({},out[k],v);
+   else out[k]=v;
+ }
+ return out;
+}
+/* 自動存檔（工作狀態＋所有方案），開啟自動恢復 */
+function persist(){try{STORAGE.set("mortgagecalc",JSON.stringify({S,LG,PLANS}));}catch(e){}}
+async function restore(){try{const v=await STORAGE.get("mortgagecalc");if(v){const d=JSON.parse(v);if(d.S)S=mergeState(d.S);if(Array.isArray(d.PLANS))PLANS=d.PLANS;if(typeof d.LG==="number")LG=d.LG;return true;}}catch(e){}return false;}
+/* 儲存檔案：把「所有方案＋目前設定＋參數＋語言」匯出成一個檔，下次可讀回 */
+function exportAll(){
+ const payload=JSON.stringify({app:"mortgage",version:1,savedAt:new Date().toISOString(),S,LG,PLANS},null,2);
+ try{const blob=new Blob([payload],{type:"application/json"});const a=document.createElement("a");
+   a.href=URL.createObjectURL(blob);a.download="房貸試算_存檔_"+new Date().toISOString().slice(0,10)+".json";a.click();}catch(_){}
+}
+function importAllFromText(text){
+ try{const d=JSON.parse(text);
+   if(d.S)S=mergeState(d.S);
+   if(Array.isArray(d.PLANS))PLANS=d.PLANS.filter(p=>p&&p.snap).map(p=>({name:p.name||T("planName"),snap:mergeState(p.snap)}));
+   if(typeof d.LG==="number")LG=d.LG;
+   persist(); renderAll(); return true;
+ }catch(_){return false;}
+}
+
+/* ==================== 頂欄 ==================== */
+document.getElementById("lang").addEventListener("change",e=>{LG=parseInt(e.target.value);renderAll();});
+document.getElementById("mode").addEventListener("click",()=>{document.body.classList.toggle("dark");document.documentElement.classList.toggle("dark");document.getElementById("mode").textContent=document.body.classList.contains("dark")?T("light"):T("dark");compute();});
+document.getElementById("reset").addEventListener("click",()=>{S=JSON.parse(JSON.stringify(DEF));renderAll();});
+document.getElementById("save").addEventListener("click",()=>{savePlan();const b=document.getElementById("save");b.textContent=T("saved");setTimeout(()=>b.textContent=T("save"),1200);});
+document.getElementById("clearPlans").addEventListener("click",()=>{PLANS=[];persist();renderPlans();});
+document.getElementById("savefile").addEventListener("click",exportAll);
+window.addEventListener("scroll",()=>{document.body.classList.toggle("scrolled",window.scrollY>10);});
+
+/* ==================== 全量渲染 ==================== */
+function renderAll(){
+ document.getElementById("lang").value=LG;
+ document.documentElement.lang=["zh-Hant","en","ja","ko"][LG];
+ document.getElementById("hTitle").textContent=["房貸試算","Mortgage calculator","住宅ローン試算","주택담보대출 계산"][LG];
+ document.getElementById("hSub").textContent=T("hSub");
+ document.getElementById("save").textContent=T("save");
+ document.getElementById("savefile").textContent=T("savefile");
+ document.getElementById("mode").textContent=document.body.classList.contains("dark")?T("light"):T("dark");
+ document.getElementById("reset").textContent=T("reset");
+ document.getElementById("jur").textContent=T("jur");
+ document.getElementById("disc").textContent=T("disc");
+ renderLeft();
+ renderData();
+ compute();
+}
+(async function init(){ await restore(); renderAll(); })();
+if("serviceWorker" in navigator && location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
+</script>
+</body>
+</html>
