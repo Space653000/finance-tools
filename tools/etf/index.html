@@ -359,6 +359,21 @@ function pct(n){return(n*100).toFixed(2)+"%";}
 function normSym(s){s=(s||"").trim().toUpperCase();if(!s)return"";if(s.includes("."))return s;if(/^\d{4,6}[A-Z]?$/.test(s))return s+".TW";return s;}
 function normalizePort(){PORT.forEach(p=>{p.sym=normSym(p.sym);});}
 function detectMarket(s){s=normSym(s);if(/\.TWO?$/i.test(s))return"domestic";if(/\.L$/i.test(s)||/VWRA/i.test(s))return"foreign_ie";return"foreign_us";}
+/* 太新標的 → 類似但歷史較長的替代建議 */
+let SUGGEST="";
+const SUBSTITUTE={
+ "009826.TW":["VT","VWRA.L","00646.TW"],   // 貝萊德世界股票 → 全球股票(長)
+ "00940.TW":["0056.TW","00878.TW"],        // 元大台灣價值高息 → 台股高息(長)
+ "00929.TW":["0056.TW","00878.TW"],        // 復華台灣科技優息
+ "00919.TW":["0056.TW","00878.TW"],
+ "00713.TW":["0056.TW","0050.TW"]
+};
+function catSubs(sym){sym=normSym(sym);
+ if(/VWRA|(^|[^A-Z])VT($|[^A-Z])|009826/i.test(sym))return["VT","VWRA.L","00646.TW"];
+ if(/NASDAQ|00662|QQQ/i.test(sym))return["00662.TW","QQQ","00646.TW"];
+ if(/S&P|00646|SPY|VOO/i.test(sym))return["00646.TW","SPY","VT"];
+ if(/\.TW$/.test(sym))return["0050.TW","0056.TW","00646.TW"];
+ return["VT","SPY","0050.TW"];}
 function mkName(m){return m==="domestic"?T("mDom"):m==="foreign_us"?T("mUS"):T("mIE");}
 
 /* ================= 狀態 ================= */
@@ -538,7 +553,15 @@ async function fetchPortfolio(S){
  const maps=await Promise.all(syms.map(s=>fetchOne(s)));
  const startKey=ymStr(S.startY,S.startM),endKey=ymStr(S.endY,S.endM);
  const pick=pickMonths(maps.map(m=>Object.keys(m)),startKey,endKey);
- if(pick.tooFew)throw new Error(L4("這些標的共同的交易月份太少——通常是其中一檔（例如剛上市不久的）太新，和其他標的重疊不足。可以：① 移除較新的那一檔；② 把它單獨試算；③ 把「回測起始」設在它上市之後。","These ETFs overlap too few months — usually one is too new. You can: remove the newest one, test it on its own, or set the backtest start after it listed.","共通する取引月が不足しています（新しい銘柄が原因のことが多い）。新しい銘柄を外す・単独で試算・回測開始をその上場後にしてください。","공통 거래월이 부족합니다(신규 종목이 원인). 신규 종목을 빼거나, 단독으로 시산하거나, 백테스트 시작을 상장 이후로 설정하세요."));
+ if(pick.tooFew){
+  const earliest=maps.map(m=>{const k=Object.keys(m).sort();return k[0]||"9999-99";});
+  let ni=0;for(let i=1;i<earliest.length;i++)if(earliest[i]>earliest[ni])ni=i;
+  const nsym=syms[ni],nstart=earliest[ni];
+  const subs=(SUBSTITUTE[normSym(nsym)]||catSubs(nsym)).filter(x=>normSym(x).toUpperCase()!==normSym(nsym).toUpperCase()).slice(0,3);
+  const btns=subs.map(x=>`<button class="mini" data-swapfrom="${esc(nsym)}" data-swapto="${esc(x)}" style="margin:6px 6px 0 0">${L4("改用 ","Use ","→ ","→ ")}${esc(x)}</button>`).join("");
+  SUGGEST=L4(`「${nsym}」上市較新（資料從 ${nstart} 起），和其他標的重疊不足、無法一起回測。類似但歷史較長的替代（點一下直接換）：`,`${nsym} is new (data from ${nstart}); too little overlap to backtest together. Longer-history alternatives (tap to swap):`,`${nsym}は新しい（${nstart}〜）ため重複不足。長期の代替（タップで置換）：`,`${nsym}는 신규(${nstart}~)라 중복 부족. 장기 대체(탭하여 교체):`)+"<br>"+btns+`<div style="margin-top:8px;opacity:.85;font-weight:400">${L4("或：移除它、單獨試算它、或把「回測起始」設在它上市之後。","Or remove it, test it alone, or set backtest start after it listed.","または外す/単独試算/開始日を上場後に。","또는 제거/단독/시작일 조정.")}</div>`;
+  throw new Error("tooFew");
+ }
  const keys=pick.keys;
  const now=new Date();const nowKey=ymStr(now.getFullYear(),now.getMonth()+1);
  const dates=keys.map(k=>maps[0][k].ts),days=dates.map(t=>(t-dates[0])/86400);
@@ -795,7 +818,12 @@ $("fileImport").addEventListener("change",e=>{const f=e.target.files[0];if(!f)re
   if(Array.isArray(d.plans)){PLANS=d.plans;savePlans();}if(Array.isArray(d.seen)){SEEN=d.seen;}
   applyLang();persist();renderPlans();rebuildDatalist();}catch(err){alert("Load failed");}};rd.readAsText(f);e.target.value="";});
 function showRunErr(msg){const el=$("runErr");if(!el)return;el.innerHTML=msg;el.style.display="";try{el.scrollIntoView({behavior:"smooth",block:"nearest"});}catch(_){}}
-$("run").addEventListener("click",async()=>{const btn=$("run");$("runErr").style.display="none";
+$("runErr").addEventListener("click",e=>{const b=e.target.closest("[data-swapto]");if(!b)return;
+ const from=normSym(b.dataset.swapfrom).toUpperCase(),to=normSym(b.dataset.swapto);
+ const idx=PORT.findIndex(p=>normSym(p.sym).toUpperCase()===from);
+ if(idx>=0)PORT[idx].sym=to;else PORT.push({sym:to,w:0});
+ renderPort();persistD();$("runErr").style.display="none";$("run").click();});
+$("run").addEventListener("click",async()=>{const btn=$("run");$("runErr").style.display="none";SUGGEST="";
  if(!PORT.some(p=>p.sym)){showRunErr(L4("請先在上方搜尋框輸入或選一個標的。","Please add at least one ETF above.","上の検索から銘柄を追加してください。","위 검색에서 종목을 추가하세요."));return;}
  normalizePort();renderPort();const S=readS();
  btn.disabled=true;const old=btn.textContent;btn.textContent=L4("讀取還原權息數據中…","Loading…","読込中…","로딩…");
@@ -811,7 +839,7 @@ $("run").addEventListener("click",async()=>{const btn=$("run");$("runErr").style
    let used=false;
    try{const c=await STORAGE.get(STORE_KEY+"_data");if(c){const o=JSON.parse(c);if(o&&o.data&&o.sig===sig){DATA=o.data;await compute();
      $("offlineWarn").style.display="";$("offlineWarn").textContent=L4("目前無法連線更新，顯示的是上次成功抓取的資料（"+new Date(o.ts).toLocaleString()+"）。有網路時會自動更新到最新。","Offline: showing last cached data ("+new Date(o.ts).toLocaleString()+"). Updates automatically when online.","オフライン：前回のデータを表示（"+new Date(o.ts).toLocaleString()+"）。","오프라인: 이전 데이터 표시.");used=true;}}}catch(_){}
-   if(!used)showRunErr(L4("讀取失敗：","Couldn't load: ","読込失敗：","불러오기 실패: ")+(e.message||e));
+   if(!used){if(SUGGEST)showRunErr(SUGGEST);else showRunErr(L4("讀取失敗：","Couldn't load: ","読込失敗：","불러오기 실패: ")+(e.message||e));}
  }
  finally{btn.disabled=false;btn.textContent=old;}});
 
