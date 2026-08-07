@@ -215,6 +215,7 @@ td.v{font-weight:700}
     </div>
 
     <button class="go" id="run"></button>
+    <div id="runErr" style="display:none;margin:10px 14px 0;padding:11px 12px;border-radius:10px;font-size:13.5px;line-height:1.6;background:rgba(185,58,37,.14);color:var(--danger);font-weight:500"></div>
     <div class="warn" id="preWarn"></div>
     <div class="disc" id="disc"></div>
   </div>
@@ -537,7 +538,7 @@ async function fetchPortfolio(S){
  const maps=await Promise.all(syms.map(s=>fetchOne(s)));
  const startKey=ymStr(S.startY,S.startM),endKey=ymStr(S.endY,S.endM);
  const pick=pickMonths(maps.map(m=>Object.keys(m)),startKey,endKey);
- if(pick.tooFew)throw new Error(L4("這些標的的共同交易月份太少（可能其中一檔太新，和其他標的沒有足夠重疊）","These ETFs share too few overlapping months (one may be too new)","共通月数が不足","공통 개월 부족"));
+ if(pick.tooFew)throw new Error(L4("這些標的共同的交易月份太少——通常是其中一檔（例如剛上市不久的）太新，和其他標的重疊不足。可以：① 移除較新的那一檔；② 把它單獨試算；③ 把「回測起始」設在它上市之後。","These ETFs overlap too few months — usually one is too new. You can: remove the newest one, test it on its own, or set the backtest start after it listed.","共通する取引月が不足しています（新しい銘柄が原因のことが多い）。新しい銘柄を外す・単独で試算・回測開始をその上場後にしてください。","공통 거래월이 부족합니다(신규 종목이 원인). 신규 종목을 빼거나, 단독으로 시산하거나, 백테스트 시작을 상장 이후로 설정하세요."));
  const keys=pick.keys;
  const now=new Date();const nowKey=ymStr(now.getFullYear(),now.getMonth()+1);
  const dates=keys.map(k=>maps[0][k].ts),days=dates.map(t=>(t-dates[0])/86400);
@@ -793,8 +794,9 @@ $("fileImport").addEventListener("change",e=>{const f=e.target.files[0];if(!f)re
   if(typeof d.LG==="number")LG=d.LG;if(d.S)applyS(d.S);
   if(Array.isArray(d.plans)){PLANS=d.plans;savePlans();}if(Array.isArray(d.seen)){SEEN=d.seen;}
   applyLang();persist();renderPlans();rebuildDatalist();}catch(err){alert("Load failed");}};rd.readAsText(f);e.target.value="";});
-$("run").addEventListener("click",async()=>{const btn=$("run");
- if(!PORT.some(p=>p.sym)){alert(L4("請至少輸入一個標的代號","Enter at least one ETF","銘柄を入力","종목 입력"));return;}
+function showRunErr(msg){const el=$("runErr");if(!el)return;el.innerHTML=msg;el.style.display="";try{el.scrollIntoView({behavior:"smooth",block:"nearest"});}catch(_){}}
+$("run").addEventListener("click",async()=>{const btn=$("run");$("runErr").style.display="none";
+ if(!PORT.some(p=>p.sym)){showRunErr(L4("請先在上方搜尋框輸入或選一個標的。","Please add at least one ETF above.","上の検索から銘柄を追加してください。","위 검색에서 종목을 추가하세요."));return;}
  normalizePort();renderPort();const S=readS();
  btn.disabled=true;const old=btn.textContent;btn.textContent=L4("讀取還原權息數據中…","Loading…","読込中…","로딩…");
  const sig=PORT.map(p=>normSym(p.sym)).filter(Boolean).join(",")+"|"+S.startY+"-"+S.startM;
@@ -809,7 +811,7 @@ $("run").addEventListener("click",async()=>{const btn=$("run");
    let used=false;
    try{const c=await STORAGE.get(STORE_KEY+"_data");if(c){const o=JSON.parse(c);if(o&&o.data&&o.sig===sig){DATA=o.data;await compute();
      $("offlineWarn").style.display="";$("offlineWarn").textContent=L4("目前無法連線更新，顯示的是上次成功抓取的資料（"+new Date(o.ts).toLocaleString()+"）。有網路時會自動更新到最新。","Offline: showing last cached data ("+new Date(o.ts).toLocaleString()+"). Updates automatically when online.","オフライン：前回のデータを表示（"+new Date(o.ts).toLocaleString()+"）。","오프라인: 이전 데이터 표시.");used=true;}}}catch(_){}
-   if(!used)alert(L4("讀取失敗：","Failed: ","失敗：","실패: ")+(e.message||e));
+   if(!used)showRunErr(L4("讀取失敗：","Couldn't load: ","読込失敗：","불러오기 실패: ")+(e.message||e));
  }
  finally{btn.disabled=false;btn.textContent=old;}});
 
