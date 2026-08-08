@@ -1,0 +1,15 @@
+{
+  "name": "FIRE 退休試算 FIRE Calculator",
+  "short_name": "FIRE試算",
+  "description": "FI 數字、幾歲能退、五型態(瘦/Coast/Barista/傳統/胖)、4%與3%法則、五種提領法則、蒙地卡羅存活率、歷史序列回測、台灣三支柱(勞保/勞退/國民年金)缺口分析。四語系、深淺色、本地運算不外傳。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F2F2F7",
+  "theme_color": "#0A7C74",
+  "lang": "zh-Hant",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

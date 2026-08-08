@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FIRE 退休試算</title>
+<meta name="theme-color" content="#0A7C74">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FIRE試算">
+<meta name="description" content="FIRE 財務自由退休試算：FI 數字、幾歲能退、五型態(瘦/Coast/Barista/傳統/胖FIRE)、4%法則與3%長壽命調整、五種提領法則(固定4%、Guyton-Klinger護欄、VPW、Vanguard動態、固定比例)、蒙地卡羅存活率、歷史序列回測、台灣三支柱(勞保年金/勞退新制/國民年金)缺口分析。四語系、深淺色、全部本地運算不外傳。">
+<link rel="canonical" href="https://money.space653000.workers.dev/tools/fire/">
+<link rel="manifest" href="manifest.json">
+<style>
+:root{
+  --tint:#0A7C74; --amber:#B87410; --danger:#B93A25; --ok:#1F7A46;
+  --bg:#F2F2F7; --card:#FFF;
+  --label:#000; --label2:rgba(60,60,67,.82); --label3:rgba(60,60,67,.4);
+  --sep:rgba(60,60,67,.2); --fill:rgba(120,120,128,.13); --fill2:rgba(120,120,128,.2);
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 6px 18px rgba(0,0,0,.05);
+  --barbg:rgba(247,247,250,.96); --hh:120px;
+}
+body.dark{
+  --tint:#3FA7A0; --amber:#E8A33D; --danger:#E2705A; --ok:#30D158;
+  --bg:#000; --card:#1C1C1E;
+  --label:#FFF; --label2:rgba(235,235,245,.68); --label3:rgba(235,235,245,.4);
+  --sep:rgba(84,84,88,.6); --fill:rgba(120,120,128,.24); --fill2:rgba(120,120,128,.34);
+  --shadow:0 1px 3px rgba(0,0,0,.4); --barbg:rgba(20,20,22,.96);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;min-width:0}
+html,body{max-width:100%;overflow-x:hidden}
+html{background:#F2F2F7;color-scheme:light}
+html.dark{background:#000;color-scheme:dark}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",
+    "PingFang TC","Heiti TC","Microsoft JhengHei","Hiragino Sans","Yu Gothic","Meiryo",
+    "Apple SD Gothic Neo","Malgun Gothic","Noto Sans CJK TC",sans-serif;
+  background:var(--bg);color:var(--label);font-size:16px;line-height:1.5;
+  font-feature-settings:"tnum" 1;padding-bottom:calc(28px + env(safe-area-inset-bottom));overflow-wrap:break-word;
+}
+button,input,select{font:inherit;color:inherit;font-feature-settings:"tnum" 1;max-width:100%}
+select option{background:var(--card);color:var(--label)}
+svg{display:block;max-width:100%}
+header{position:sticky;top:0;z-index:50;background:var(--barbg);
+  backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep)}
+.hrow{max-width:1360px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top)) 14px 9px;display:flex;align-items:center;gap:7px}
+.htxt{flex:1;min-width:0}
+.htxt b{display:block;font-size:19px;font-weight:700;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.htxt span{display:block;font-size:12.5px;color:var(--label2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.scrolled .htxt span{display:none}
+@media(max-width:560px){.htxt span{display:none}}
+.tbtn{background:var(--fill);border:none;border-radius:980px;padding:8px 12px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.tbtn:hover{background:var(--fill2)}
+.tbtn.pri{background:var(--tint);color:#fff}
+.tbtn:focus-visible{outline:2px solid var(--tint);outline-offset:2px}
+select.lang{background:var(--fill);border:none;border-radius:980px;padding:8px 10px;font-size:13.5px;font-weight:600;cursor:pointer;flex:none;color:var(--label)}
+.keyin{max-width:1360px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;padding:0 14px 10px;gap:12px}
+.key{min-width:0}
+.key + .key{border-left:.5px solid var(--sep);padding-left:12px}
+.key .l{font-size:12.5px;color:var(--label2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.key .n{font-size:30px;font-weight:700;letter-spacing:-1px;line-height:1.12;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.key .s{font-size:12px;color:var(--label2);margin-top:2px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media(max-width:520px){.key .n{font-size:23px}}
+main{max-width:1360px;margin:0 auto;padding:14px;display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:980px){main{grid-template-columns:minmax(0,1fr);padding:12px}}
+.col{display:grid;gap:13px;min-width:0}
+@media(min-width:981px){.left{position:sticky;top:calc(var(--hh) + 12px);max-height:calc(100vh - var(--hh) - 26px);overflow-y:auto;overflow-x:hidden;padding-right:4px}}
+.left::-webkit-scrollbar{width:6px}
+.left::-webkit-scrollbar-thumb{background:var(--sep);border-radius:6px}
+.sec{font-size:14px;font-weight:700;color:var(--label);padding:4px 4px 0;display:flex;align-items:center;gap:10px;min-width:0}
+.sec button{background:none;border:none;color:var(--tint);font-size:13.5px;font-weight:600;cursor:pointer;padding:2px 0;flex:none}
+.sec .sp{margin-left:auto}
+.card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;min-width:0}
+.f{padding:12px 14px}
+.f + .f{border-top:.5px solid var(--sep)}
+.ftop{display:flex;align-items:center;gap:9px;margin-bottom:4px;min-width:0}
+.ftop label{font-size:15px;flex:1;min-width:0;line-height:1.35}
+.info{width:20px;height:20px;border-radius:50%;background:var(--fill);border:none;color:var(--label2);font-size:11.5px;font-weight:700;cursor:pointer;flex:none;line-height:20px;text-align:center}
+.num{width:120px;text-align:right;background:var(--fill);border:none;border-radius:8px;padding:8px 10px;font-size:16px;font-weight:600;-moz-appearance:textfield;flex:none}
+.num::-webkit-outer-spin-button,.num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.num:focus{outline:2px solid var(--tint)}
+.u{font-size:14px;color:var(--label2);min-width:24px;text-align:left;flex:none}
+.chip{background:var(--fill);color:var(--label2);font-size:12px;font-weight:600;padding:3px 7px;border-radius:980px;white-space:nowrap;flex:none}
+input[type=range]{width:100%;-webkit-appearance:none;background:transparent;height:22px;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:var(--fill2)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35);margin-top:-8px}
+body.dark input[type=range]::-webkit-slider-thumb{background:#F2F2F7}
+input[type=range]::-moz-range-track{height:4px;border-radius:4px;background:var(--fill2)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border:none;border-radius:50%;background:#fff}
+.expl{font-size:13.5px;line-height:1.62;color:var(--label2);background:var(--fill);border-radius:9px;padding:10px 11px;margin-top:8px;display:none}
+.expl.on{display:block}
+.seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;margin:0 14px;min-width:0;flex-wrap:wrap}
+.seg button{flex:1;min-width:0;border:none;background:none;font-size:13.5px;font-weight:500;padding:8px 2px;border-radius:7px;cursor:pointer;color:var(--label);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg button.on{background:var(--card);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.16)}
+body.dark .seg button.on{background:#48484A}
+select.sel{background:var(--fill);border:none;border-radius:8px;padding:5px 7px;font-size:13px;font-weight:600;cursor:pointer;min-width:0;text-overflow:ellipsis}
+.row{display:flex;align-items:center;gap:8px;padding:9px 14px;min-height:44px;min-width:0}
+.row + .row{border-top:.5px solid var(--sep)}
+.row .k{font-size:15px;flex:1;min-width:0}
+.sw{width:46px;height:28px;border-radius:980px;background:var(--fill2);border:none;position:relative;cursor:pointer;flex:none;transition:background .18s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .18s}
+.sw.on{background:var(--ok)}
+.sw.on::after{transform:translateX(18px)}
+.empty{padding:18px 14px;text-align:center;font-size:13px;color:var(--label2);line-height:1.65}
+.warn{margin:0 14px 11px;padding:9px 10px;border-radius:9px;font-size:11.8px;line-height:1.6;background:rgba(184,116,16,.13);color:var(--amber);font-weight:500}
+body.dark .warn{background:rgba(232,163,61,.14)}
+.hero{padding:16px 16px 4px}
+.conc{font-size:22px;font-weight:700;letter-spacing:-.5px;line-height:1.34}
+.concs{font-size:14px;color:var(--label2);margin-top:8px;line-height:1.6}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:.5px solid var(--sep);margin-top:14px}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stats > div{padding:12px 6px;text-align:center;border-left:.5px solid var(--sep);min-width:0}
+.stats > div:first-child{border-left:none}
+@media(max-width:640px){.stats > div:nth-child(3){border-left:none}.stats > div:nth-child(n+3){border-top:.5px solid var(--sep)}}
+.stats .n{font-size:21px;font-weight:700;letter-spacing:-.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats .l{font-size:12px;color:var(--label2);margin-top:3px}
+.reads{display:grid;grid-template-columns:repeat(4,1fr)}
+@media(max-width:640px){.reads{grid-template-columns:repeat(2,1fr)}}
+.reads > div{padding:13px 4px;text-align:center;border-left:.5px solid var(--sep);min-width:0}
+.reads > div:first-child{border-left:none}
+@media(max-width:640px){.reads > div:nth-child(3){border-left:none}.reads > div:nth-child(n+3){border-top:.5px solid var(--sep)}}
+.reads .n{font-size:22px;font-weight:700;letter-spacing:-.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reads .l{font-size:12px;color:var(--label2);margin-top:3px}
+.grid5{display:grid;grid-template-columns:repeat(5,1fr)}
+@media(max-width:640px){.grid5{grid-template-columns:repeat(2,1fr)}}
+.vt{padding:12px 6px;text-align:center;border-left:.5px solid var(--sep);min-width:0}
+.vt:first-child{border-left:none}
+@media(max-width:640px){.vt:nth-child(odd){border-left:none}.vt:nth-child(n+3){border-top:.5px solid var(--sep)}}
+.vt .n{font-size:17px;font-weight:700;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vt .l{font-size:12px;color:var(--label2);margin-top:3px}
+.vt .b{font-size:10px;font-weight:700;margin-top:4px;padding:1px 6px;border-radius:980px;display:inline-block}
+.tw{overflow:auto;-webkit-overflow-scrolling:touch}
+.tw::-webkit-scrollbar{width:6px;height:6px}
+.tw::-webkit-scrollbar-thumb{background:var(--sep);border-radius:6px}
+.tw.full{max-height:360px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:9px 8px;font-size:14.5px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:13px;font-weight:600;color:var(--label2);border-bottom:.5px solid var(--sep);position:sticky;top:0;background:var(--card);z-index:1}
+tbody tr + tr{border-top:.5px solid var(--sep)}
+tr.gap td{color:var(--label2);font-size:12px;text-align:center;padding:6px}
+td.v{font-weight:700}
+.note{padding:12px 14px;font-size:13.5px;line-height:1.66;color:var(--label2);border-top:.5px solid var(--sep)}
+.note b{color:var(--label);font-weight:600}
+.disc{font-size:13px;line-height:1.7;color:var(--label2);padding:12px 6px 0}
+.adv{padding:12px 14px;display:flex;gap:10px;align-items:flex-start;min-width:0}
+.adv + .adv{border-top:.5px solid var(--sep)}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;margin-top:6px}
+.adv .ac{flex:1;min-width:0}
+.adv .at{font-size:15px;font-weight:600;line-height:1.42}
+.adv .ad{font-size:13.5px;color:var(--label2);line-height:1.62;margin-top:4px}
+.jur{margin:0 0 4px;padding:11px 13px;border-radius:10px;background:var(--fill);font-size:13px;line-height:1.6;color:var(--label2)}
+.mini{background:var(--fill);border:none;border-radius:8px;padding:7px 11px;font-size:13.5px;font-weight:600;color:var(--tint);cursor:pointer;flex:none}
+.mini:hover{background:var(--fill2)}
+.dm{padding:10px 14px;display:flex;align-items:center;gap:8px}
+.dm + .dm{border-top:.5px solid var(--sep)}
+.dm .dk{font-size:13px;flex:1}
+.gauge{display:flex;align-items:center;gap:16px;padding:14px}
+.gauge .gv{font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1}
+.gauge .gl{font-size:12px;color:var(--label2);margin-top:4px;line-height:1.5}
+.adslot{min-height:0}.adslot:not(:empty){min-height:90px;margin:10px 14px;display:flex;align-items:center;justify-content:center;background:var(--fill);border-radius:12px;color:var(--label3);font-size:13px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <div class="htxt"><b id="hTitle">FIRE 退休試算</b><span id="hSub"></span></div>
+    <select class="lang" id="lang" aria-label="Language">
+      <option value="0">繁體中文</option><option value="1">English</option>
+      <option value="2">日本語</option><option value="3">한국어</option>
+    </select>
+    <button class="tbtn pri" id="save">存檔</button>
+    <button class="tbtn" id="mode">深色</button>
+    <button class="tbtn" id="reset">重設</button>
+  </div>
+  <div class="keyin">
+    <div class="key"><div class="l" id="k1l">—</div><div class="n" id="k1n" style="color:var(--tint)">—</div><div class="s" id="k1s">—</div></div>
+    <div class="key"><div class="l" id="k2l">—</div><div class="n" id="k2n">—</div><div class="s" id="k2s">—</div></div>
+  </div>
+</header>
+
+<main>
+  <div class="col left">
+    <div class="jur" id="jur"></div>
+
+    <!-- 你的現況 -->
+    <div class="sec" id="s_now"></div>
+    <div class="card">
+      <div class="f"><div class="ftop"><label id="l_age"></label><input class="num" id="age" type="number" inputmode="numeric" value="35"><span class="u" id="u_age"></span></div></div>
+      <div class="f"><div class="ftop"><label id="l_port"></label><input class="num" id="port" type="number" inputmode="numeric" value="2000000"><span class="u">NT$</span></div></div>
+      <div class="f"><div class="ftop"><label id="l_save"></label><input class="num" id="save_m" type="number" inputmode="numeric" value="40000"><span class="u">NT$</span></div></div>
+      <div class="f"><div class="ftop"><label id="l_step"></label><input class="num" id="step" type="number" inputmode="decimal" value="2"><span class="u">%</span></div></div>
+    </div>
+
+    <!-- 退休目標 -->
+    <div class="sec" id="s_goal"></div>
+    <div class="card">
+      <div class="f"><div class="ftop"><label id="l_rage"></label><input class="num" id="rage" type="number" inputmode="numeric" value="55"><span class="u" id="u_rage"></span></div></div>
+      <div class="f"><div class="ftop"><label id="l_plan"></label><input class="num" id="plan" type="number" inputmode="numeric" value="95"><span class="u" id="u_plan"></span></div></div>
+      <div class="f"><div class="ftop"><label id="l_exp"></label><input class="num" id="exp_m" type="number" inputmode="numeric" value="50000"><span class="u">NT$</span></div>
+        <div class="expl" id="e_exp"></div></div>
+      <div class="f"><div class="ftop"><label id="l_lean"></label><input class="num" id="lean_m" type="number" inputmode="numeric" value="30000"><span class="u">NT$</span></div></div>
+      <div class="f"><div class="ftop"><label id="l_fat"></label><input class="num" id="fat_m" type="number" inputmode="numeric" value="100000"><span class="u">NT$</span></div></div>
+    </div>
+
+    <!-- 報酬與通膨 -->
+    <div class="sec" id="s_market"></div>
+    <div class="card">
+      <div class="f"><div class="ftop"><label id="l_ret"></label><input class="num" id="ret" type="number" inputmode="decimal" value="6.5"><span class="u">%</span></div></div>
+      <div class="f"><div class="ftop"><label id="l_vol"></label><input class="num" id="vol" type="number" inputmode="decimal" value="16"><span class="u">%</span></div></div>
+      <div class="f"><div class="ftop"><label id="l_infl"></label><input class="num" id="infl" type="number" inputmode="decimal" value="2"><span class="u">%</span></div></div>
+      <div class="f"><div class="ftop"><label id="l_stock"></label><input class="num" id="stock" type="number" inputmode="numeric" value="80"><span class="u">%</span></div>
+        <div class="expl" id="e_stock"></div></div>
+    </div>
+
+    <!-- 安全提領 -->
+    <div class="sec"><span id="s_swr"></span><button class="sp" id="autoSWR"></button></div>
+    <div class="card">
+      <div class="f"><div class="ftop"><label id="l_swr"></label><input class="num" id="swr" type="number" inputmode="decimal" value="3.5"><span class="u">%</span></div>
+        <div class="expl" id="e_swr"></div></div>
+    </div>
+    <div class="seg" id="segStrat" style="margin-top:4px">
+      <button data-k="constant" class="on"></button><button data-k="gk"></button><button data-k="vpw"></button><button data-k="dynamic"></button><button data-k="fixedpct"></button>
+    </div>
+    <div class="card" id="stratParams"></div>
+
+    <!-- 台灣三支柱 -->
+    <div class="sec" id="s_pension"></div>
+    <div class="card">
+      <div class="row"><span class="k" id="l_li"></span><button class="sw on" id="sw_li"></button></div>
+      <div id="liBox">
+        <div class="f"><div class="ftop"><label id="l_lisal"></label><input class="num" id="lisal" type="number" inputmode="numeric" value="45800"><span class="u">NT$</span></div></div>
+        <div class="f"><div class="ftop"><label id="l_liyr"></label><input class="num" id="liyr" type="number" inputmode="numeric" value="35"><span class="u" id="u_liyr"></span></div></div>
+        <div class="f"><div class="ftop"><label id="l_licl"></label><input class="num" id="licl" type="number" inputmode="numeric" value="65"><span class="u" id="u_licl"></span></div></div>
+      </div>
+      <div class="row" style="border-top:.5px solid var(--sep)"><span class="k" id="l_lp"></span><button class="sw on" id="sw_lp"></button></div>
+      <div id="lpBox">
+        <div class="f"><div class="ftop"><label id="l_lpsal"></label><input class="num" id="lpsal" type="number" inputmode="numeric" value="60000"><span class="u">NT$</span></div></div>
+        <div class="f"><div class="ftop"><label id="l_lpemp"></label><input class="num" id="lpemp" type="number" inputmode="decimal" value="6"><span class="u">%</span></div></div>
+        <div class="f"><div class="ftop"><label id="l_lpvol"></label><input class="num" id="lpvol" type="number" inputmode="decimal" value="0"><span class="u">%</span></div></div>
+        <div class="f"><div class="ftop"><label id="l_lpyr"></label><input class="num" id="lpyr" type="number" inputmode="numeric" value="35"><span class="u" id="u_lpyr"></span></div></div>
+        <div class="f"><div class="ftop"><label id="l_lpret"></label><input class="num" id="lpret" type="number" inputmode="decimal" value="3"><span class="u">%</span></div></div>
+      </div>
+      <div class="row" style="border-top:.5px solid var(--sep)"><span class="k" id="l_np"></span><button class="sw" id="sw_np"></button></div>
+      <div id="npBox" style="display:none">
+        <div class="f"><div class="ftop"><label id="l_npyr"></label><input class="num" id="npyr" type="number" inputmode="numeric" value="0"><span class="u" id="u_npyr"></span></div></div>
+      </div>
+    </div>
+
+    <!-- 退休現金流設定（v2） -->
+    <div class="sec" id="s_survin"></div>
+    <div class="card">
+      <div class="f"><div class="ftop"><label id="l_ess"></label><input class="num" id="essential_m" type="number" inputmode="numeric" value="35000"><span class="u">NT$</span></div></div>
+      <div class="f"><div class="ftop"><label id="l_disc"></label><input class="num" id="disc_m" type="number" inputmode="numeric" value="15000"><span class="u">NT$</span></div></div>
+      <div class="f"><div class="ftop"><label id="l_careAge"></label><input class="num" id="careAge" type="number" inputmode="numeric" value="82"><span class="u" id="u_careAge"></span></div></div>
+      <div class="f"><div class="ftop"><label id="l_careMed"></label><input class="num" id="careMed" type="number" inputmode="numeric" value="25000"><span class="u">NT$</span></div></div>
+      <div class="f"><div class="ftop"><label id="l_medInfl"></label><input class="num" id="medInfl" type="number" inputmode="decimal" value="4"><span class="u">%</span></div></div>
+      <div class="f"><div class="ftop"><label id="l_stockEnd"></label><input class="num" id="stockEnd" type="number" inputmode="numeric" value="40"><span class="u">%</span></div></div>
+      <div class="f"><div class="ftop"><label id="l_partUntil"></label><input class="num" id="partUntil" type="number" inputmode="numeric" value="65"><span class="u" id="u_partUntil"></span></div></div>
+      <div class="f"><div class="ftop"><label id="l_oneExp" style="flex:none"></label><input class="num" id="oneExpAmt" type="number" inputmode="numeric" value="0" style="width:90px"><span class="u" id="u_oneExpAt" style="width:auto"></span><input class="num" id="oneExpAge" type="number" inputmode="numeric" value="0" style="width:52px"></div></div>
+      <div class="f"><div class="ftop"><label id="l_oneIn" style="flex:none"></label><input class="num" id="oneInAmt" type="number" inputmode="numeric" value="0" style="width:90px"><span class="u" id="u_oneInAt" style="width:auto"></span><input class="num" id="oneInAge" type="number" inputmode="numeric" value="0" style="width:52px"></div></div>
+    </div>
+
+    <!-- 槓桿投資（寬限期） -->
+    <div class="sec" id="s_lev"></div>
+    <div class="card">
+      <div class="row"><span class="k" id="l_lev"></span><button class="sw" id="sw_lev"></button></div>
+      <div id="levBox" style="display:none">
+        <div class="seg" id="segLevM" style="margin-top:2px">
+          <button data-m="grace" class="on"></button><button data-m="annuity"></button><button data-m="interest"></button>
+        </div>
+        <div class="f"><div class="ftop"><label id="l_levamt"></label><input class="num" id="levamt" type="number" inputmode="numeric" value="2000000"><span class="u">NT$</span></div></div>
+        <div class="f"><div class="ftop"><label id="l_levrate"></label><input class="num" id="levrate" type="number" inputmode="decimal" value="3.2"><span class="u">%</span></div></div>
+        <div class="f"><div class="ftop"><label id="l_levyr"></label><input class="num" id="levyr" type="number" inputmode="numeric" value="20"><span class="u" id="u_levyr"></span></div></div>
+        <div class="f"><div class="ftop"><label id="l_levg"></label><input class="num" id="levg" type="number" inputmode="numeric" value="3"><span class="u" id="u_levg"></span></div>
+          <div class="expl" id="e_lev"></div></div>
+      </div>
+    </div>
+
+    <!-- 進階 -->
+    <div class="sec" id="s_adv"></div>
+    <div class="card">
+      <div class="f"><div class="ftop"><label id="l_part"></label><input class="num" id="part_m" type="number" inputmode="numeric" value="0"><span class="u">NT$</span></div>
+        <div class="expl" id="e_part"></div></div>
+      <div class="f"><div class="ftop"><label id="l_legacy"></label><input class="num" id="legacy" type="number" inputmode="numeric" value="0"><span class="u">NT$</span></div></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="card">
+      <div class="hero"><div class="conc" id="conc">—</div><div class="concs" id="concs">—</div></div>
+      <div class="stats" id="stats"></div>
+    </div>
+
+    <div class="sec" id="s_surv"></div>
+    <div class="card">
+      <div style="padding:2px 0 6px"><div class="seg" id="segTrack">
+        <button data-t="mc" class="on"></button><button data-t="historical"></button><button data-t="bootstrap"></button>
+      </div></div>
+      <div class="gauge"><div><div class="gv" id="survGv">—</div><div class="gl" id="survGl"></div></div>
+        <svg id="chRbd" width="100%" height="120" viewBox="0 0 460 120" preserveAspectRatio="none" style="flex:1"></svg></div>
+      <div class="reads" id="survReads"></div>
+      <div class="note" id="rbdLegend"></div>
+      <div class="note" id="survNote"></div>
+    </div>
+
+    <div class="sec" id="s_cf"></div>
+    <div class="card"><div class="tw" id="cfWrap"></div><div class="note" id="cfNote"></div></div>
+
+    <div class="sec" id="s_variants"></div>
+    <div class="card"><div class="grid5" id="variants"></div><div class="note" id="varNote"></div></div>
+
+    <div class="sec"><span id="s_advisor"></span><span class="sp" style="font-weight:400;font-size:11px" id="advCount"></span></div>
+    <div class="card" id="advisor"></div>
+
+    <div class="sec" id="s_curve"></div>
+    <div class="card">
+      <div style="padding:13px 4px 2px"><svg id="chCurve" width="100%" height="230" viewBox="0 0 700 230" preserveAspectRatio="none"></svg></div>
+      <div class="note" id="curveNote">—</div>
+    </div>
+
+    <div class="sec" id="s_mc"></div>
+    <div class="card">
+      <div style="padding:2px 0 6px"><div class="seg" id="segSims">
+        <button data-s="1000">1,000</button><button data-s="10000" class="on">10,000</button><button data-s="100000">100,000</button>
+      </div></div>
+      <div class="gauge"><div><div class="gv" id="mcGv">—</div><div class="gl" id="mcGl"></div></div>
+        <svg id="chMc" width="100%" height="120" viewBox="0 0 460 120" preserveAspectRatio="none" style="flex:1"></svg></div>
+      <div class="reads" id="mcReads"></div><div class="note" id="mcNote">—</div>
+    </div>
+
+    <div class="sec" id="s_hist"></div>
+    <div class="card">
+      <div style="padding:13px 4px 2px"><svg id="chHist" width="100%" height="150" viewBox="0 0 700 150" preserveAspectRatio="none"></svg></div>
+      <div class="reads" id="histReads"></div><div class="note" id="histNote">—</div>
+    </div>
+
+    <div class="sec" id="s_strat"></div>
+    <div class="card"><div class="tw"><table id="stratTbl"></table></div><div class="note" id="stratNote"></div></div>
+
+    <div class="sec" id="s_pout"></div>
+    <div class="card"><div class="reads" id="pReads"></div><div class="note" id="pNote"></div></div>
+
+    <div class="sec" id="s_levout" style="display:none"></div>
+    <div class="card" id="levOutCard" style="display:none"><div class="reads" id="levReads"></div><div class="note" id="levNote"></div></div>
+
+    <div class="sec" id="s_sens"></div>
+    <div class="card"><div class="tw"><table id="sensTbl"></table></div><div class="note" id="sensNote"></div></div>
+
+    <div class="sec" id="s_tbl"></div>
+    <div class="card">
+      <div style="padding:10px 0"><div class="seg" id="segTbl">
+        <button data-v="hide"></button><button data-v="brief" class="on"></button><button data-v="full"></button>
+      </div></div>
+      <div id="tblWrap"></div>
+    </div>
+
+    <div class="sec"><span id="s_scenario"></span><button class="sp" id="scSaveBtn"></button></div>
+    <div class="card" id="scenarioCard"></div>
+
+    <div class="sec" id="s_data"></div>
+    <div class="card" id="dataCard"></div>
+
+    <p class="disc" id="disc"></p>
+  </div>
+</main>
+
+<script src="engine.js"></script>
+<script>
+"use strict";
+const E = window.FIREEngine;
+const LANG_CODES=["zh","en","ja","ko"]; let LG=0;
+
+/* ==================== 歷史真實年報酬（實質，%）— 教育用途整理版 ====================
+   來源：美國 S&P 500 含息總報酬與美國 10 年期公債，扣 CPI 後之「實質年報酬」，
+   1928–2024（整理自公開年度序列，數字以官方/Damodaran 最新版為準；本模組預設非主引擎，
+   主引擎為蒙地卡羅）。回測以「實質」計，故提領策略以 inflation=0（實質固定支出）運行。 */
+const HIST={ // real annual returns, %
+ stock:[38.1,-9.1,-25.6,-44.6,-9.2,54.5,-2.3,44.9,32.6,-35.9,29.3,-2.5,-11.9,-16.9,15.0,25.5,19.1,35.2,-9.0,0.7,4.5,17.9,29.6,20.2,16.5,-2.6,50.7,29.9,3.0,-12.8,42.4,10.7,-2.2,20.6,25.4,-11.8,20.4,14.2,-12.1,21.3,-11.6,-2.5,12.3,14.5,17.6,-19.7,-32.2,29.9,17.0,-5.4,4.2,15.4,-4.9,17.7,4.6,17.7,1.8,-3.9,29.2,3.4,26.6,-9.7,25.0,-2.8,32.0,7.6,7.6,-1.5,32.6,19.5,25.6,29.8,17.6,-13.0,-13.3,-25.0,25.0,7.2,2.0,12.2,2.8,-39.5,23.5,12.8,-1.0,13.4,29.6,11.4,-1.5,10.6,18.4,-6.9,28.4,15.8,-0.7,17.6,23.0],
+ bond:[0.4,4.5,4.5,-5.3,16.5,-0.1,10.1,4.9,7.4,1.4,5.5,5.9,6.0,-1.9,-6.9,-3.1,-1.0,-0.2,-2.5,-9.0,-1.0,4.2,-3.3,-4.0,-2.1,1.0,3.5,6.1,-3.7,-3.6,-4.2,5.1,-8.4,10.5,10.2,-0.3,10.0,0.9,-3.0,-2.8,-6.5,10.7,12.1,1.0,1.5,-4.6,-1.9,9.2,10.5,-6.8,-14.4,-3.5,26.5,0.5,10.5,26.0,-6.0,13.0,20.0,6.0,10.5,4.5,15.0,1.0,7.6,10.5,-3.5,14.0,3.5,15.5,1.0,10.5,7.5,4.0,13.0,-1.0,4.5,7.5,17.5,-2.5,5.5,5.0,-3.5,-5.0,3.5,1.5,-1.5,-2.0,-4.0,4.0,-1.0,7.0,-15.5,-1.0,3.0,-1.5]
+};
+/* 台灣簡易生命表(年度死亡率 qx，教育整理版，待以內政部最新版校訂) — 以錨點內插 45–110 歲 */
+const QX=(function(){const a={45:0.0018,50:0.0028,55:0.0045,60:0.0072,65:0.0118,70:0.0193,75:0.0316,80:0.0530,85:0.0902,90:0.1500,95:0.2300,100:0.3300,105:0.4300,110:0.5500};
+ const ks=Object.keys(a).map(Number),q={};
+ for(let age=45;age<=110;age++){let lo=45,hi=110;for(let i=0;i<ks.length-1;i++){if(age>=ks[i]&&age<=ks[i+1]){lo=ks[i];hi=ks[i+1];break;}}const t=(age-lo)/((hi-lo)||1);q[age]=a[lo]+(a[hi]-a[lo])*t;}return q;})();
+
+/* ==================== 多語系 ==================== */
+const D={
+hSub:["FI 數字・幾歲能退・五型態・4%與3%法則・五種提領法則・蒙地卡羅・歷史回測・台灣三支柱",
+ "FI number · retire age · 5 FIRE types · 4%/3% rule · 5 withdrawal rules · Monte Carlo · backtest · TW pensions",
+ "FI数字・退職年齢・5類型・4%/3%ルール・5取崩ルール・モンテカルロ・歴史検証・台湾3本柱",
+ "FI 숫자·은퇴 나이·5유형·4%/3%법칙·5인출법칙·몬테카를로·과거검증·대만 3층연금"],
+save:["儲存方案","Save plan","プラン保存","플랜 저장"],saved:["已存","Saved","保存済","저장됨"],
+dark:["深色","Dark","ダーク","다크"],light:["淺色","Light","ライト","라이트"],reset:["重設","Reset","リセット","초기화"],
+jur:["FIRE＝財務獨立、提早退休。本工具以「實質」（已扣通膨）為主軸試算：先算你的 FI 數字與幾歲能退，再用蒙地卡羅與歷史序列檢驗退休後不會把錢花光的機率，並把台灣勞保年金、勞退新制、國民年金等未來收入納入，算出真正要靠資產補足的缺口。切換語言只改介面文字，計算不變。所有報酬、稅率與年金公式為假設或簡化，非預測或保證，請以官方公告為準。",
+ "FIRE = Financial Independence, Retire Early. This tool works mainly in real (inflation-adjusted) terms: it finds your FI number and the age you can retire, then stress-tests the odds your money lasts using Monte Carlo and historical sequences, and folds in Taiwan's labor-insurance pension, labor pension and national pension to size the real gap your portfolio must cover. Changing language changes only text, not the math. All returns, tax rates and pension formulas are assumptions or simplifications — not a forecast or guarantee; verify against official sources.",
+ "FIRE＝経済的自立・早期退職。本ツールは主に「実質」（インフレ調整後）で試算します。FI数字と退職可能年齢を出し、モンテカルロと歴史系列で資金枯渇の確率を検証、台湾の労保年金・労退新制・国民年金など将来収入を織り込み、資産で補うべき差額を算出します。言語変更は表示のみで計算は不変。利回り・税率・年金式は仮定または簡略化で、予測や保証ではありません。公式発表でご確認ください。",
+ "FIRE=경제적 자립·조기 은퇴. 본 도구는 주로 '실질'(물가조정) 기준으로 계산합니다. FI 숫자와 은퇴 가능 나이를 구하고, 몬테카를로·과거 시퀀스로 자금 고갈 확률을 검증하며, 대만 노보연금·노퇴신제·국민연금 등 미래 수입을 반영해 자산으로 메울 실제 격차를 계산합니다. 언어 변경은 표시만 바꾸며 계산은 동일합니다. 수익률·세율·연금식은 가정 또는 단순화이며 예측·보장이 아닙니다. 공식 발표로 확인하세요."],
+/* 區塊 */
+sNow:["你的現況","Where you are now","現在の状況","현재 상황"],
+sGoal:["退休目標","Retirement goal","退職目標","은퇴 목표"],
+sMarket:["報酬與通膨","Returns & inflation","利回りとインフレ","수익·물가"],
+sSwr:["安全提領率與策略","Safe withdrawal & strategy","安全取崩率と戦略","안전인출·전략"],
+sPension:["台灣三支柱（法定年金）","Taiwan pensions (statutory)","台湾3本柱（年金）","대만 3층연금"],
+sAdv:["進階（Barista／遺產）","Advanced (Barista / legacy)","詳細（Barista/遺産）","고급(Barista/유산)"],
+sVariants:["五種 FIRE 型態","Five FIRE types","5つのFIRE類型","5가지 FIRE 유형"],
+sAdvisor:["檢視提醒","Review notices","チェック項目","점검 알림"],
+sCurve:["資產一生曲線（累積→提領）","Lifetime path (accumulate→draw)","資産の生涯曲線","자산 생애 곡선"],
+sMc:["蒙地卡羅退休存活率","Monte Carlo success rate","モンテカルロ成功率","몬테카를로 성공률"],
+sHist:["歷史序列回測","Historical backtest","歴史系列検証","과거 시퀀스 검증"],
+sStrat:["五種提領策略比較","Five withdrawal strategies","5つの取崩戦略","5가지 인출 전략"],
+sPout:["台灣年金試算","Taiwan pension estimate","台湾年金の試算","대만 연금 시산"],
+sSens:["敏感度：退休年齡 × 每月投入","Sensitivity: age × savings","感度：年齢×積立","민감도: 나이×적립"],
+sTbl:["逐年明細","Year-by-year","年次明細","연도별 명세"],
+sData:["資料管理","Data","データ管理","데이터 관리"],
+/* 欄位 */
+fAge:["現在年齡","Current age","現在の年齢","현재 나이"],
+fPort:["目前可投資資產","Current portfolio","現在の投資資産","현재 투자자산"],
+fSave:["每月可投入","Monthly investing","毎月の積立","월 적립액"],
+fStep:["每年投入成長","Annual saving step-up","積立の年成長","연 적립 증가"],
+fRage:["預計退休年齡","Target retire age","退職予定年齢","목표 은퇴 나이"],
+fPlan:["規劃壽命至","Plan to age","計画寿命","계획 수명"],
+fExp:["退休後每月支出","Monthly spending in retirement","退職後の月支出","은퇴 후 월지출"],
+fLean:["瘦 FIRE 月支出","Lean FIRE monthly","痩せFIRE月支出","린 FIRE 월지출"],
+fFat:["胖 FIRE 月支出","Fat FIRE monthly","太いFIRE月支出","팻 FIRE 월지출"],
+fRet:["預期年化報酬（名目）","Expected annual return (nominal)","期待年利回り(名目)","기대 연수익(명목)"],
+fVol:["年化波動度","Annual volatility","年率ボラティリティ","연 변동성"],
+fInfl:["通貨膨脹率","Inflation","インフレ率","물가상승률"],
+fStock:["股票比例（回測用）","Stock allocation (for backtest)","株式比率(検証用)","주식 비중(검증)"],
+fSwr:["安全提領率 (SWR)","Safe withdrawal rate","安全取崩率","안전인출률"],
+fPart:["Barista 兼職月收入","Barista part-time monthly","Barista 兼業月収","Barista 월수입"],
+fLegacy:["想留下的遺產","Legacy to leave","残したい遺産","남길 유산"],
+/* 槓桿寬限期 */
+sLev:["槓桿投資（寬限期）","Leverage investing (grace)","レバレッジ投資（据置）","레버리지 투자(거치)"],
+fLev:["用借款加碼投資","Borrow to invest more","借入で追加投資","대출로 추가 투자"],
+levMethodK:[["寬限期(先繳息)","本息平均","只繳息到期還本"],
+ ["Grace (interest-first)","Level P&I","Interest-only balloon"],
+ ["据置(先利息)","元利均等","利息のみ満期一括"],
+ ["거치(이자먼저)","원리금균등","이자만·만기일시"]],
+fLevAmt:["借款金額","Loan amount","借入額","대출 금액"],
+fLevRate:["借款年利率","Loan annual rate","借入年利率","대출 연이율"],
+fLevYr:["借款年限","Loan term","借入期間","대출 기간"],
+fLevG:["寬限期","Grace period","据置期間","거치 기간"],
+eLev:["借來的錢一次投入市場（提早複利），寬限期內每月只繳利息、月付較低；寬限期滿改本息平均攤還，月付會「跳增」。淨值＝投資市值−借款餘額。槓桿放大報酬也放大風險，升息與下跌時尤其危險。",
+ "The borrowed money is invested at once (earlier compounding). During grace you pay interest only (lower payment); after grace it switches to level principal+interest and the payment jumps. Net worth = investments − loan balance. Leverage magnifies gains and losses — dangerous when rates rise or markets fall.",
+ "借入金を一括投資（早期複利）。据置中は利息のみで返済は低め、据置後は元利均等で返済が跳ね上がる。純資産=時価−残債。レバレッジは利益も損失も拡大。",
+ "빌린 돈을 일시 투자(조기 복리). 거치 중 이자만(낮은 상환), 거치 후 원리금균등으로 급증. 순자산=시가−잔액. 레버리지는 이익·손실 모두 확대."],
+sLevOut:["槓桿寬限期評估","Leverage grace assessment","レバレッジ据置評価","레버리지 거치 평가"],
+levGraceMo:["寬限期內月付","During grace / mo","据置中の月返済","거치 중 월상환"],
+levAfterMo:["期滿後月付","After grace / mo","据置後の月返済","거치 후 월상환"],
+levJump:["月付跳增","Payment jump","返済の跳増","상환 급증"],
+levInt:["借款總利息","Total loan interest","総利息","총 이자"],
+levNote:["寬限期內月付＝借款×月利率（只繳息）；期滿後對剩餘期數本息平均攤還。淨值＝（原資產＋借款）在市場複利−借款餘額；上方 FI 達標年齡已改用『淨值』計算。務必確認期滿後的較高月付，你屆時的收入負擔得起——這是槓桿最常見的失敗點。槓桿非建議，僅供試算。",
+ "During-grace payment = loan × monthly rate (interest only); after grace it amortizes over the remaining term. Net worth = (portfolio + loan) compounded − loan balance; the FI age above now uses net worth. Make sure your future income can afford the higher post-grace payment — the classic failure point of leverage. Not a recommendation; for estimation only.",
+ "据置中=借入×月利率（利息のみ）、据置後は残期間で元利均等。純資産=（資産+借入）の複利−残債。上のFI年齢は純資産基準。据置後の高い返済に耐えられるか要確認。助言ではありません。",
+ "거치 중=대출×월이율(이자만), 거치 후 잔여기간 원리금균등. 순자산=(자산+대출) 복리−잔액. 위 FI 나이는 순자산 기준. 거치 후 높은 상환 감당 가능한지 확인. 권유 아님, 시산용."],
+fLi:["勞保老年年金","Labor-insurance pension","労保老齢年金","노동보험 노령연금"],
+fLisal:["平均月投保薪資","Avg. insured salary","平均加入給与","평균 보험급여"],
+fLiyr:["投保年資","Insured years","加入年数","가입 연수"],
+fLicl:["請領年齡","Claim age","請求年齢","청구 나이"],
+fLp:["勞退新制（個人專戶）","Labor pension (new)","労退新制","노퇴신제"],
+fLpsal:["每月提繳工資","Monthly wage base","月拠出給与","월 급여기준"],
+fLpemp:["雇主提繳率","Employer rate","事業主拠出率","사용자 요율"],
+fLpvol:["自願提繳率","Voluntary rate","自主拠出率","자발 요율"],
+fLpyr:["提繳年數","Years contributing","拠出年数","납입 연수"],
+fLpret:["專戶投資報酬","Account return","口座利回り","계좌 수익"],
+fNp:["國民年金","National pension","国民年金","국민연금"],
+fNpyr:["國保年資","NP insured years","国保年数","국민연금 연수"],
+u_age:["歲","yr","歳","세"],u_year:["年","yr","年","년"],
+/* 提示 */
+eExp:["用「今天的物價」填退休後每月要花多少。工具會以實質報酬計算，通膨已內建。",
+ "Enter monthly spending in today's prices. The tool computes in real terms; inflation is built in.",
+ "「今日の物価」で退職後の月支出を入力。実質で計算しインフレは内蔵。",
+ "'오늘 물가'로 은퇴 후 월지출을 입력. 실질로 계산하며 물가는 내장."],
+eStock:["股票／債券比例只用於『歷史序列回測』合成投資組合；蒙地卡羅用上方的報酬與波動。",
+ "Stock/bond mix is used only to build the portfolio for the historical backtest; Monte Carlo uses the return and volatility above.",
+ "株式/債券比率は歴史検証の合成のみに使用。モンテカルロは上記の利回りとボラを使用。",
+ "주식/채권 비율은 과거검증 합성에만 사용. 몬테카를로는 위의 수익·변동성 사용."],
+eSwr:["4%法則來自30年退休期。若你想 50 歲退休、退休期達 40–50 年，建議降到 3%–3.5%。按「自動」用規劃年數估算。",
+ "The 4% rule assumes a 30-year retirement. For a 40–50 year retirement (retiring at 50), 3%–3.5% is safer. Tap 'Auto' to estimate from your horizon.",
+ "4%ルールは30年前提。50歳退職で40–50年なら3%–3.5%が安全。「自動」で年数から推定。",
+ "4% 법칙은 30년 전제. 50세 은퇴로 40–50년이면 3%–3.5%가 안전. '자동'으로 기간에서 추정."],
+ePart:["Barista FIRE：兼職收入分攤部分支出，所需資產＝(月支出−兼職)×12÷SWR。填 0 表示不兼職。",
+ "Barista FIRE: part-time income covers part of spending. Portfolio needed = (spend − part-time) ×12 ÷ SWR. 0 = none.",
+ "Barista FIRE：兼業収入が支出を一部負担。必要資産=(支出−兼業)×12÷SWR。0で無し。",
+ "Barista FIRE: 겸업 수입이 지출 일부 부담. 필요자산=(지출−겸업)×12÷SWR. 0이면 없음."],
+autoBtn:["自動","Auto","自動","자동"],
+/* 提領策略 */
+stratK:[["固定4%","Guyton-Klinger","VPW","Vanguard動態","固定比例"],
+ ["Constant 4%","Guyton-Klinger","VPW","Vanguard dynamic","Fixed %"],
+ ["固定4%","Guyton-Klinger","VPW","Vanguard動的","固定比率"],
+ ["고정4%","Guyton-Klinger","VPW","Vanguard동적","고정비율"]],
+stratDesc:[
+ ["固定實質提領：第一年提領 = 資產×SWR，其後每年隨通膨調整、金額固定。最經典、最好懂，但遇早年大跌（序列風險）最脆弱。",
+  "Constant real: first year = portfolio×SWR, then held flat in real terms. Classic and simple, but most exposed to an early crash (sequence risk).",
+  "固定実質：初年=資産×SWR、以降は実質一定。最も古典的だが早期暴落に最も脆弱。",
+  "고정 실질: 첫해=자산×SWR, 이후 실질 고정. 가장 고전적이나 초기 급락에 가장 취약."],
+ ["護欄法則：初始提領率較高（如5%），當提領率>初始×1.2 砍 10%、<初始×0.8 加 10%，負報酬年凍結通膨。彈性換取更高起始提領。",
+  "Guardrails: start higher (e.g. 5%); cut 10% when the withdrawal rate exceeds 1.2× initial, raise 10% below 0.8×, freeze inflation after down years. Flexibility buys a higher start.",
+  "ガードレール：高め開始(例5%)、取崩率>初期×1.2で10%減、<0.8で10%増、下落年はインフレ調整凍結。",
+  "가드레일: 높게 시작(예5%), 인출률>초기×1.2면 10%↓, <0.8이면 10%↑, 하락년 물가동결."],
+ ["變動百分比：每年提領 = 餘額 × 隨年齡上升的比例（用剩餘年數年金因子）。永不歸零，但支出隨市場波動較大。",
+  "VPW: each year withdraw balance × an age-rising percentage (annuity factor on remaining years). Never depletes, but spending swings with the market.",
+  "VPW：毎年 残高×年齢で上がる比率。枯渇しないが支出変動が大きい。",
+  "VPW: 매년 잔액×나이에 따라 오르는 비율. 고갈 없으나 지출 변동 큼."],
+ ["Vanguard 動態：目標=餘額×比率，但每年變動限制在天花板(+5%)與地板(−2.5%)之間，兼顧穩定與彈性。",
+  "Vanguard dynamic: target = balance×rate, but yearly change is capped by a ceiling (+5%) and floor (−2.5%) — stability with flexibility.",
+  "Vanguard動的：目標=残高×率、年変動を天井+5%/床−2.5%に制限。",
+  "Vanguard동적: 목표=잔액×비율, 연 변동을 천장+5%/바닥−2.5%로 제한."],
+ ["固定比例：每年提領固定比例的『當前餘額』。永不歸零，市場好多花、市場差少花，最保命但支出最不穩。",
+  "Fixed %: withdraw a fixed percentage of the current balance each year. Never depletes — spend more in good years, less in bad. Safest for the portfolio, least stable spending.",
+  "固定比率：毎年 現残高の一定比率。枯渇せず、相場次第で増減。",
+  "고정비율: 매년 현재 잔액의 일정 비율. 고갈 없고 시장따라 증감."]],
+pInitWR:["初始提領率","Initial WR","初期取崩率","초기 인출률"],
+pFixed:["每年提領比例","Fixed % / year","固定比率/年","고정%/년"],
+pCeil:["支出天花板","Spending ceiling","支出天井","지출 천장"],
+pFloor:["支出地板","Spending floor","支出床","지출 바닥"],
+pVpw:["VPW 預期實質報酬","VPW expected real","VPW期待実質","VPW 기대실질"],
+/* 關鍵 */
+kFi:["FI 財務自由數字","FI number","FI数字","FI 숫자"],
+kGap:["距離財務自由","Distance to FI","FIまでの距離","FI까지"],
+kFiS:["以 {swr}% 提領＝年支出 {mult} 倍","{mult}× annual spending at {swr}%","{swr}%＝年支出{mult}倍","{swr}%＝연지출{mult}배"],
+kGapReach:["預計 {age} 歲達成（{yr} 年後）","reach at age {age} (in {yr} yr)","{age}歳で達成({yr}年後)","{age}세 달성({yr}년 후)"],
+kGapNo:["以目前投入，規劃年限內尚未達成","not reached within horizon at current pace","現ペースでは未達","현 속도로는 미달"],
+kGapDone:["已達成，恭喜！","Already there — congratulations!","達成済み！","이미 달성!"],
+/* stats */
+stFi:["FI 數字","FI number","FI数字","FI 숫자"],
+stAge:["可退休年齡","Retire age","退職年齢","은퇴 나이"],
+stYears:["還要幾年","Years to go","あと何年","남은 연수"],
+stNeed:["每月需投入","Monthly needed","毎月必要","월 필요액"],
+/* 型態 */
+vLean:["瘦 FIRE","Lean FIRE","痩せFIRE","린 FIRE"],
+vCoast:["Coast FIRE","Coast FIRE","Coast FIRE","코스트 FIRE"],
+vBarista:["Barista","Barista","Barista","Barista"],
+vTrad:["傳統 FIRE","Traditional","伝統FIRE","전통 FIRE"],
+vFat:["胖 FIRE","Fat FIRE","太いFIRE","팻 FIRE"],
+vReach:["已達標","Reached","達成","달성"],vClose:["接近","Close","接近","근접"],vFar:["尚遠","Far","遠い","멀다"],
+varNote:["FI 數字＝對應型態的年支出 ÷ SWR。Coast FIRE 是『現在存夠、之後不再投入也能在退休年齡長成傳統 FI』的今日門檻；達標代表你可以停止儲蓄、只讓錢複利長大。Barista 已把兼職收入計入。",
+ "FI number = that type's annual spending ÷ SWR. Coast FIRE is today's threshold where your current portfolio, with no further contributions, grows into the traditional FI number by retirement — reaching it means you can stop saving and let compounding work. Barista already nets part-time income.",
+ "FI数字=各類型の年支出÷SWR。Coast FIREは『今の資産を追加投資せず退職時に伝統FIへ育つ』今日の閾値。Baristaは兼業収入を控除済み。",
+ "FI 숫자=유형별 연지출÷SWR. Coast FIRE는 '현재 자산이 추가 투자 없이 은퇴 시 전통 FI로 성장'하는 오늘의 기준. Barista는 겸업 수입 반영."],
+/* MC */
+mcGl:["退休金撐到規劃壽命的機率（{n} 次模擬）","Odds money lasts to plan age ({n} sims)","計画寿命まで持つ確率({n}回)","계획 수명까지 지속 확률({n}회)"],
+mcP5:["最差 5%","Worst 5%","最悪5%","최악5%"],mcP50:["中位終值","Median end","中央終値","중앙 종값"],mcP95:["最佳 5%","Best 5%","最良5%","최상5%"],mcFail:["失敗率","Fail rate","失敗率","실패율"],
+mcNote:["每次模擬抽出一條 {yr} 年的名目報酬路徑（常態，年化平均與波動如上），用你選的提領策略跑到底。成功＝期末不為 0（且達遺產目標）。固定種子可重現。這是機率分布，不是預測。",
+ "Each run draws one {yr}-year path of returns (normal, mean & vol as set) and applies your chosen withdrawal rule to the end. Success = not depleted (and meets any legacy). Fixed seed is reproducible. A distribution, not a forecast.",
+ "各試行は{yr}年の報酬経路を抽出し取崩戦略を適用。成功=枯渇せず。固定シードで再現。予測ではない。",
+ "각 시행은 {yr}년 경로를 뽑아 인출 전략 적용. 성공=고갈 안 됨. 고정 시드로 재현. 예측 아님."],
+/* 歷史 */
+histSucc:["歷史成功率","Historical success","歴史成功率","과거 성공률"],histWorst:["最差終值","Worst end","最悪終値","최악 종값"],histMed:["中位終值","Median end","中央終値","중앙 종값"],histBest:["最佳終值","Best end","最良終値","최상 종값"],
+histNote:["以 1928–2024 美股與美債『實質』年報酬，按你的股債比合成組合，對每個可能的起始年跑一次 {yr} 年提領。長條為各起點期末資產（紅=枯竭）。實質計算，支出維持不變。資料為教育整理版，請以官方序列校訂。",
+ "Using 1928–2024 US stock & bond real annual returns blended by your allocation, each possible start year runs one {yr}-year retirement. Bars show each start's ending assets (red = depleted). Real terms; spending held constant. Dataset is an educational compilation — verify against official series.",
+ "1928–2024の米株・米債の実質年報酬を株債比で合成、各開始年で{yr}年取崩。棒は各起点の期末資産(赤=枯渇)。実質・支出一定。データは教育整理版。",
+ "1928–2024 미주식·미채권 실질 연수익을 비중으로 합성, 각 시작연도로 {yr}년 인출. 막대는 종말 자산(빨강=고갈). 실질·지출 고정. 데이터는 교육 정리판."],
+/* 策略表 */
+stH:[["策略","期末資產(中位)","最低年支出","成功率"],["Strategy","End (median)","Min spend","Success"],["戦略","期末(中央)","最低支出","成功率"],["전략","기말(중앙)","최저지출","성공률"]],
+/* 年金 */
+pLi:["勞保月領","Labor-ins. monthly","労保月額","노보 월액"],pLp:["勞退月領","Labor-pension monthly","労退月額","노퇴 월액"],pNp:["國保月領","Nat.-pension monthly","国保月額","국민 월액"],pTotal:["年金月領合計","Total monthly pension","年金月額合計","연금 월액 합계"],
+pNote:["法定年齡起，這些『確定收入』會分攤你的生活費，等於讓 FI 目標下修。勞保採 B 式(投保薪資×年資×1.55%)含提前減額/延後加額；勞退新制以個人專戶累積後年金化；數字為簡化估算，實際以勞保局、勞動部公告與試算為準。已把年金折現後的缺口反映在上方 FI 數字。",
+ "From the statutory age these guaranteed incomes offset your living costs, lowering the FI target. Labor-insurance uses formula B (insured salary × years × 1.55%) with early-reduction/deferral; the new labor pension annuitizes the individual account. Figures are simplified — verify with the Bureau of Labor Insurance / Ministry of Labor. The pension's present value is already netted into the FI number above.",
+ "法定年齢からこれら確定収入が生活費を負担しFI目標を下げます。労保はB式、労退新制は口座を年金化。簡略値、公式試算で確認。年金現価はFI数字に反映済み。",
+ "법정 나이부터 이 확정 수입이 생활비를 분담해 FI 목표를 낮춥니다. 노보는 B식, 노퇴신제는 계좌를 연금화. 간이 추정, 공식 확인 필요. 연금 현가는 FI 숫자에 반영됨."],
+pOffset:["年金現值抵減 FI","Pension PV offset","年金現価の控除","연금 현가 차감"],
+/* 敏感度 */
+sensNote:["表列不同『退休年齡』與『每月投入』下，是否能在該年齡前備妥（實質）FI 數字：✓ 達標、數字為差額(萬)。協助你權衡『多存一點』與『晚退一點』。",
+ "For each retire-age × monthly-saving cell: can you have the (real) FI number ready by that age? ✓ = yes; otherwise the shortfall (in NT$10k). Helps you trade off saving more vs. retiring later.",
+ "退職年齢×積立ごとに、その年齢までに(実質)FI数字を用意できるか：✓達成、数字は不足(万)。",
+ "은퇴나이×적립별로 그 나이까지 (실질)FI 숫자 준비 가능? ✓달성, 숫자는 부족(만)."],
+/* 明細 */
+tblH:[["年齡","階段","年支出","年金","投資成長","年末資產"],["Age","Phase","Spend","Pension","Growth","End assets"],["年齢","段階","年支出","年金","成長","期末資産"],["나이","단계","연지출","연금","성장","기말자산"]],
+phAcc:["累積","Accumulate","累積","적립"],phDraw:["提領","Draw","取崩","인출"],
+vHide:["隱藏","Hide","非表示","숨김"],vBrief:["每 5 年","Every 5 yr","5年毎","5년마다"],vFull:["每年","Yearly","毎年","매년"],
+/* 方案比較 */
+sScenario:["方案比較（可存多組）","Scenario comparison","プラン比較","시나리오 비교"],
+scSave:["＋ 儲存目前方案","+ Save current plan","＋ 現在のプランを保存","＋ 현재 플랜 저장"],
+scDefName:["方案","Plan","プラン","플랜"],
+scCurrent:["目前（未存）","Current (unsaved)","現在（未保存）","현재(미저장)"],
+scEmpty:["還沒有已儲存的方案。調好參數後按「＋ 儲存目前方案」，即可存多組（如退休 55 vs 60 歲）並排比較。所有方案會一起存進「儲存檔案」。",
+ "No saved plans yet. Set your inputs and tap '+ Save current plan' to store several (e.g. retire at 55 vs 60) side by side. All plans are included when you 'Save file'.",
+ "保存済みプランなし。入力後「＋現在のプランを保存」で複数保存し比較。プランは「ファイル保存」に含まれます。",
+ "저장된 플랜 없음. 입력 후 '＋현재 플랜 저장'으로 여러 개 저장·비교. 플랜은 '파일 저장'에 포함됩니다."],
+scCols:[["方案","FI 數字","可退休","成功率","每月需投入"],
+ ["Plan","FI number","Retire","Success","Monthly need"],
+ ["プラン","FI数字","退職","成功率","毎月必要"],
+ ["플랜","FI 숫자","은퇴","성공률","월 필요"]],
+scLoad:["載入","Load","読込","불러오기"],scDel:["刪除","Delete","削除","삭제"],
+scRename:["重新命名此方案：","Rename this plan:","プラン名を変更：","플랜 이름 변경:"],
+scNamePrompt:["為這個方案命名：","Name this plan:","このプランの名前：","이 플랜의 이름:"],
+scNote:["「儲存方案」把目前所有參數存成一組可比較的方案（存在瀏覽器）；「儲存檔案」把目前設定＋全部方案打包成一個 JSON 檔，下次用「讀取檔案」即可完整還原。兩者並存、互不取代。",
+ "'Save plan' stores all current inputs as one comparable scenario (in your browser). 'Save file' bundles the current settings plus every saved plan into one JSON file; 'Load file' restores everything next time. Both coexist.",
+ "「プラン保存」は現在の入力を比較用に保存（ブラウザ内）。「ファイル保存」は設定＋全プランを1つのJSONに。両立します。",
+ "'플랜 저장'은 현재 입력을 비교용으로 저장(브라우저). '파일 저장'은 설정＋모든 플랜을 하나의 JSON으로. 둘은 공존합니다."],
+/* v2 退休存活分析 */
+sSurv:["退休存活分析(地板/彈性)","Retirement survival (floor/upside)","退職サバイバル","은퇴 생존 분석"],
+sSurvIn:["退休現金流設定","Retirement cash-flow","退職キャッシュフロー","은퇴 현금흐름"],
+fEssential:["必要生活費(地板/月)","Essential (floor)/mo","必須生活費(下限)/月","필수 생활비(바닥)/월"],
+fDiscretionary:["可選支出(彈性/月)","Discretionary (flex)/mo","裁量支出(弾力)/月","선택 지출(탄력)/월"],
+fCareAge:["照護期起始年齡","Care phase from age","介護期の開始年齢","돌봄기 시작 나이"],
+fCareMed:["照護期醫療(月)","Care medical/mo","介護期の医療/月","돌봄기 의료/월"],
+fMedInfl:["醫療通膨","Medical inflation","医療インフレ","의료 물가"],
+fStockEnd:["股票比例(退休末)","Stock % (end)","株式%(末)","주식%(말)"],
+fPartUntil:["兼職做到幾歲","Part-time until age","兼業は何歳まで","겸업 몇 세까지"],
+fOneExp:["一次性大額支出","One-off big expense","一時的大型支出","일회성 대형 지출"],
+fOneIn:["一次性大額進帳","One-off big inflow","一時的大型入金","일회성 대형 수입"],
+fAtAge:["發生年齡","At age","発生年齢","발생 나이"],
+trackK:[["蒙地卡羅","歷史序列","區塊bootstrap"],
+ ["Monte Carlo","Historical","Bootstrap"],
+ ["モンテカルロ","歴史系列","ブートストラップ"],
+ ["몬테카를로","과거 시퀀스","부트스트랩"]],
+floorSurv:["地板存活率","Floor survival","下限サバイバル","바닥 생존율"],
+flexFulfill:["彈性實現率","Upside fulfilled","裁量実現率","탄력 실현율"],
+survMedEnd:["中位期末淨值","Median end","中央期末","중앙 기말"],
+survBreach:["中位枯竭年齡","Median depletion age","中央枯渇年齢","중앙 고갈 나이"],
+survGl:["必要生活費撐到 {plan} 歲的機率({track}，{n} 條路徑)","Odds essentials last to {plan} ({track}, {n} paths)","必須生活費が{plan}歳まで持つ確率","필수 생활비가 {plan}세까지 지속 확률"],
+sRbd:["Rich-Broke-Dead(長壽×破產機率)","Rich-Broke-Dead","Rich-Broke-Dead","Rich-Broke-Dead"],
+rbdRich:["活著且有錢","Alive & solvent","健在で資金あり","생존·자금 있음"],
+rbdBroke:["活著但破產","Alive but broke","健在だが破綻","생존·파산"],
+rbdDead:["已身故","Deceased","死亡","사망"],
+rbdNote:["結合台灣簡易生命表(教育整理版,待以內政部最新版校訂)與三軌模擬:每個年齡,你「還活著且有錢／活著但錢花光／已身故」的機率(三者和=100%)。這不是預測,是機率分布。",
+ "Combines a Taiwan life table (educational compilation, verify against the latest official) with the simulation: at each age, the probability you are alive-with-money / alive-but-broke / deceased (sums to 100%). A distribution, not a forecast.",
+ "台湾簡易生命表(教育版)と三軌シミュレーションを結合:各年齢で「健在で資金あり/健在だが破綻/死亡」の確率(合計100%)。予測ではなく確率分布。",
+ "대만 생명표(교육판)와 시뮬레이션 결합: 각 나이에서 생존·자금있음/생존·파산/사망 확률(합 100%). 예측이 아닌 분포."],
+sCf:["退休逐年現金流(期望路徑)","Year-by-year cash-flow","退職 年次CF","은퇴 연도별 현금흐름"],
+cfH:[["年齡","必要","可選(實現)","收入/年金","自資產提領","期末淨值"],
+ ["Age","Essential","Discret.(actual)","Income","From assets","End net"],
+ ["年齢","必須","裁量(実現)","収入","資産から","期末純"],
+ ["나이","필수","선택(실현)","수입","자산에서","기말"]],
+survNote:["地板=必要生活費,市場差也不砍(由年金+收入+資產保底);彈性=可選支出,市場差先砍。存活率=各模擬路徑中『地板全程被滿足』的比例。三軌可切換:蒙地卡羅(常態可重現)、真實歷史序列(1928–2024)、區塊bootstrap(保留連續數年相依)。皆為情境機率,非預測。",
+ "Floor = essentials, never cut (backed by pension+income+assets); upside = discretionary, cut first in bad markets. Survival = share of paths where the floor is met every year. Switch tracks: Monte Carlo (normal, reproducible), real history (1928–2024), block bootstrap. Scenario probabilities, not a forecast.",
+ "下限=必須生活費(年金+収入+資産で保障)、弾力=裁量支出(先に削減)。サバイバル=下限が毎年満たされる経路の割合。三軌切替可能。予測ではない。",
+ "바닥=필수(연금+수입+자산 보장), 탄력=선택(먼저 삭감). 생존율=바닥이 매년 충족된 경로 비율. 3트랙 전환. 예측 아님."],
+/* 資料 */
+dmExport:["儲存檔案(全部)","Save file (all)","ファイル保存","파일 저장"],dmImport:["讀取檔案","Load file","ファイル読込","파일 열기"],dmRestore:["恢復預設","Defaults","初期値","기본값"],dmClear:["清除資料","Clear","消去","삭제"],
+savedLabel:["上次自動儲存","Last auto-save","前回保存","마지막 저장"],
+savedTip:["自動儲存於瀏覽器本機，換裝置或清資料會消失；換機請用「儲存檔案(全部)」匯出備份。",
+ "Auto-saved in this browser only; it disappears if you switch device or clear data. Use 'Save file (all)' to back up.",
+ "ブラウザ内のみ保存。端末変更や消去で消えます。「ファイル保存」でバックアップを。",
+ "이 브라우저에만 저장됩니다. 기기 변경·삭제 시 사라집니다. '파일 저장'으로 백업하세요."],
+loadFail:["讀取失敗：這不是本工具的備份檔，或檔案已損毀。","Load failed: not this tool's backup, or the file is corrupted.","読込失敗：本ツールのバックアップではないか破損しています。","불러오기 실패: 이 도구의 백업이 아니거나 손상됨."],
+clearAsk:["確定清除本機儲存資料與全部方案？無法復原。","Clear saved data and all plans? This cannot be undone.","保存データと全プランを消去しますか？元に戻せません。","저장 데이터와 모든 플랜을 삭제할까요? 되돌릴 수 없습니다."],
+resetAsk:["恢復所有欄位為預設值？（不影響已儲存的方案）","Reset all fields to defaults? (Saved plans are kept.)","全項目を初期値に戻しますか？（保存プランは保持）","모든 항목을 기본값으로? (저장 플랜 유지)"],
+/* 結論 */
+concYes:["以目前的投入與報酬假設，你大約可在 {age} 歲達到財務自由（{yr} 年後），FI 數字約 {fi}。",
+ "At your current pace and assumptions, you can reach financial independence around age {age} (in {yr} years); the FI number is about {fi}.",
+ "現ペースと仮定では、約{age}歳({yr}年後)で経済的自立、FI数字は約{fi}。",
+ "현 속도·가정에서 약 {age}세({yr}년 후) 경제적 자립, FI 숫자 약 {fi}."],
+concLate:["以目前投入，預計 {age} 歲才達標，比目標退休年齡 {rage} 歲晚 {d} 年。可提高每月投入、降低支出或延後退休。",
+ "At this pace you reach FI at {age}, which is {d} years later than your target age {rage}. Raise monthly investing, cut spending, or retire later.",
+ "現ペースでは{age}歳で達成、目標{rage}歳より{d}年遅い。積立増・支出減・退職延期を。",
+ "현 속도로는 {age}세 달성, 목표 {rage}세보다 {d}년 늦음. 적립↑·지출↓·은퇴 연기."],
+concNo:["以目前投入，規劃年限內尚無法達成 FI。建議提高每月投入、調整報酬/支出假設，或善用台灣年金縮小缺口。",
+ "At this pace, FI is not reached within your horizon. Raise monthly investing, revisit return/spending assumptions, or lean on Taiwan pensions to close the gap.",
+ "現ペースでは期間内にFI未達。積立増や仮定見直し、年金活用を。",
+ "현 속도로는 기간 내 FI 미달. 적립↑·가정 재검토·연금 활용."],
+concSub:["蒙地卡羅顯示這筆錢撐到 {plan} 歲的成功率約 {succ}；歷史序列回測成功率 {hist}。往下看五型態、五種提領法則與年金缺口。",
+ "Monte Carlo puts the odds the money lasts to age {plan} at about {succ}; historical backtest success is {hist}. Scroll for the five types, five withdrawal rules and the pension gap.",
+ "モンテカルロで{plan}歳まで持つ確率約{succ}、歴史検証{hist}。以下に5類型・5取崩ルール・年金差額。",
+ "몬테카를로로 {plan}세까지 지속 확률 약 {succ}, 과거검증 {hist}. 아래 5유형·5인출법칙·연금격차."],
+disc:["本工具僅供教育與試算參考，非投資、財務、稅務或退休建議。所有計算在你的瀏覽器本地完成，資料不外傳。市場報酬、通膨、年金給付、稅率與法規門檻均為假設或簡化，未來實際結果必然不同。投資有風險，過去績效不代表未來。請以官方公告與專業意見為準。",
+ "For education and estimation only — not investment, financial, tax or retirement advice. All computation runs locally in your browser; no data leaves your device. Market returns, inflation, pension benefits, tax rates and thresholds are assumptions or simplifications and real outcomes will differ. Investing carries risk; past performance does not indicate future results. Verify with official sources and a professional.",
+ "本ツールは教育・試算目的のみで、投資・財務・税務・退職の助言ではありません。計算はブラウザ内で完結しデータは送信されません。利回り・インフレ・年金・税率は仮定で、実際は異なります。投資にはリスクがあります。公式と専門家でご確認ください。",
+ "본 도구는 교육·시산용이며 투자·재무·세무·은퇴 자문이 아닙니다. 계산은 브라우저에서 처리되며 데이터는 전송되지 않습니다. 수익률·물가·연금·세율은 가정이며 실제와 다릅니다. 투자엔 위험이 있습니다. 공식·전문가로 확인하세요."],
+};
+function T(k){const v=D[k];return v?(v[LG]||v[0]):k;}
+function L(t){return t[LG]||t[0];}
+
+/* ==================== 狀態 ==================== */
+const DEF={
+ age:35, port:2000000, save_m:40000, step:2,
+ rage:55, plan:95, exp_m:50000, lean_m:30000, fat_m:100000,
+ ret:6.5, vol:16, infl:2, stock:80,
+ swr:3.5, strat:"constant", initWR:5, fixedPct:4, ceil:5, floor:2.5, vpwRet:3,
+ li:true, lisal:45800, liyr:35, licl:65,
+ lp:true, lpsal:60000, lpemp:6, lpvol:0, lpyr:35, lpret:3,
+ np:false, npyr:0,
+ part_m:0, legacy:0,
+ lev:false, levAmt:2000000, levRate:3.2, levYears:20, levGrace:3, levMethod:"grace",
+ essential_m:35000, disc_m:15000, careAge:82, careMed:25000, medInfl:4, stockEnd:40, partUntil:65,
+ oneExpAge:0, oneExpAmt:0, oneInAge:0, oneInAmt:0, track:"mc",
+ sims:10000, tblView:"brief",
+};
+let S=JSON.parse(JSON.stringify(DEF));
+let dark=false;
+
+/* ==================== 格式化 ==================== */
+function fmtNT(n){n=Math.round(n);return "NT$"+n.toLocaleString("en-US");}
+function fmtBig(n){
+ const a=Math.abs(n);
+ if(LG===1){ if(a>=1e9)return "NT$"+(n/1e9).toFixed(2)+"B"; if(a>=1e6)return "NT$"+(n/1e6).toFixed(2)+"M"; if(a>=1e3)return "NT$"+(n/1e3).toFixed(0)+"K"; return "NT$"+Math.round(n).toLocaleString("en-US"); }
+ // 中日韓：萬／億
+ if(a>=1e8) return "NT$"+(n/1e8).toFixed(2)+(LG===3?"억":"億"); // zh/ja=億, ko=억
+ if(a>=1e4) return "NT$"+(n/1e4).toFixed(1)+(LG===2?"万":LG===3?"만":"萬"); // zh=萬, ja=万, ko=만
+ return "NT$"+Math.round(n).toLocaleString("en-US");
+}
+function fmtPct(x,d){return (x*100).toFixed(d==null?1:d)+"%";}
+function wan(n){return (n/1e4).toFixed(0);}
+
+/* ==================== 讀取輸入 ==================== */
+function readInputs(){
+ const num=(id,def)=>{const el=document.getElementById(id);if(!el)return def;const v=parseFloat(el.value);return isNaN(v)?def:v;};
+ S.age=num("age",35); S.port=num("port",0); S.save_m=num("save_m",0); S.step=num("step",0);
+ S.rage=num("rage",55); S.plan=num("plan",95); S.exp_m=num("exp_m",0); S.lean_m=num("lean_m",0); S.fat_m=num("fat_m",0);
+ S.ret=num("ret",6); S.vol=num("vol",16); S.infl=num("infl",2); S.stock=num("stock",80);
+ S.swr=num("swr",3.5);
+ S.initWR=num("p_initWR",5); S.fixedPct=num("p_fixed",4); S.ceil=num("p_ceil",5); S.floor=num("p_floor",2.5); S.vpwRet=num("p_vpw",3);
+ S.lisal=num("lisal",0); S.liyr=num("liyr",0); S.licl=num("licl",65);
+ S.lpsal=num("lpsal",0); S.lpemp=num("lpemp",6); S.lpvol=num("lpvol",0); S.lpyr=num("lpyr",0); S.lpret=num("lpret",3);
+ S.npyr=num("npyr",0);
+ S.part_m=num("part_m",0); S.legacy=num("legacy",0);
+ S.levAmt=num("levamt",0); S.levRate=num("levrate",0); S.levYears=num("levyr",0); S.levGrace=num("levg",0);
+ S.essential_m=num("essential_m",0); S.disc_m=num("disc_m",0); S.careAge=num("careAge",82); S.careMed=num("careMed",0);
+ S.medInfl=num("medInfl",S.infl); S.stockEnd=num("stockEnd",40); S.partUntil=num("partUntil",65);
+ S.oneExpAmt=num("oneExpAmt",0); S.oneExpAge=num("oneExpAge",0); S.oneInAmt=num("oneInAmt",0); S.oneInAge=num("oneInAge",0);
+}
+
+/* ==================== 核心計算 ==================== */
+function compute(){
+ readInputs();
+ const realRet=E.realFromNominal(S.ret,S.infl); // 實質報酬（小數）
+ const yearsToRetire=Math.max(0,S.rage-S.age);
+ const monthsToRetire=Math.round(yearsToRetire*12);
+ const drawYears=Math.max(1,S.plan-S.rage);
+ const baseAnnual=S.exp_m*12, leanAnnual=S.lean_m*12, fatAnnual=S.fat_m*12;
+ const swr=S.swr;
+
+ // 台灣年金（月領，視為今日實質值）
+ const li=S.li?E.laborInsurancePension({avgInsuredSalary:S.lisal,insuredYears:S.liyr,claimAge:S.licl,statutoryAge:65}):{monthly:0};
+ const lp=S.lp?E.laborPensionNew({monthlySalary:S.lpsal,employerPct:S.lpemp,voluntaryPct:S.lpvol,years:S.lpyr,investReturnPct:S.lpret,annuityYears:Math.max(1,S.plan-65)}):{monthly:0};
+ const np=S.np?E.nationalPension({insuredYears:S.npyr}):{monthly:0};
+ const pensionMonthly=li.monthly+lp.monthly+np.monthly;
+ const pensionAnnual=pensionMonthly*12;
+ const pensionStartAge=Math.max(S.licl||65,65);
+ const yearsToPensionFromRetire=Math.max(0,pensionStartAge-S.rage);
+ const pensionDrawYears=Math.max(0,S.plan-pensionStartAge);
+ // 年金現值（實質）抵減 FI
+ const offset=E.pensionGapOffset({pensionAnnual:pensionAnnual,yearsToPensionFromRetire:yearsToPensionFromRetire,pensionYears:pensionDrawYears,realDiscountPct:realRet*100,inflationPct:S.infl}).presentValue;
+
+ // FI 數字（傳統）與抵減後目標
+ const fiTrad=E.fiNumber(baseAnnual,swr);
+ const fiAdjusted=Math.max(0,fiTrad-offset);
+
+ // 槓桿投資（選用）：借款一次投入，淨值＝投資市值−借款餘額
+ const loanCfg=S.lev?{loanAmount:S.levAmt,ratePct:S.levRate,years:S.levYears,graceYears:S.levGrace,method:S.levMethod}:null;
+ const lev=S.lev?E.leverageLoan(loanCfg):null;
+
+ // 累積：達 fiAdjusted 的月數（有槓桿改用淨值）
+ const m2fi=S.lev
+   ? E.accumulateLeveraged({initial:S.port,monthlyContribution:S.save_m,stepUpAnnualPct:S.step,realReturnPct:realRet*100,months:1200,target:fiAdjusted,loan:loanCfg}).hitMonth
+   : E.monthsToTarget({initial:S.port,monthlyContribution:S.save_m,stepUpAnnualPct:S.step,realReturnPct:realRet*100,target:fiAdjusted,capMonths:1200});
+ const fiAgeExact=m2fi==null?null:S.age+m2fi/12;
+ const fiAge=fiAgeExact==null?null:Math.ceil(fiAgeExact);
+
+ // 目標退休年齡時的資產（有槓桿改用淨值）
+ const projAtRetire=S.lev
+   ? (function(){const a=E.accumulateLeveraged({initial:S.port,monthlyContribution:S.save_m,stepUpAnnualPct:S.step,realReturnPct:realRet*100,months:monthsToRetire,target:null,loan:loanCfg});return a.yearEnd.length?a.yearEnd[a.yearEnd.length-1]:S.port;})()
+   : E.accumulate({initial:S.port,monthlyContribution:S.save_m,stepUpAnnualPct:S.step,realReturnPct:realRet*100,months:monthsToRetire}).endValue;
+ const feasibleAtTarget=projAtRetire>=fiAdjusted-1e-6;
+
+ // 每月需投入（達 fiAdjusted at rage，忽略 step 的簡化式）
+ const rm=E.annualToMonthly(realRet);
+ let needMonthly=0;
+ if(monthsToRetire>0){
+   const grow=Math.pow(1+rm,monthsToRetire);
+   const annuity=rm===0?monthsToRetire:(grow-1)/rm;
+   needMonthly=Math.max(0,(fiAdjusted-S.port*grow)/annuity);
+ }
+
+ // 五型態
+ const variants=E.fireVariants({fatExpense:fatAnnual,baseExpense:baseAnnual,leanExpense:leanAnnual,swrPct:swr,
+   coast:{realReturnPct:realRet*100,yearsToTraditional:Math.max(0,65-S.age),currentPortfolio:S.port}});
+ const barista=E.baristaFire({annualExpense:baseAnnual,partTimeAnnualIncome:S.part_m*12,swrPct:swr});
+
+ // 提領期參數（實質框架：inflation=0，pension 視為實質固定）
+ const initialDraw=feasibleAtTarget?projAtRetire:fiAdjusted; // 用實際可備妥或目標較大者中的可備妥；若不足用projAtRetire
+ const initDrawBal=Math.max(projAtRetire,0);
+ const spend0=baseAnnual;
+ const pensionForDraw={annualAmount:pensionAnnual,startYear:Math.max(1,pensionStartAge-S.rage+1),growWithInflation:false};
+ const stratParams={
+   constant:{}, gk:{initialWRPct:S.initWR,spend0:undefined},
+   vpw:{expectedRealReturnPct:S.vpwRet}, dynamic:{targetWRPct:S.fixedPct,ceilingPct:S.ceil,floorPct:S.floor},
+   fixedpct:{pctPerYear:S.fixedPct},
+ }[S.strat]||{};
+
+ // 蒙地卡羅（實質：mean=realRet, infl=0）
+ const mc=E.monteCarloRetirement({initial:initDrawBal,spend0:spend0,years:drawYears,
+   nominalMeanPct:realRet*100,volPct:S.vol,inflationPct:0,strategy:S.strat,strategyParams:stratParams,
+   pension:pensionForDraw,legacyTarget:S.legacy,N:S.sims,seed:20260807});
+
+ // 歷史回測（實質資料）
+ const hist=E.historicalBacktest(HIST.stock.map(x=>x/100),HIST.bond.map(x=>x/100),{
+   initial:initDrawBal,spend0:spend0,years:drawYears,stockPct:S.stock,inflationPct:0,
+   strategy:S.strat,strategyParams:stratParams,pension:pensionForDraw,legacyTarget:S.legacy});
+
+ // 五策略比較（同一條期望實質報酬平坦路徑做點估；成功率取自各自 MC 小樣本）
+ const flat=new Array(drawYears).fill(realRet);
+ const stratRows=["constant","gk","vpw","dynamic","fixedpct"].map(name=>{
+   const sp={constant:{},gk:{initialWRPct:S.initWR},vpw:{expectedRealReturnPct:S.vpwRet},
+     dynamic:{targetWRPct:S.fixedPct,ceilingPct:S.ceil,floorPct:S.floor},fixedpct:{pctPerYear:S.fixedPct}}[name];
+   const det=E.runStrategy(name,flat,Object.assign({initial:initDrawBal,spend0:spend0,inflationPct:0,pension:pensionForDraw,legacyTarget:S.legacy},sp));
+   const mcS=E.monteCarloRetirement({initial:initDrawBal,spend0:spend0,years:drawYears,nominalMeanPct:realRet*100,volPct:S.vol,inflationPct:0,strategy:name,strategyParams:sp,pension:pensionForDraw,legacyTarget:S.legacy,N:400,seed:99});
+   const minSpend=det.minSpend!=null?det.minSpend:spend0;
+   return {name,end:det.endBalance,minSpend,success:mcS.successRate};
+ });
+
+ // 一生曲線（實質）：累積到 rage，再用選定策略跑 flat 期望路徑
+ const accSeries=S.lev
+   ? E.accumulateLeveraged({initial:S.port,monthlyContribution:S.save_m,stepUpAnnualPct:S.step,realReturnPct:realRet*100,months:monthsToRetire,target:null,loan:loanCfg}).yearEnd
+   : E.accumulate({initial:S.port,monthlyContribution:S.save_m,stepUpAnnualPct:S.step,realReturnPct:realRet*100,months:monthsToRetire}).yearEnd;
+ const drawDet=E.runStrategy(S.strat,flat,Object.assign({initial:initDrawBal,spend0:spend0,inflationPct:0,pension:pensionForDraw,legacyTarget:S.legacy},stratParams));
+
+ // ===== v2 退休存活分析（逐年現金流 + 三軌模擬 + Rich-Broke-Dead）=====
+ const careStart=Math.max(S.rage+1,S.careAge);
+ const v2plan={
+   retireAge:S.rage, initialPortfolio:Math.max(0,projAtRetire),
+   phases:[
+     {startAge:S.rage, essentialMonthly:S.essential_m, medicalMonthly:0, discretionaryMonthly:S.disc_m},
+     {startAge:careStart, essentialMonthly:S.essential_m, medicalMonthly:S.careMed, discretionaryMonthly:Math.round(S.disc_m*0.5)},
+   ],
+   oneOffEssential:[], oneOffDiscretionary:(S.oneExpAmt>0&&S.oneExpAge>0)?[{age:S.oneExpAge,amount:S.oneExpAmt}]:[],
+   incomeSegments:(S.part_m>0)?[{startAge:S.rage,endAge:Math.max(S.rage,S.partUntil),monthlyAmount:S.part_m}]:[],
+   oneOffInflows:(S.oneInAmt>0&&S.oneInAge>0)?[{age:S.oneInAge,amount:S.oneInAmt}]:[],
+   pensionAnnual:pensionAnnual, pensionStartAge:pensionStartAge,
+   generalInflationPct:S.infl, medicalInflationPct:S.medInfl,
+   strategy:S.strat, strategyParams:stratParams,
+   glide:{stockStartPct:S.stock, stockEndPct:S.stockEnd}, legacyTarget:S.legacy,
+ };
+ const stockMeanReal=realRet*100; // 以名目報酬扣通膨為股票實質期望
+ const survN=Math.min(S.sims,5000); // v2 模擬固定上限以維持即時性
+ const surv=E.simulateRetirement(v2plan,{track:S.track,planAge:S.plan,N:survN,seed:20260808,
+   stockMeanPct:stockMeanReal,stockVolPct:S.vol,bondMeanPct:1.0,bondVolPct:6,corr:0.15,
+   histStock:HIST.stock.map(x=>x/100),histBond:HIST.bond.map(x=>x/100),block:5});
+ const survCurve=E.survivalFromQx(QX,S.rage,surv.years);
+ const rbd=E.richBrokeDead(S.rage,surv.solventByYear,survCurve);
+ const cfPath=E.runRetirementPath(v2plan,new Array(surv.years).fill(stockMeanReal/100),new Array(surv.years).fill(0.01));
+
+ return {realRet,yearsToRetire,drawYears,baseAnnual,swr,
+   li,lp,np,pensionMonthly,pensionAnnual,pensionStartAge,offset,
+   fiTrad,fiAdjusted,m2fi,fiAge,fiAgeExact,projAtRetire,feasibleAtTarget,needMonthly,
+   variants,barista,mc,hist,stratRows,accSeries,drawDet,initDrawBal,pensionForDraw,lev,
+   v2plan,surv,rbd,cfPath};
+}
+
+/* ==================== 繪圖工具 ==================== */
+function pathFrom(vals,W,H,pad,maxV,minV){
+ const n=vals.length; if(n<2) return "";
+ const mx=maxV==null?Math.max(...vals):maxV, mn=minV==null?Math.min(...vals,0):minV;
+ const rng=(mx-mn)||1;
+ return vals.map((v,i)=>{const x=pad+(W-2*pad)*i/(n-1);const y=H-pad-(H-2*pad)*(v-mn)/rng;return (i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);}).join(" ");
+}
+
+/* ==================== 渲染 ==================== */
+function renderStratParams(){
+ const box=document.getElementById("stratParams");
+ const rows=[];
+ const R=(id,lbl,val,u)=>`<div class="f"><div class="ftop"><label>${lbl}</label><input class="num" id="${id}" type="number" inputmode="decimal" value="${val}"><span class="u">${u}</span></div></div>`;
+ if(S.strat==="gk") rows.push(R("p_initWR",T("pInitWR"),S.initWR,"%"));
+ if(S.strat==="fixedpct") rows.push(R("p_fixed",T("pFixed"),S.fixedPct,"%"));
+ if(S.strat==="dynamic"){rows.push(R("p_fixed",T("pFixed"),S.fixedPct,"%"));rows.push(R("p_ceil",T("pCeil"),S.ceil,"%"));rows.push(R("p_floor",T("pFloor"),S.floor,"%"));}
+ if(S.strat==="vpw") rows.push(R("p_vpw",T("pVpw"),S.vpwRet,"%"));
+ const idx={constant:0,gk:1,vpw:2,dynamic:3,fixedpct:4}[S.strat];
+ box.innerHTML=rows.join("")+`<div class="f"><div class="expl on" style="margin:0">${L(D.stratDesc[idx])}</div></div>`;
+ box.querySelectorAll("input").forEach(inp=>inp.addEventListener("input",run));
+}
+
+function applyLang(){
+ document.documentElement.lang=["zh-Hant","en","ja","ko"][LG];
+ const set=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
+ const setH=(id,html)=>{const el=document.getElementById(id);if(el)el.innerHTML=html;};
+ set("hTitle",["FIRE 退休試算","FIRE Calculator","FIRE 退職試算","FIRE 은퇴 계산"][LG]);
+ set("hSub",T("hSub"));
+ set("jur",T("jur"));
+ set("save",T("save")); set("mode",dark?T("light"):T("dark")); set("reset",T("reset"));
+ // sections
+ set("s_now",T("sNow"));set("s_goal",T("sGoal"));set("s_market",T("sMarket"));
+ set("s_swr",T("sSwr"));set("s_pension",T("sPension"));set("s_adv",T("sAdv"));set("s_lev",T("sLev"));set("s_levout",T("sLevOut"));
+ set("s_survin",T("sSurvIn"));set("s_surv",T("sSurv"));set("s_cf",T("sCf"));
+ set("s_variants",T("sVariants"));set("s_advisor",T("sAdvisor"));set("s_curve",T("sCurve"));
+ set("s_mc",T("sMc"));set("s_hist",T("sHist"));set("s_strat",T("sStrat"));set("s_pout",T("sPout"));
+ set("s_sens",T("sSens"));set("s_tbl",T("sTbl"));set("s_data",T("sData"));
+ // labels
+ const lab={l_age:"fAge",l_port:"fPort",l_save:"fSave",l_step:"fStep",l_rage:"fRage",l_plan:"fPlan",
+  l_exp:"fExp",l_lean:"fLean",l_fat:"fFat",l_ret:"fRet",l_vol:"fVol",l_infl:"fInfl",l_stock:"fStock",
+  l_swr:"fSwr",l_part:"fPart",l_legacy:"fLegacy",l_li:"fLi",l_lisal:"fLisal",l_liyr:"fLiyr",l_licl:"fLicl",
+  l_lp:"fLp",l_lpsal:"fLpsal",l_lpemp:"fLpemp",l_lpvol:"fLpvol",l_lpyr:"fLpyr",l_lpret:"fLpret",l_np:"fNp",l_npyr:"fNpyr",
+  l_lev:"fLev",l_levamt:"fLevAmt",l_levrate:"fLevRate",l_levyr:"fLevYr",l_levg:"fLevG",
+  l_ess:"fEssential",l_disc:"fDiscretionary",l_careAge:"fCareAge",l_careMed:"fCareMed",l_medInfl:"fMedInfl",
+  l_stockEnd:"fStockEnd",l_partUntil:"fPartUntil",l_oneExp:"fOneExp",l_oneIn:"fOneIn"};
+ for(const id in lab) set(id,T(lab[id]));
+ // units
+ ["u_age"].forEach(()=>{}); set("u_age",T("u_age"));
+ set("u_rage",T("u_age"));set("u_plan",T("u_age"));set("u_liyr",T("u_year"));set("u_licl",T("u_age"));set("u_lpyr",T("u_year"));set("u_npyr",T("u_year"));
+ set("u_levyr",T("u_year"));set("u_levg",T("u_year"));
+ set("u_careAge",T("u_age"));set("u_partUntil",T("u_age"));set("u_oneExpAt",T("fAtAge"));set("u_oneInAt",T("fAtAge"));
+ document.querySelectorAll("#segTrack button").forEach((b,i)=>b.textContent=L(D.trackK)[i]);
+ document.querySelectorAll("#segTbl button").forEach((b,i)=>b.textContent=[T("vHide"),T("vBrief"),T("vFull")][i]);
+ // explains
+ set("e_exp",T("eExp"));
+ set("e_stock",T("eStock"));
+ set("e_swr",T("eSwr"));
+ set("e_part",T("ePart"));
+ set("e_lev",T("eLev"));
+ set("autoSWR",T("autoBtn"));
+ // strategy seg
+ document.querySelectorAll("#segStrat button").forEach((b,i)=>b.textContent=L(D.stratK)[i]);
+ document.querySelectorAll("#segLevM button").forEach((b,i)=>b.textContent=L(D.levMethodK)[i]);
+ // scenario / data
+ set("s_scenario",T("sScenario")); set("scSaveBtn",T("scSave"));
+ setH("dataCard",
+  `<div class="note" style="border-top:none;padding-bottom:6px"><span id="savedTime">—</span> · ${T("savedTip")}</div>`+
+  `<div class="dm" style="flex-wrap:wrap;gap:8px">`+
+   `<button class="mini" id="btnExport">${T("dmExport")}</button>`+
+   `<button class="mini" id="btnImport">${T("dmImport")}</button>`+
+   `<button class="mini" id="btnRestoreDef">${T("dmRestore")}</button>`+
+   `<button class="mini" id="btnClear" style="color:var(--danger)">${T("dmClear")}</button>`+
+   `<input type="file" id="fileImport" accept="application/json" style="display:none"></div>`+
+  `<div class="warn" id="dataErr" style="display:none"></div>`+
+  `<div class="adslot" id="adslot" aria-hidden="true"></div>`);
+ wireData(); updateSavedTime(); renderPlans();
+ renderStratParams();
+}
+
+function render(r){
+ const set=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
+ // key metrics
+ set("k1l",T("kFi")); set("k1n",fmtBig(r.fiAdjusted));
+ set("k1s",T("kFiS").replace("{swr}",r.swr).replace("{mult}",(100/r.swr).toFixed(0)));
+ set("k2l",T("kGap"));
+ if(r.m2fi===0){set("k2n",T("kGapDone").split("，")[0].split("!")[0]);set("k2s",T("kGapDone"));}
+ else if(r.m2fi==null){set("k2n","—");set("k2s",T("kGapNo"));}
+ else{set("k2n",Math.ceil(r.m2fi/12)+" "+T("u_year"));set("k2s",T("kGapReach").replace("{age}",r.fiAge).replace("{yr}",Math.ceil(r.m2fi/12)));}
+
+ // 結論
+ let conc,concs;
+ if(r.m2fi==null){conc=T("concNo");}
+ else if(r.fiAgeExact<=S.rage+1e-6){conc=T("concYes").replace("{age}",r.fiAge).replace("{yr}",Math.ceil(r.m2fi/12)).replace("{fi}",fmtBig(r.fiAdjusted));}
+ else{const d=Math.ceil(r.fiAgeExact-S.rage);conc=T("concLate").replace("{age}",r.fiAge).replace("{rage}",S.rage).replace("{d}",d);}
+ concs=T("concSub").replace("{plan}",S.plan).replace("{succ}",fmtPct(r.mc.successRate,0)).replace("{hist}",fmtPct(r.hist.successRate,0));
+ document.getElementById("conc").textContent=conc;
+ document.getElementById("concs").textContent=concs;
+
+ // stats
+ document.getElementById("stats").innerHTML=
+  st(fmtBig(r.fiAdjusted),T("stFi"))+
+  st(r.fiAge==null?"—":r.fiAge+" "+T("u_age"),T("stAge"))+
+  st(r.m2fi==null?"—":Math.ceil(r.m2fi/12),T("stYears"))+
+  st(fmtBig(r.needMonthly),T("stNeed"));
+
+ // v2 存活分析
+ renderSurvival(r); renderCashflow(r);
+
+ // 型態
+ const V=[
+  {l:T("vLean"),n:r.variants.lean,reach:S.port>=r.variants.lean},
+  {l:T("vCoast"),n:r.variants.coastNumberNow,reach:r.variants.coast.alreadyCoasting},
+  {l:T("vBarista"),n:r.barista.portfolioNeeded,reach:S.port>=r.barista.portfolioNeeded},
+  {l:T("vTrad"),n:r.variants.traditional,reach:S.port>=r.variants.traditional},
+  {l:T("vFat"),n:r.variants.fat,reach:S.port>=r.variants.fat},
+ ];
+ document.getElementById("variants").innerHTML=V.map(v=>{
+  const ratio=v.n>0?S.port/v.n:0;
+  const badge=v.reach?`<span class="b" style="background:rgba(31,122,70,.15);color:var(--ok)">${T("vReach")}</span>`
+    :ratio>=0.6?`<span class="b" style="background:rgba(184,116,16,.15);color:var(--amber)">${T("vClose")}</span>`
+    :`<span class="b" style="background:var(--fill);color:var(--label2)">${T("vFar")}</span>`;
+  return `<div class="vt"><div class="n">${fmtBig(v.n)}</div><div class="l">${v.l}</div><div>${badge}</div></div>`;
+ }).join("");
+ document.getElementById("varNote").textContent=T("varNote");
+
+ // advisor
+ renderAdvisor(r);
+
+ // 一生曲線
+ drawCurve(r);
+ document.getElementById("curveNote").textContent=
+  L([`綠線＝累積期資產成長到 ${S.rage} 歲，藍線＝退休後依「${L(D.stratK)[{constant:0,gk:1,vpw:2,dynamic:3,fixedpct:4}[S.strat]]}」提領到 ${S.plan} 歲，虛線為 FI 數字。皆為實質（今日購買力）。`,
+   `Green = assets growing to age ${S.rage}; blue = post-retirement draw under "${L(D.stratK)[{constant:0,gk:1,vpw:2,dynamic:3,fixedpct:4}[S.strat]]}" to age ${S.plan}; dashed = FI number. All in real (today's) terms.`,
+   `緑=${S.rage}歳までの資産成長、青=退職後の提領、点線=FI数字。実質。`,
+   `초록=${S.rage}세까지 성장, 파랑=은퇴 후 인출, 점선=FI 숫자. 실질.`]);
+
+ // MC
+ document.getElementById("mcGv").textContent=fmtPct(r.mc.successRate,0);
+ document.getElementById("mcGl").textContent=T("mcGl").replace("{n}",S.sims.toLocaleString("en-US"));
+ document.getElementById("mcGv").style.color=r.mc.successRate>=0.9?"var(--ok)":r.mc.successRate>=0.75?"var(--amber)":"var(--danger)";
+ drawMc(r);
+ document.getElementById("mcReads").innerHTML=
+  rd(fmtBig(r.mc.terminal.p5),T("mcP5"))+rd(fmtBig(r.mc.terminal.p50),T("mcP50"))+
+  rd(fmtBig(r.mc.terminal.p95),T("mcP95"))+rd(fmtPct(r.mc.failRate,0),T("mcFail"));
+ document.getElementById("mcNote").textContent=T("mcNote").replace("{yr}",r.drawYears);
+
+ // 歷史
+ drawHist(r);
+ document.getElementById("histReads").innerHTML=
+  rd(fmtPct(r.hist.successRate,0),T("histSucc"))+rd(fmtBig(r.hist.worstEnd),T("histWorst"))+
+  rd(fmtBig(r.hist.medianEnd),T("histMed"))+rd(fmtBig(r.hist.bestEnd),T("histBest"));
+ document.getElementById("histNote").textContent=T("histNote").replace("{yr}",r.drawYears);
+
+ // 策略表
+ const sh=L(D.stH);
+ document.getElementById("stratTbl").innerHTML=
+  `<thead><tr><th>${sh[0]}</th><th>${sh[1]}</th><th>${sh[2]}</th><th>${sh[3]}</th></tr></thead><tbody>`+
+  r.stratRows.map((x,i)=>{const on=x.name===S.strat;return `<tr${on?' style="background:var(--fill)"':''}><td>${L(D.stratK)[i]}${on?' ●':''}</td><td class="v">${fmtBig(x.end)}</td><td>${fmtBig(x.minSpend)}</td><td>${fmtPct(x.success,0)}</td></tr>`;}).join("")+`</tbody>`;
+ document.getElementById("stratNote").textContent=L(D.stratDesc[{constant:0,gk:1,vpw:2,dynamic:3,fixedpct:4}[S.strat]]);
+
+ // 年金
+ document.getElementById("pReads").innerHTML=
+  rd(fmtNT(r.li.monthly),T("pLi"))+rd(fmtNT(r.lp.monthly),T("pLp"))+
+  rd(fmtNT((r.np.monthly||0)),T("pNp"))+rd(fmtNT(r.pensionMonthly),T("pTotal"));
+ document.getElementById("pNote").innerHTML=`<b>${T("pOffset")}: ${fmtBig(r.offset)}</b><br>${T("pNote")}`;
+
+ // 槓桿寬限期
+ renderLev(r);
+
+ // 敏感度
+ renderSens(r);
+ document.getElementById("sensNote").textContent=T("sensNote");
+
+ // 明細
+ renderTable(r);
+}
+function st(n,l){return `<div><div class="n">${n}</div><div class="l">${l}</div></div>`;}
+function rd(n,l){return `<div><div class="n">${n}</div><div class="l">${l}</div></div>`;}
+
+function renderAdvisor(r){
+ const it=[]; const P=(lv,t,d)=>it.push({lv,t,d});
+ const longHorizon=(S.plan-S.rage)>=40;
+ if(longHorizon && S.swr>3.5) P("danger",
+   ["退休期偏長，SWR 可能過高","Long horizon — SWR may be too high","期間が長くSWRが高い","기간이 길어 SWR 과다"],
+   [`你的退休期約 ${S.plan-S.rage} 年，超過 4% 法則假設的 30 年。建議把 SWR 調到 3%–3.5%（按上方「自動」）。`,
+    `Your ~${S.plan-S.rage}-year retirement exceeds the 30 years behind the 4% rule. Consider 3%–3.5% (tap Auto).`,
+    `退職期約${S.plan-S.rage}年は4%ルールの30年超。3%–3.5%を検討。`,
+    `은퇴기 약 ${S.plan-S.rage}년은 4% 법칙의 30년 초과. 3%–3.5% 권장.`]);
+ if(r.mc.successRate<0.8) P("amber",
+   ["蒙地卡羅成功率偏低","Monte Carlo success is low","モンテカルロ成功率が低い","몬테카를로 성공률 낮음"],
+   [`成功率 ${fmtPct(r.mc.successRate,0)} 低於 80%。可延後退休、提高投入、降低支出，或改用彈性提領（Guyton-Klinger／VPW）。`,
+    `Success ${fmtPct(r.mc.successRate,0)} is under 80%. Retire later, save more, spend less, or switch to a flexible rule (Guyton-Klinger/VPW).`,
+    `成功率${fmtPct(r.mc.successRate,0)}が80%未満。退職延期・積立増・支出減・柔軟提領を。`,
+    `성공률 ${fmtPct(r.mc.successRate,0)}이 80% 미만. 은퇴 연기·적립↑·지출↓·유연 인출.`]);
+ if((S.rage)<60 && (S.li||S.lp)) P("tint",
+   ["提早退休有『年金空窗期』","Early retirement has a pension gap window","早期退職に年金空白期","조기 은퇴 연금 공백"],
+   [`你 ${S.rage} 歲退休，但勞保／勞退多在 ${r.pensionStartAge} 歲後才領。這段空窗全靠資產，序列風險最關鍵——回測與蒙地卡羅已納入此時間差。`,
+    `You retire at ${S.rage} but pensions mostly start after ${r.pensionStartAge}. That gap relies fully on your portfolio — the highest sequence risk; the backtest and Monte Carlo already account for the timing.`,
+    `${S.rage}歳退職だが年金は${r.pensionStartAge}歳以降。空白期は資産頼みで系列リスク大。検証済み。`,
+    `${S.rage}세 은퇴지만 연금은 ${r.pensionStartAge}세 이후. 공백기는 자산 의존, 시퀀스 위험 큼. 반영됨.`]);
+ if(S.part_m>0) P("ok",
+   ["Barista：兼職顯著降低所需資產","Barista: part-time cuts the target","Barista：兼業で目標減","Barista: 兼業로 목표↓"],
+   [`兼職月收 ${fmtNT(S.part_m)} 讓 Barista 所需資產降到 ${fmtBig(r.barista.portfolioNeeded)}，比傳統 FIRE 低 ${fmtBig(r.variants.traditional-r.barista.portfolioNeeded)}。`,
+    `Part-time ${fmtNT(S.part_m)}/mo lowers the Barista target to ${fmtBig(r.barista.portfolioNeeded)}, ${fmtBig(r.variants.traditional-r.barista.portfolioNeeded)} below traditional FIRE.`,
+    `兼業${fmtNT(S.part_m)}でBarista目標${fmtBig(r.barista.portfolioNeeded)}。`,
+    `兼業 ${fmtNT(S.part_m)}로 Barista 목표 ${fmtBig(r.barista.portfolioNeeded)}.`]);
+ if(r.variants.coast.alreadyCoasting) P("ok",
+   ["你已達 Coast FIRE","You've reached Coast FIRE","Coast FIRE達成","Coast FIRE 달성"],
+   [`現有資產 ${fmtBig(S.port)} 已超過 Coast 門檻 ${fmtBig(r.variants.coastNumberNow)}：就算現在起完全不再投入，靠複利也能在 65 歲長成傳統 FI。`,
+    `Your ${fmtBig(S.port)} exceeds the Coast threshold ${fmtBig(r.variants.coastNumberNow)}: even with zero further contributions, compounding reaches the traditional FI number by 65.`,
+    `資産${fmtBig(S.port)}がCoast閾値${fmtBig(r.variants.coastNumberNow)}超。追加投資ゼロでも65歳でFI。`,
+    `자산 ${fmtBig(S.port)}이 Coast 기준 ${fmtBig(r.variants.coastNumberNow)} 초과. 추가 투자 없이 65세 FI.`]);
+ if(S.lev && r.lev && r.lev.jump>0) P("danger",
+   ["槓桿：期滿後月付會跳增","Leverage: payment jumps after grace","レバレッジ：据置後に跳増","레버리지: 거치 후 급증"],
+   [`寬限期內每月 ${fmtNT(r.lev.graceMonthly)}，期滿後跳增為 ${fmtNT(r.lev.afterGraceMonthly)}（+${fmtNT(r.lev.jump)}／月）。槓桿放大報酬也放大風險——升息、市場下跌時可能被追繳，務必確認屆時的收入負擔得起這筆較高月付。`,
+    `${fmtNT(r.lev.graceMonthly)}/mo during grace jumps to ${fmtNT(r.lev.afterGraceMonthly)} afterwards (+${fmtNT(r.lev.jump)}/mo). Leverage magnifies gains and losses — a margin call is possible when rates rise or markets fall; make sure your income can afford the higher payment.`,
+    `据置中 ${fmtNT(r.lev.graceMonthly)}/月 → 据置後 ${fmtNT(r.lev.afterGraceMonthly)}（+${fmtNT(r.lev.jump)}）。レバレッジは損益を拡大。追証の可能性、返済に耐えられるか確認。`,
+    `거치 중 ${fmtNT(r.lev.graceMonthly)}/월 → 거치 후 ${fmtNT(r.lev.afterGraceMonthly)}(+${fmtNT(r.lev.jump)}). 레버리지는 손익 확대. 마진콜 가능, 상환 감당 확인.`]);
+ if(!it.length) P("info",
+   ["設定看起來穩健","Your plan looks solid","計画は堅実","계획이 견실"],
+   ["各項風險指標都在合理範圍。持續調整輸入即可即時看到影響。","All risk gauges are in a reasonable range. Adjust any input to see the impact live.","各指標は妥当。入力を変えると即反映。","지표가 적정. 입력 변경 시 즉시 반영."]);
+ const col={danger:"var(--danger)",amber:"var(--amber)",tint:"var(--tint)",ok:"var(--ok)",info:"var(--label3)"};
+ document.getElementById("advisor").innerHTML=it.map(x=>`<div class="adv"><span class="dot" style="background:${col[x.lv]}"></span><div class="ac"><div class="at">${L(x.t)}</div><div class="ad">${L(x.d)}</div></div></div>`).join("");
+ document.getElementById("advCount").textContent=it.length;
+}
+
+function drawCurve(r){
+ const W=700,H=230,pad=24;
+ const acc=r.accSeries.slice(); // 每年末，累積期
+ // 提領期年末餘額
+ const draw=r.drawDet.rows.map(x=>x.balance);
+ const all=acc.concat(draw);
+ if(all.length<2){document.getElementById("chCurve").innerHTML="";return;}
+ const maxV=Math.max(...all,r.fiAdjusted)*1.05;
+ const accPath=pathFrom(acc,W,H,pad,maxV,0);
+ // 提領段接續 x：整段長度 = acc.length + draw.length
+ const n=all.length;
+ const xAt=i=>pad+(W-2*pad)*i/(n-1);
+ const yAt=v=>H-pad-(H-2*pad)*v/maxV;
+ let dPath="";
+ for(let i=0;i<draw.length;i++){const x=xAt(acc.length-1+i);const y=yAt(Math.max(0,draw[i]));dPath+=(i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1)+" ";}
+ const fiY=yAt(r.fiAdjusted);
+ const retX=xAt(Math.max(0,acc.length-1));
+ document.getElementById("chCurve").innerHTML=
+  `<line x1="${pad}" y1="${fiY}" x2="${W-pad}" y2="${fiY}" stroke="var(--label3)" stroke-width="1" stroke-dasharray="4 4"/>`+
+  `<line x1="${retX}" y1="${pad}" x2="${retX}" y2="${H-pad}" stroke="var(--amber)" stroke-width="1" stroke-dasharray="2 3"/>`+
+  `<path d="${accPath}" fill="none" stroke="var(--ok)" stroke-width="2.4"/>`+
+  `<path d="${dPath}" fill="none" stroke="var(--tint)" stroke-width="2.4"/>`+
+  `<text x="${pad+2}" y="${fiY-4}" font-size="10" fill="var(--label2)">FI ${fmtBig(r.fiAdjusted)}</text>`+
+  `<text x="${Math.min(retX+3,W-70)}" y="${pad+10}" font-size="10" fill="var(--amber)">${S.rage}${T("u_age")}</text>`;
+}
+function drawMc(r){
+ const W=460,H=120,pad=16;
+ const p=[r.mc.terminal.p5,r.mc.terminal.p25,r.mc.terminal.p50,r.mc.terminal.p75,r.mc.terminal.p95];
+ const mx=Math.max(...p,1);
+ const bw=(W-2*pad)/5-8;
+ let s="";
+ p.forEach((v,i)=>{const h=(H-2*pad)*v/mx;const x=pad+i*((W-2*pad)/5)+4;const y=H-pad-h;
+  s+=`<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(1,h)}" rx="3" fill="var(--tint)" opacity="${0.4+0.12*i}"/>`;
+  s+=`<text x="${x+bw/2}" y="${H-4}" font-size="9" fill="var(--label2)" text-anchor="middle">p${[5,25,50,75,95][i]}</text>`;});
+ document.getElementById("chMc").innerHTML=s;
+}
+function drawHist(r){
+ const W=700,H=150,pad=18;
+ const st=r.hist.starts; if(!st.length){document.getElementById("chHist").innerHTML="";return;}
+ const ends=st.map(x=>Math.max(0,x.endBalance));
+ const mx=Math.max(...ends,1);
+ const bw=(W-2*pad)/st.length;
+ let s="";
+ st.forEach((x,i)=>{const h=(H-2*pad)*Math.max(0,x.endBalance)/mx;const px=pad+i*bw;const y=H-pad-h;
+  const c=x.success?"var(--ok)":"var(--danger)";
+  s+=`<rect x="${px}" y="${y}" width="${Math.max(1,bw-0.6)}" height="${Math.max(1,h)}" fill="${c}" opacity="0.8"/>`;});
+ // 起始年標
+ s+=`<text x="${pad}" y="${H-4}" font-size="9" fill="var(--label2)">1928</text>`;
+ s+=`<text x="${W-pad}" y="${H-4}" font-size="9" fill="var(--label2)" text-anchor="end">${1928+st.length-1}</text>`;
+ document.getElementById("chHist").innerHTML=s;
+}
+
+function renderSurvival(r){
+ const sr=r.surv.floorSurvivalRate;
+ const gv=document.getElementById("survGv");
+ gv.textContent=fmtPct(sr,0);
+ gv.style.color=sr>=0.9?"var(--ok)":sr>=0.75?"var(--amber)":"var(--danger)";
+ document.getElementById("survGl").textContent=T("survGl").replace("{plan}",S.plan).replace("{track}",L(D.trackK)[{mc:0,historical:1,bootstrap:2}[S.track]]).replace("{n}",r.surv.paths.toLocaleString("en-US"));
+ document.getElementById("survReads").innerHTML=
+   rd(fmtPct(r.surv.floorSurvivalRate,0),T("floorSurv"))+
+   rd(fmtPct(r.surv.avgFulfillment,0),T("flexFulfill"))+
+   rd(fmtBig(r.surv.terminal.p50),T("survMedEnd"))+
+   rd(r.surv.medianBreachAge==null?"—":Math.round(r.surv.medianBreachAge)+T("u_age"),T("survBreach"));
+ drawRbd(r.rbd);
+ document.getElementById("rbdLegend").innerHTML=
+   `<b>${T("sRbd")}</b> — <span style="color:var(--ok)">■</span>${T("rbdRich")} · <span style="color:var(--danger)">■</span>${T("rbdBroke")} · <span style="color:var(--label3)">■</span>${T("rbdDead")}. ${T("rbdNote")}`;
+ document.getElementById("survNote").textContent=T("survNote");
+}
+function drawRbd(rbd){
+ const W=460,H=120,pad=6; const n=rbd.length; if(!n){document.getElementById("chRbd").innerHTML="";return;}
+ const x=i=>pad+(W-2*pad)*i/(n-1); const y=v=>pad+(H-2*pad)*(1-v);
+ // 堆疊：rich(底,綠) + broke(中,紅) + dead(上,灰)
+ const richTop=rbd.map(p=>p.rich);
+ const brokeTop=rbd.map(p=>p.rich+p.broke);
+ const areaPath=(topVals,base)=>{
+  let d="M"+x(0)+" "+y(0);
+  for(let i=0;i<n;i++) d+=" L"+x(i).toFixed(1)+" "+y(topVals[i]).toFixed(1);
+  for(let i=n-1;i>=0;i--) d+=" L"+x(i).toFixed(1)+" "+y(base?base[i]:0).toFixed(1);
+  return d+" Z";
+ };
+ let s="";
+ s+=`<rect x="${pad}" y="${pad}" width="${W-2*pad}" height="${H-2*pad}" fill="var(--label3)" opacity="0.25"/>`; // dead 背景(頂層剩餘)
+ s+=`<path d="${areaPath(brokeTop,null)}" fill="var(--danger)" opacity="0.55"/>`;
+ s+=`<path d="${areaPath(richTop,null)}" fill="var(--ok)" opacity="0.7"/>`;
+ // 年齡標
+ s+=`<text x="${pad}" y="${H-1}" font-size="9" fill="var(--label2)">${rbd[0].age}</text>`;
+ s+=`<text x="${W-pad}" y="${H-1}" font-size="9" fill="var(--label2)" text-anchor="end">${rbd[n-1].age}</text>`;
+ document.getElementById("chRbd").innerHTML=s;
+}
+function renderCashflow(r){
+ const th=L(D.cfH); const rows=r.cfPath.rows; const step=5;
+ let h=`<table><thead><tr>`+th.map(t=>`<th>${t}</th>`).join("")+`</tr></thead><tbody>`;
+ rows.forEach((x,i)=>{ if((i+1)%step!==0 && i!==rows.length-1) return;
+  h+=`<tr><td>${x.age}</td><td>${fmtBig(x.essential)}</td><td>${fmtBig(x.actualDisc)}</td><td>${x.income?fmtBig(x.income):"—"}</td><td>${x.withdraw?fmtBig(x.withdraw):"—"}</td><td class="v">${fmtBig(Math.max(0,x.balance))}</td></tr>`;});
+ document.getElementById("cfWrap").innerHTML=h+`</tbody></table>`;
+ document.getElementById("cfNote").textContent=L(["以期望實質報酬(股債 glide 合成)跑出的單一代表路徑,方便你逐年檢視地板/彈性與淨值;存活率則來自上方三軌數千條路徑。","A single expected-return path so you can inspect floor/upside and net worth year by year; the survival rate above comes from thousands of paths across three tracks.","期待実質リターンの代表経路。サバイバル率は上の三軌数千経路から。","기대 실질수익 대표 경로. 생존율은 위 3트랙 수천 경로에서."]);
+}
+function renderLev(r){
+ const sec=document.getElementById("s_levout"), card=document.getElementById("levOutCard");
+ if(!r.lev){ if(sec)sec.style.display="none"; if(card)card.style.display="none"; return; }
+ sec.style.display=""; card.style.display="";
+ document.getElementById("levReads").innerHTML=
+   rd(fmtNT(r.lev.graceMonthly),T("levGraceMo"))+
+   rd(fmtNT(r.lev.afterGraceMonthly),T("levAfterMo"))+
+   rd(fmtNT(r.lev.jump),T("levJump"))+
+   rd(fmtBig(r.lev.totalInterest),T("levInt"));
+ document.getElementById("levNote").textContent=T("levNote");
+}
+function renderSens(r){
+ const ages=[S.rage-5,S.rage,S.rage+5,S.rage+10].filter(a=>a>S.age);
+ const saves=[S.save_m*0.5,S.save_m,S.save_m*1.5,S.save_m*2].map(x=>Math.round(x));
+ let h=`<thead><tr><th>${L(["退休\\投入","Age\\Save","年齢\\積立","나이\\적립"])}</th>`+saves.map(s=>`<th>${fmtBig(s)}</th>`).join("")+`</tr></thead><tbody>`;
+ const rm=E.annualToMonthly(r.realRet);
+ ages.forEach(a=>{
+  h+=`<tr><td>${a}${T("u_age")}</td>`;
+  saves.forEach(sv=>{
+   const months=(a-S.age)*12;
+   const grow=Math.pow(1+rm,months);
+   const annuity=rm===0?months:(grow-1)/rm;
+   const end=S.port*grow+sv*annuity;
+   const diff=end-r.fiAdjusted;
+   h+=diff>=0?`<td style="color:var(--ok)">✓</td>`:`<td style="color:var(--danger)">−${wan(-diff)}</td>`;
+  });
+  h+=`</tr>`;
+ });
+ document.getElementById("sensTbl").innerHTML=h+`</tbody>`;
+}
+
+function renderTable(r){
+ const wrap=document.getElementById("tblWrap");
+ if(S.tblView==="hide"){wrap.innerHTML="";return;}
+ const th=L(D.tblH);
+ const step=S.tblView==="brief"?5:1;
+ const rows=[];
+ // 累積期
+ const acc=r.accSeries;
+ for(let i=0;i<acc.length;i++){const age=S.age+i+1;if((age-S.age)%step!==0 && i!==acc.length-1)continue;
+  rows.push({age,phase:T("phAcc"),spend:0,pension:0,growth:null,end:acc[i]});}
+ // 提領期
+ r.drawDet.rows.forEach((x,i)=>{const age=S.rage+i+1;if((i+1)%step!==0 && i!==r.drawDet.rows.length-1)return;
+  rows.push({age,phase:T("phDraw"),spend:x.spend,pension:x.pension,growth:null,end:x.balance});});
+ let h=`<div class="tw ${S.tblView==="full"?"full":""}"><table><thead><tr>`+th.map((t,i)=>`<th>${t}</th>`).join("")+`</tr></thead><tbody>`;
+ rows.forEach(x=>{h+=`<tr><td>${x.age}</td><td>${x.phase}</td><td>${x.spend?fmtBig(x.spend):"—"}</td><td>${x.pension?fmtBig(x.pension):"—"}</td><td>—</td><td class="v">${fmtBig(Math.max(0,x.end))}</td></tr>`;});
+ wrap.innerHTML=h+`</tbody></table></div>`;
+}
+
+/* ==================== 儲存（window.storage 優先，localStorage 後備）＋ 儲存方案 ==================== */
+const STORE_KEY="firecalc";
+const STORAGE=(typeof window!=="undefined"&&window.storage)?window.storage:{
+  set:(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}return Promise.resolve();},
+  get:k=>{try{return Promise.resolve(localStorage.getItem(k));}catch(e){return Promise.resolve(null);}},
+  delete:k=>{try{localStorage.removeItem(k);}catch(e){}return Promise.resolve();},
+};
+let lastSaved=0,tSave=0,PLANS=[],LASTR=null;
+
+function readS(){ readInputs(); return JSON.parse(JSON.stringify(S)); }
+function applyS(obj){ Object.assign(S,obj); writeInputs(); }
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+/* 每次重算＝即時重算＋去抖動自動儲存（比照 ETF liveUpdate） */
+function run(){ const r=compute(); render(r); LASTR=r; persistD(); }
+
+function persist(){ lastSaved=Date.now(); STORAGE.set(STORE_KEY,JSON.stringify({S:readS(),LG,ts:lastSaved})).catch(()=>{}); updateSavedTime(); }
+function persistD(){ clearTimeout(tSave); tSave=setTimeout(persist,800); }
+function updateSavedTime(){ const el=document.getElementById("savedTime"); if(!el)return;
+  if(!lastSaved){ el.textContent="—"; return; }
+  const d=new Date(lastSaved),p=n=>String(n).padStart(2,"0");
+  el.textContent=T("savedLabel")+"："+d.getFullYear()+"/"+p(d.getMonth()+1)+"/"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes()); }
+function savePlans(){ STORAGE.set(STORE_KEY+"_plans",JSON.stringify(PLANS)).catch(()=>{}); }
+
+/* 儲存方案：把目前所有參數存成一組可比較的方案（與自動儲存並存，不衝突） */
+function savePlan(){
+  const def=L(D.scDefName)+" "+(PLANS.length+1);
+  let name=def; try{ const v=window.prompt(T("scNamePrompt"),def); if(v===null) return; name=v; }catch(e){}
+  const r=LASTR||compute();
+  PLANS.push({name:(name||def).slice(0,40),ts:Date.now(),S:readS(),
+    m:{fi:r.fiAdjusted,fiAge:r.fiAge,mc:r.mc.successRate,hist:r.hist.successRate,need:r.needMonthly}});
+  savePlans(); persist(); renderPlans();
+}
+function renderPlans(){
+  const card=document.getElementById("scenarioCard"); if(!card)return;
+  if(!PLANS.length){ card.innerHTML=`<div class="empty">${T("scEmpty")}</div>`; return; }
+  const cols=L(D.scCols), sLbl=L(["成功率","Success","成功率","성공률"]);
+  let h=PLANS.map((p,i)=>`<div class="dm" style="align-items:flex-start">`+
+    `<div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</div>`+
+    `<div style="font-size:12px;color:var(--label2)">${T("stFi")} ${fmtBig(p.m.fi)} · ${T("stAge")} ${p.m.fiAge==null?"—":p.m.fiAge+T("u_age")} · ${sLbl} ${fmtPct(p.m.mc,0)}</div></div>`+
+    `<button class="mini" data-loadp="${i}">${T("scLoad")}</button>`+
+    `<button class="mini" data-delp="${i}" style="color:var(--danger)">${T("scDel")}</button></div>`).join("");
+  if(PLANS.length>=2){
+    const rows=[[cols[1],p=>fmtBig(p.m.fi)],[cols[2],p=>p.m.fiAge==null?"—":p.m.fiAge+T("u_age")],[cols[3],p=>fmtPct(p.m.mc,0)],[cols[4],p=>fmtBig(p.m.need)]];
+    h+=`<div class="tw" style="border-top:.5px solid var(--sep)"><table><thead><tr><th>${cols[0]}</th>${PLANS.map(p=>`<th>${esc(p.name)}</th>`).join("")}</tr></thead><tbody>`+
+      rows.map(row=>`<tr><td>${row[0]}</td>${PLANS.map(p=>`<td>${row[1](p)}</td>`).join("")}</tr>`).join("")+`</tbody></table></div>`;
+  }
+  h+=`<div class="note">${T("scNote")}</div>`;
+  card.innerHTML=h;
+}
+
+/* 儲存檔案(全部)：目前設定＋全部方案打包成 JSON；讀取檔案完整還原 */
+function exportJSON(){
+  const d=new Date(),p=n=>String(n).padStart(2,"0");
+  const data=JSON.stringify({S:readS(),LG,plans:PLANS,ts:Date.now(),app:"firecalc",ver:1},null,2);
+  const blob=new Blob([data],{type:"application/json"});const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download=`fire-backup-${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}.json`;a.click();
+}
+function showDataErr(msg){ const el=document.getElementById("dataErr"); if(!el)return; el.textContent=msg||""; el.style.display=msg?"":"none"; }
+function importJSON(file){
+  const rd=new FileReader();
+  rd.onload=()=>{ try{ const d=JSON.parse(rd.result);
+    if(d.app && d.app!=="firecalc" && !d.S) throw 0;
+    if(typeof d.LG==="number") LG=d.LG;
+    if(d.S) Object.assign(S,d.S);
+    if(Array.isArray(d.plans)){ PLANS=d.plans; savePlans(); }
+    showDataErr(""); applyLang(); writeInputs(); persist(); run();
+  }catch(err){ showDataErr(T("loadFail")); } };
+  rd.readAsText(file);
+}
+function wireData(){
+  const ex=document.getElementById("btnExport"); if(ex) ex.onclick=exportJSON;
+  const im=document.getElementById("btnImport"); if(im) im.onclick=()=>document.getElementById("fileImport").click();
+  const fi=document.getElementById("fileImport"); if(fi) fi.onchange=e=>{const f=e.target.files[0];if(f)importJSON(f);e.target.value="";};
+  const rd=document.getElementById("btnRestoreDef"); if(rd) rd.onclick=()=>{ if(!confirm(T("resetAsk")))return; applyS(JSON.parse(JSON.stringify(DEF))); persist(); run(); };
+  const cl=document.getElementById("btnClear"); if(cl) cl.onclick=()=>{ if(!confirm(T("clearAsk")))return;
+    STORAGE.delete(STORE_KEY).catch(()=>{}); STORAGE.delete(STORE_KEY+"_plans").catch(()=>{}); PLANS=[]; savePlans();
+    applyS(JSON.parse(JSON.stringify(DEF))); lastSaved=0; updateSavedTime(); renderPlans(); run(); };
+  // 方案列表：載入 / 刪除
+  const card=document.getElementById("scenarioCard");
+  if(card && !card.dataset.wired){ card.dataset.wired="1";
+    card.addEventListener("click",e=>{ const lo=e.target.closest("[data-loadp]"), de=e.target.closest("[data-delp]");
+      if(lo){ applyS(JSON.parse(JSON.stringify(PLANS[+lo.dataset.loadp].S))); persist(); run(); }
+      else if(de){ PLANS.splice(+de.dataset.delp,1); savePlans(); renderPlans(); } }); }
+}
+async function restore(){
+  try{ const r=await STORAGE.get(STORE_KEY); if(r){ const d=JSON.parse(r); if(typeof d.LG==="number")LG=d.LG; if(d.S)Object.assign(S,d.S); if(d.ts)lastSaved=d.ts; }
+    const pr=await STORAGE.get(STORE_KEY+"_plans"); if(pr) PLANS=JSON.parse(pr)||[]; }catch(e){}
+}
+function writeInputs(){
+ const setv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+ setv("age",S.age);setv("port",S.port);setv("save_m",S.save_m);setv("step",S.step);
+ setv("rage",S.rage);setv("plan",S.plan);setv("exp_m",S.exp_m);setv("lean_m",S.lean_m);setv("fat_m",S.fat_m);
+ setv("ret",S.ret);setv("vol",S.vol);setv("infl",S.infl);setv("stock",S.stock);setv("swr",S.swr);
+ setv("lisal",S.lisal);setv("liyr",S.liyr);setv("licl",S.licl);
+ setv("lpsal",S.lpsal);setv("lpemp",S.lpemp);setv("lpvol",S.lpvol);setv("lpyr",S.lpyr);setv("lpret",S.lpret);
+ setv("npyr",S.npyr);setv("part_m",S.part_m);setv("legacy",S.legacy);
+ setv("levamt",S.levAmt);setv("levrate",S.levRate);setv("levyr",S.levYears);setv("levg",S.levGrace);
+ setv("essential_m",S.essential_m);setv("disc_m",S.disc_m);setv("careAge",S.careAge);setv("careMed",S.careMed);
+ setv("medInfl",S.medInfl);setv("stockEnd",S.stockEnd);setv("partUntil",S.partUntil);
+ setv("oneExpAmt",S.oneExpAmt);setv("oneExpAge",S.oneExpAge);setv("oneInAmt",S.oneInAmt);setv("oneInAge",S.oneInAge);
+ document.querySelectorAll("#segTrack button").forEach(b=>b.classList.toggle("on",b.dataset.t===S.track));
+ // toggles
+ tog("sw_li","liBox",S.li);tog("sw_lp","lpBox",S.lp);tog("sw_np","npBox",S.np);tog("sw_lev","levBox",S.lev);
+ // strat seg
+ document.querySelectorAll("#segLevM button").forEach(b=>b.classList.toggle("on",b.dataset.m===S.levMethod));
+ document.querySelectorAll("#segStrat button").forEach(b=>b.classList.toggle("on",b.dataset.k===S.strat));
+ document.querySelectorAll("#segSims button").forEach(b=>b.classList.toggle("on",+b.dataset.s===S.sims));
+ document.querySelectorAll("#segTbl button").forEach(b=>b.classList.toggle("on",b.dataset.v===S.tblView));
+ renderStratParams();
+}
+function tog(swId,boxId,on){const sw=document.getElementById(swId);const box=document.getElementById(boxId);if(sw)sw.classList.toggle("on",on);if(box)box.style.display=on?"":"none";}
+
+function wire(){
+ // 所有 number 輸入
+ document.querySelectorAll("input.num").forEach(inp=>inp.addEventListener("input",run));
+ // info 展開
+ document.querySelectorAll(".info").forEach(b=>{});
+ // 切換 explains（點 label 區的提示由預設 class 控制；這裡讓部份預設展開）
+ ["e_swr","e_exp","e_part","e_stock"].forEach(id=>{});
+ // toggles
+ [["sw_li","liBox","li"],["sw_lp","lpBox","lp"],["sw_np","npBox","np"],["sw_lev","levBox","lev"]].forEach(([sw,box,key])=>{
+  document.getElementById(sw).addEventListener("click",()=>{S[key]=!S[key];tog(sw,box,S[key]);run();});
+ });
+ // 策略 seg
+ document.querySelectorAll("#segStrat button").forEach(b=>b.addEventListener("click",()=>{
+  S.strat=b.dataset.k;document.querySelectorAll("#segStrat button").forEach(x=>x.classList.toggle("on",x===b));renderStratParams();run();}));
+ // 槓桿還款方式 seg
+ document.querySelectorAll("#segLevM button").forEach(b=>b.addEventListener("click",()=>{
+  S.levMethod=b.dataset.m;document.querySelectorAll("#segLevM button").forEach(x=>x.classList.toggle("on",x===b));run();}));
+ // v2 三軌 seg
+ document.querySelectorAll("#segTrack button").forEach(b=>b.addEventListener("click",()=>{
+  S.track=b.dataset.t;document.querySelectorAll("#segTrack button").forEach(x=>x.classList.toggle("on",x===b));run();}));
+ // sims seg
+ document.querySelectorAll("#segSims button").forEach(b=>b.addEventListener("click",()=>{
+  S.sims=+b.dataset.s;document.querySelectorAll("#segSims button").forEach(x=>x.classList.toggle("on",x===b));run();}));
+ // 明細 seg
+ document.querySelectorAll("#segTbl button").forEach(b=>b.addEventListener("click",()=>{
+  S.tblView=b.dataset.v;document.querySelectorAll("#segTbl button").forEach(x=>x.classList.toggle("on",x===b));run();}));
+ // auto SWR
+ document.getElementById("autoSWR").addEventListener("click",()=>{
+  readInputs();const s=E.suggestSWR(S.plan-S.rage);document.getElementById("swr").value=s;run();});
+ // header
+ document.getElementById("lang").addEventListener("change",e=>{LG=+e.target.value;applyLang();writeInputs();run();});
+ // 儲存方案（存目前為可比較的一組方案）
+ document.getElementById("save").addEventListener("click",()=>{ savePlan();
+  const b=document.getElementById("save");const o=b.textContent;b.textContent=T("saved");setTimeout(()=>b.textContent=o,1200);});
+ document.getElementById("scSaveBtn").addEventListener("click",savePlan);
+ document.getElementById("mode").addEventListener("click",()=>{dark=!dark;document.body.classList.toggle("dark",dark);document.documentElement.classList.toggle("dark",dark);document.getElementById("mode").textContent=dark?T("light"):T("dark");
+  document.querySelector('meta[name=theme-color]').setAttribute("content",dark?"#3FA7A0":"#0A7C74");});
+ document.getElementById("reset").addEventListener("click",()=>{ if(!confirm(T("resetAsk")))return; applyS(JSON.parse(JSON.stringify(DEF))); persist(); run();});
+ // scroll shadow
+ addEventListener("scroll",()=>{document.body.classList.toggle("scrolled",scrollY>10);},{passive:true});
+ // segTbl labels
+ document.querySelectorAll("#segTbl button").forEach((b,i)=>b.textContent=[T("vHide"),T("vBrief"),T("vFull")][i]);
+}
+
+/* ==================== 啟動 ==================== */
+(function init(){
+ restore().then(()=>{
+  document.getElementById("lang").value=String(LG);
+  applyLang(); wire(); writeInputs();
+  document.querySelectorAll("#segTbl button").forEach((b,i)=>b.textContent=[T("vHide"),T("vBrief"),T("vFull")][i]);
+  updateSavedTime(); run();
+  requestAnimationFrame(()=>{const h=document.querySelector("header").offsetHeight;document.documentElement.style.setProperty("--hh",h+"px");});
+ });
+})();
+</script>
+</body>
+</html>
