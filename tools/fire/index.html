@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="FIRE試算">
 <meta name="description" content="FIRE 財務自由退休試算：FI 數字、幾歲能退、五型態(瘦/Coast/Barista/傳統/胖FIRE)、4%法則與3%長壽命調整、五種提領法則(固定4%、Guyton-Klinger護欄、VPW、Vanguard動態、固定比例)、蒙地卡羅存活率、歷史序列回測、台灣三支柱(勞保年金/勞退新制/國民年金)缺口分析。四語系、深淺色、全部本地運算不外傳。">
 <link rel="canonical" href="https://money.space653000.workers.dev/tools/fire/">
+<link rel="apple-touch-icon" href="../../assets/icon-180.png">
 <link rel="manifest" href="manifest.json">
 <style>
 :root{
@@ -1382,6 +1383,11 @@ function wire(){
   requestAnimationFrame(()=>{const h=document.querySelector("header").offsetHeight;document.documentElement.style.setProperty("--hh",h+"px");});
  });
 })();
+
+/* PWA：註冊 service worker（比照 ETF/mortgage，file:// 下不註冊避免報錯） */
+if("serviceWorker" in navigator && location.protocol!=="file:"){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
 </script>
 </body>
 </html>
